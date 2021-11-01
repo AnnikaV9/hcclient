@@ -13,7 +13,7 @@ python3 hcclient --help
 ```
 
 
-## Running as a Docker image
+## Docker image
 From Docker Hub:
 ```
 docker pull annikav9/hcclient
