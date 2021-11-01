@@ -25,6 +25,6 @@ docker run --rm -it hcclient --help
 
 
 
-##Todo
+## Todo
 - Add color schemes
 - Add mod/admin commands that can enabled with flags (eg. `--is-mod`)
