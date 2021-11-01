@@ -25,14 +25,14 @@ class Client:
         else:
             self.password = ""
 
-        self.nick = args.nickname
+        self.nick = self.args.nickname
         self.online_users = []
 
         self.ws = websocket.create_connection(self.args.websocket_address)
         self.ws.send(json.dumps({
             "cmd": "join",
-            "channel": args.channel,
-            "nick": "{}#{}".format(args.nickname, self.password)
+            "channel": self.args.channel,
+            "nick": "{}#{}".format(self.args.nickname, self.password)
         }))
 
         self.thread_ping = threading.Thread(target=self.ping_thread, daemon=True)
