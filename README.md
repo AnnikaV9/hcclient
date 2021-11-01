@@ -35,6 +35,19 @@ docker run --rm -it hcclient --help
 
 
 
+## Colors
+The default color scheme can be overidden by using arguments such as `--message-color` or `--timestamp-color`. More options can be viewed with `--help`. Colors are provided by [termcolor](https://pypi.org/project/termcolor/). Valid colors are:
+- grey
+- red
+- green
+- yellow
+- blue
+- magenta
+- cyan
+- white
+
+
+
 ## Configuration
 By default, hcclient does not save to or read from any configuration file. It might be troublesome to have to type long passwords and colors every time you wish to connect. This can be solved by creating a bash script to call hcclient with your preferred arguments. Example:
 
