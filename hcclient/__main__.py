@@ -80,14 +80,14 @@ class Client:
                     elif received["cmd"] == "onlineAdd":
                         self.online_users.append(received["nick"])
                         print("{}|{}|{}".format(termcolor.colored(packet_receive_time, self.args.timestamp_color),
-                                                       termcolor.colored("SERVER", self.args.server_color),
-                                                       termcolor.colored(received["nick"] + " joined", self.args.server_color)))
+                                                termcolor.colored("SERVER", self.args.server_color),
+                                                termcolor.colored(received["nick"] + " joined", self.args.server_color)))
 
                     elif received["cmd"] == "onlineRemove":
                         self.online_users.remove(received["nick"])
                         print("{}|{}|{}".format(termcolor.colored(packet_receive_time, self.args.timestamp_color),
-                                                     termcolor.colored(tripcode, self.args.server_color),
-                                                     termcolor.colored(received["nick"] + " left", self.args.server_color)))
+                                                termcolor.colored("SERVER", self.args.server_color),
+                                                termcolor.colored(received["nick"] + " left", self.args.server_color)))
 
                     elif received["cmd"] == "emote":
 
