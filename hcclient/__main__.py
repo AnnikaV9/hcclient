@@ -8,12 +8,12 @@ import re
 import os
 import time
 import argparse
-from datetime import datetime
-
+import colorama
+import datetime
+import termcolor
 
 
 class Client:
-
 
     def __init__(self, args):
 
@@ -44,13 +44,12 @@ class Client:
         try:
             while self.ws.connected:
                 received = json.loads(self.ws.recv())
-                packet_receive_time = datetime.now().strftime("%H:%M")
+                packet_receive_time = datetime.datetime.now().strftime("%H:%M")
 
                 if self.args.no_parse:
                     print("\n{}|{}".format(packet_receive_time, received))
 
                 else:
-
                     if received["cmd"] == "onlineSet":
                         for nick in received["nicks"]:
                             if self.nick in self.online_users:
@@ -61,38 +60,42 @@ class Client:
                         if not self.args.no_clear:
                             os.system('cls' if os.name=='nt' else 'clear')
 
-                        print("You are now connected to channel: {}\nType '/help' for a list of commands you can use with this client\n\n".format(self.channel))
+                        print("{}|{}|{}".format(termcolor.colored(packet_receive_time, self.args.timestamp_color),
+                                                termcolor.colored("CLIENT", self.args.client_color),                
+                                                termcolor.colored("You are now connected to channel: {} - Type '/help' for a list of commands you can use with this client\n\n".format(self.channel), self.args.client_color)))
 
                     elif received["cmd"] == "chat":
-
                         if len(received.get("trip", "")) < 6:
                             tripcode = "NOTRIP"
 
                         else:
                             tripcode = received.get("trip", "")
-                        print("{}|{}|[{}] {}".format(packet_receive_time, tripcode, received["nick"], received["text"]))
+                        
+                        if received["uType"] == "mod":
+                            color_to_use = self.args.mod_nickname_color
+                        
+                        elif received["uType"] == "admin":
+                            color_to_use = self.args.admin_nickname_color
+
+                        else:
+                            color_to_use = self.args.nickname_color
+                        
+                        print("{}|{}|[{}] {}".format(termcolor.colored(packet_receive_time, self.args.timestamp_color),
+                                                     termcolor.colored(tripcode, color_to_use),
+                                                     termcolor.colored(received["nick"], color_to_use),
+                                                     termcolor.colored(received["text"], self.args.message_color)))
 
                     elif received["cmd"] == "onlineAdd":
-
-                        if len(received.get("trip", "")) < 6:
-                            tripcode = "NOTRIP"
-
-                        else:
-                            tripcode = received.get("trip", "")
-
                         self.online_users.append(received["nick"])
-                        print("{}|{}|{} joined".format(packet_receive_time, tripcode, received["nick"]))
+                        print("{}|{}|{} joined".format(termcolor.colored(packet_receive_time, self.args.timestamp_color),
+                                                       termcolor.colored("SERVER", self.args.server_color),
+                                                       termcolor.colored(received["nick"], self.args.server_color)))
 
                     elif received["cmd"] == "onlineRemove":
-
-                        if len(received.get("trip", "")) < 6:
-                            tripcode = "NOTRIP"
-
-                        else:
-                            tripcode = received.get("trip", "")
-
                         self.online_users.remove(received["nick"])
-                        print("{}|{}|{} left".format(packet_receive_time, tripcode, received["nick"]))
+                        print("{}|{}|{} left".format(termcolor.colored(packet_receive_time, self.args.timestamp_color),
+                                                     termcolor.colored(tripcode, self.args.server_color),
+                                                     termcolor.colored(received["nick"], self.args.server_color)))
 
                     elif received["cmd"] == "emote":
 
@@ -102,7 +105,9 @@ class Client:
                         else:
                             tripcode = received.get("trip", "")
 
-                        print("{}|{}|{}".format(packet_receive_time, tripcode, received["text"]))
+                        print("{}|{}|{}".format(termcolor.colored(packet_receive_time, self.args.timestamp_color),
+                                                termcolor.colored(tripcode, self.args.emote_color),
+                                                termcolor.colored(received["text"], self.args.emote_color)))
 
                     elif received["cmd"] == "info" and received.get("type") is not None and received.get("type") == "whisper":
 
@@ -112,15 +117,21 @@ class Client:
                         else:
                             tripcode = received.get("trip", "")
 
-                        print("{}|{}|{}".format(packet_receive_time, tripcode, received["text"]))
+                        print("{}|{}|{}".format(termcolor.colored(packet_receive_time, self.args.timestamp_color),
+                                                termcolor.colored(tripcode, self.args.whisper_color),
+                                                termcolor.colored(received["text"], self.args.whisper_color)))
 
                     elif received["cmd"] == "info":
 
-                        print("{}|{}|{}".format(packet_receive_time, "SYSTEM", received["text"]))
+                        print("{}|{}|{}".format(termcolor.colored(packet_receive_time, self.args.timestamp_color),
+                                                termcolor.colored("SERVER", self.args.server_color),
+                                                termcolor.colored(received["text"], self.args.server_color)))
 
                     elif received["cmd"] == "warn":
 
-                        print("{}|{}|{}".format(packet_receive_time, "!WARN!", received["text"]))
+                        print("{}|{}|{}".format(termcolor.colored(packet_receive_time, self.args.timestamp_color),
+                                                termcolor.colored("!WARN!", self.args.warning_color),
+                                                termcolor.colored(received["text"], self.args.warning_color)))
  
         except KeyboardInterrupt:
             None
@@ -154,13 +165,14 @@ class Client:
                 self.ws.send(json.dumps(json_to_send))
 
             except:
-                print("\nError sending json: {}".format(sys.exc_info()))
+                print("{}|{}|Error sending json: {}".format(termcolor.colored("-NIL-", self.args.timestamp_color),
+                                                            termcolor.colored("CLIENT", self.args.client_color),
+                                                            termcolor.colored(sys.exc_info(), self.args.client_color)))
 
         elif message == "/list":
-            user_list = "\n\nChannel: {}\nOnline users:\n{}\n\n".format(self.channel,
-                                                                        "\n".join(map(str, self.online_users)))
-            print(user_list)
-
+            print("{}|{}|{}".format(termcolor.colored("-NIL-", self.args.timestamp_color),
+                                                      termcolor.colored("CLIENT", self.args.client_color),
+                                                      termcolor.colored("Channel: {} - Online users: {}".format(self.channel, ", ".join(self.online_users)), self.args.client_color)))
 
         elif message.split()[0] == "/move":
             split_message = message.split()
@@ -230,7 +242,7 @@ Usage: /reply <message> or /r <message>
 
 if __name__ == "__main__":
 
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(description="Terminal client for connecting to hack.chat servers. Colors are provided by termcolor.")
     required_group = parser.add_argument_group('required arguments')
     optional_group = parser.add_argument_group('optional arguments')
     required_group.add_argument("-c", "--channel", help="specify the channel to join", required=True)
@@ -239,11 +251,38 @@ if __name__ == "__main__":
     optional_group.add_argument("-w", "--websocket-address", help="specify the websocket address to connect to (default: wss://hack-chat/chat-ws)")
     optional_group.add_argument("--no-parse", help="log received packets without parsing",  dest="no_parse", action="store_true")
     optional_group.add_argument("--no-clear", help="disables terminal clearing when joining a new channel", dest="no_clear", action="store_true")
-    optional_group.set_defaults(no_parse=False, no_clear=False, websocket_address="wss://hack.chat/chat-ws")
+    optional_group.add_argument("--message-color", help="sets the message color (default: white)")
+    optional_group.add_argument("--whisper-color", help="sets the whisper color (default: green)")
+    optional_group.add_argument("--emote-color", help="sets the emote color (default: green)")
+    optional_group.add_argument("--nickname-color", help="sets the nickname color (default: white)")
+    optional_group.add_argument("--warning-color", help="sets the warning color (default: yellow)")
+    optional_group.add_argument("--server-color", help="sets the server color (default: green)")
+    optional_group.add_argument("--client-color", help="sets the client color (default: green)")
+    optional_group.add_argument("--timestamp-color", help="sets the timestamp color (default: white)")
+    optional_group.add_argument("--mod-nickname-color", help="sets the moderator nickname color (default: cyan)")
+    optional_group.add_argument("--admin-nickname-color", help="sets the admin nickname color (default: red)")
+    optional_group.set_defaults(no_parse=False,
+                                no_clear=False,
+                                message_color="white",
+                                whisper_color="green",
+                                emote_color="green",
+                                nickname_color="white",
+                                warning_color="yellow",
+                                server_color="green",
+                                client_color="green",
+                                timestamp_color="white",
+                                mod_nickname_color="cyan",
+                                admin_nickname_color="red",
+                                websocket_address="wss://hack.chat/chat-ws")
     args = parser.parse_args()
+    
+    colorama.init()
 
     client = Client(args)
     client.thread_ping.start()
     client.thread_input.start()
     client.main_thread()
+
+    print("Exiting...")
+    colorama.deinit()
 
