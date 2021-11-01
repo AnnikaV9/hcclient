@@ -5,17 +5,21 @@ A terminal client for connecting to [hack.chat](https://github.com/hack-chat/mai
 
 ## Setup & Usage
 
-
-Without Docker:
 ```
 git clone https://github.com/AnnikaV9/hcclient.git
 cd hcclient
 pip3 install -r requirements.txt
 python3 hcclient --help
 ```
-With Docker:
 
 
+## Running as a Docker image
+From Docker Hub:
+```
+docker pull annikav9/hcclient
+docker run --rm -it annikav9/hcclient --help
+```
+Building locally:
 ```
 git clone https://github.com/AnnikaV9/hcclient.git
 cd hcclient
