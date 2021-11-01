@@ -18,21 +18,13 @@ class Client:
     def __init__(self, args):
 
         self.args = args
-
-        if self.args.trip_password is not None:
-            self.password = self.args.trip_password
-
-        else:
-            self.password = ""
-
         self.nick = self.args.nickname
         self.online_users = []
-
         self.ws = websocket.create_connection(self.args.websocket_address)
         self.ws.send(json.dumps({
             "cmd": "join",
             "channel": self.args.channel,
-            "nick": "{}#{}".format(self.args.nickname, self.password)
+            "nick": "{}#{}".format(self.args.nickname, self.args.trip_password)
         }))
 
         self.thread_ping = threading.Thread(target=self.ping_thread, daemon=True)
@@ -273,6 +265,7 @@ if __name__ == "__main__":
                                 timestamp_color="white",
                                 mod_nickname_color="cyan",
                                 admin_nickname_color="red",
+                                trip_password="",
                                 websocket_address="wss://hack.chat/chat-ws")
     args = parser.parse_args()
     
