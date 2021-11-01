@@ -36,7 +36,7 @@ docker run --rm -it hcclient --help
 
 
 ## Configuration
-By default, hcclient does not save to or read from any configuration file. It might be troublesome to have to type long passwords and colors every time you wish to connect. This can be solved by simply creating a bash script to call hcclient with your preferred arguments. Example:
+By default, hcclient does not save to or read from any configuration file. It might be troublesome to have to type long passwords and colors every time you wish to connect. This can be solved by creating a bash script to call hcclient with your preferred arguments. Example:
 
 *hcclient.sh*
 ```bash
