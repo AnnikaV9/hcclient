@@ -54,7 +54,7 @@ docker run --rm -it annikav9/hcclient --trip-password mypassword \
                                       --server-color red \
                                       "$@"
 ```
-This can then be run with:
+The script can then be run like:
 ```
 ./hcclient.sh -c mychannel -n mynick
 ```
