@@ -206,7 +206,7 @@ All '/n/'s will be converted into linebreaks
 Raw json packets can be sent with '/raw'
 Usage: /raw <json>
 
-User list can be viewed with '/list'\
+User list can be viewed with '/list'
 Usage: /list
 
 Chat can be cleared with '/clear'
