@@ -54,7 +54,6 @@ By default, hcclient does not save to or read from any configuration file. It mi
 *hcclient.sh*
 ```bash
 #!/bin/bash
-
 python3 hcclient --trip-password mypassword \
                  --message-color yellow \
                  --no-clear \
