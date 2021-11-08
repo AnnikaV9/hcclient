@@ -13,7 +13,7 @@ $ git clone https://github.com/AnnikaV9/hcclient.git
 $ cd hcclient
 
 # Install the dependencies
-pip3 install -r requirements.txt
+$ pip3 install -r requirements.txt
 ```
 
 
@@ -24,7 +24,7 @@ From Docker Hub:
 
 ```
 # Fetch the image from docker.io
-docker pull annikav9/hcclient
+$ docker pull annikav9/hcclient
 ```
 
 
@@ -32,13 +32,13 @@ Building locally:
 
 ```
 # Clone the repository
-git clone https://github.com/AnnikaV9/hcclient.git
+$ git clone https://github.com/AnnikaV9/hcclient.git
 
 # Change the working directory
-cd hcclient
+$ cd hcclient
 
 # Build the image
-docker build -t annikav9/hcclient .
+$ docker build -t annikav9/hcclient .
 ```
 
 
@@ -130,7 +130,7 @@ docker run --rm -it annikav9/hcclient --trip-password mypassword \
 ```
 The script can then be run like:
 ```
-./hcclient.sh -c mychannel -n mynick
+$ ./hcclient.sh -c mychannel -n mynick
 ```
 
 
