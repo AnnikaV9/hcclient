@@ -23,8 +23,11 @@ $ pip3 install -r requirements.txt
 From Docker Hub:
 
 ```
-# Fetch the image from docker.io
+# With Docker
 $ docker pull annikav9/hcclient
+
+# With Podman
+$ podman pull docker.io/annikav9/hcclient
 ```
 
 
@@ -39,6 +42,9 @@ $ cd hcclient
 
 # Build the image
 $ docker build -t annikav9/hcclient .
+
+# Or with Podman
+$ podman build -t annikav9/hcclient .
 ```
 
 
@@ -46,6 +52,8 @@ $ docker build -t annikav9/hcclient .
 ## Usage
 ```
 $ python3 hcclient --help
+$ docker run --rm -it annikav9/hcclient --help
+$ podman run --rm -it annikav9/hcclient --help
 
 usage: hcclient [-h] -c CHANNEL -n NICKNAME [-t TRIP_PASSWORD] [-w WEBSOCKET_ADDRESS] [--no-parse]
                 [--no-clear] [--message-color MESSAGE_COLOR] [--whisper-color WHISPER_COLOR]
@@ -126,6 +134,14 @@ or
 #!/bin/bash
 docker run --rm -it annikav9/hcclient --trip-password mypassword \
                                       --server-color red \
+                                      "$@"
+```
+or
+```bash
+#!/bin/bash
+podman run --rm -it annikav9/hcclient --trip-password mypassword \
+                                      --timestamp-color green
+                                      --no-clear
                                       "$@"
 ```
 The script can then be run like:
