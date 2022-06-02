@@ -147,7 +147,11 @@ class Client:
         message = message.replace("/n/",
                                   "\n")
 
-        if message.split()[0] == "/raw":
+
+        if len(message) == 0:
+            pass # Eat up empty messages
+
+        elif message.split()[0] == "/raw":
             split_message = message.split()
             split_message.pop(0)
             to_send = ' '.join(split_message)
@@ -187,11 +191,99 @@ class Client:
         elif message.split()[0] == "/me":
             split_message = message.split()
             split_message.pop(0)
-            message_to_send = ' '.join(split_message)
-            self.ws.send(json.dumps({"cmd": "emote", "text": message_to_send}))
+            [self.ws.send(json.dumps({"cmd": "emote", "text": user})) for user in split_message]
 
         elif message.split()[0] == "/clear":
             os.system('cls' if os.name=='nt' else 'clear')
+            
+        elif message.split()[0] == "/ban" and self.args.is_mod:
+            split_message = message.split()
+            split_message.pop(0)
+            [self.ws.send(json.dumps({"cmd": "ban", "nick": user})) for user in split_message]
+
+        elif message.split()[0] == "/unban" and self.args.is_mod:
+            split_message = message.split()
+            split_message.pop(0)
+            [self.ws.send(json.dumps({"cmd": "unban", "nick": user})) for user in split_message]
+
+        elif message.split()[0] == "/unbanall" and self.args.is_mod:
+            split_message = message.split()
+            split_message.pop(0)
+            self.ws.send(json.dumps({"cmd": "unbanall" }))
+
+        elif message.split()[0] == "/dumb" and self.args.is_mod:
+            split_message = message.split()
+            split_message.pop(0)
+            [self.ws.send(json.dumps({"cmd": "dumb", "nick": user})) for user in split_message]
+
+        elif message.split()[0] == "/speak" and self.args.is_mod:
+            split_message = message.split()
+            split_message.pop(0)
+            [self.ws.send(json.dumps({"cmd": "speak", "nick": user})) for user in split_message]
+
+        elif message.split()[0] == "/moveuser" and self.args.is_mod:
+            split_message = message.split()
+            split_message.pop(0)
+            self.ws.send(json.dumps({"cmd": "moveuser", "nick": split_message[0], "channel": split_message[1]})) 
+
+        elif message.split()[0] == "/kick" and self.args.is_mod:
+            split_message = message.split()
+            split_message.pop(0)
+            [self.ws.send(json.dumps({"cmd": "kick", "nick": user})) for user in split_message]
+
+        elif message.split()[0] == "/kickasone" and self.args.is_mod:
+            split_message = message.split()
+            split_message.pop(0)
+            self.ws.send(json.dumps({"cmd": "kick", "nick": split_message})) # supply a list so everyone gets banished to the same room
+
+        elif message.split()[0] == "/overflow" and self.args.is_mod:
+            split_message = message.split()
+            split_message.pop(0)
+            [self.ws.send(json.dumps({"cmd": "overflow", "nick": user})) for user in split_message]
+
+        elif message.split()[0] == "/authtrip" and self.args.is_mod:
+            split_message = message.split()
+            split_message.pop(0)
+            [self.ws.send(json.dumps({"cmd": "authtrip", "trip": trip})) for trip in split_message]
+
+        elif message.split()[0] == "/deauthtrip" and self.args.is_mod:
+            split_message = message.split()
+            split_message.pop(0)
+            [self.ws.send(json.dumps({"cmd": "deauthtrip", "trip": trip})) for trip in split_message]
+
+        elif message.split()[0] == "/enablecaptcha" and self.args.is_mod:
+            split_message = message.split()
+            split_message.pop(0)
+            self.ws.send(json.dumps({"cmd": "enablecaptcha"}))
+
+        elif message.split()[0] == "/disablecaptcha" and self.args.is_mod:
+            split_message = message.split()
+            split_message.pop(0)
+            self.ws.send(json.dumps({"cmd": "disablecaptcha"}))
+
+        elif message.split()[0] == "/lockroom" and self.args.is_mod:
+            split_message = message.split()
+            split_message.pop(0)
+            self.ws.send(json.dumps({"cmd": "lockroom"}))
+
+        elif message.split()[0] == "/unlockroom" and self.args.is_mod:
+            split_message = message.split()
+            split_message.pop(0)
+            if split_message:
+                self.ws.send(json.dumps({"cmd": "unlockroom", "channel": split_message[0]}))
+            else:
+                self.ws.send(json.dumps({"cmd": "unlockroom"}))
+
+        elif message.split()[0] == "/forcecolor" and self.args.is_mod:
+            split_message = message.split()
+            split_message.pop(0)
+            self.ws.send(json.dumps({"cmd": "forcecolor", "nick": split_message[0], "color": split_message[1]}))
+
+        elif message.split()[0] == "/anticmd" and self.args.is_mod:
+            split_message = message.split()
+            split_message.pop(0)
+            self.ws.send(json.dumps({"cmd": "anticmd", "prepender": split_message[0], "reject": split_message[1]}))
+
 
         else:
             self.ws.send(json.dumps({"cmd": "chat", "text": message}))
@@ -243,6 +335,7 @@ if __name__ == "__main__":
     optional_group.add_argument("-w", "--websocket-address", help="specify the websocket address to connect to (default: wss://hack-chat/chat-ws)")
     optional_group.add_argument("--no-parse", help="log received packets without parsing",  dest="no_parse", action="store_true")
     optional_group.add_argument("--no-clear", help="disables terminal clearing when joining a new channel", dest="no_clear", action="store_true")
+    optional_group.add_argument("--is-mod", help="enables moderator commands",  dest="is_mod", action="store_true")
     optional_group.add_argument("--message-color", help="sets the message color (default: white)")
     optional_group.add_argument("--whisper-color", help="sets the whisper color (default: green)")
     optional_group.add_argument("--emote-color", help="sets the emote color (default: green)")
@@ -255,6 +348,7 @@ if __name__ == "__main__":
     optional_group.add_argument("--admin-nickname-color", help="sets the admin nickname color (default: red)")
     optional_group.set_defaults(no_parse=False,
                                 no_clear=False,
+                                is_mod=False,
                                 message_color="white",
                                 whisper_color="green",
                                 emote_color="green",
