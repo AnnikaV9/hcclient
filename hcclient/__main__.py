@@ -190,8 +190,8 @@ class Client:
 
         elif message.split()[0] == "/me":
             split_message = message.split()
-            split_message.pop(0)
-            [self.ws.send(json.dumps({"cmd": "emote", "text": user})) for user in split_message]
+            message_to_send = ' '.join(split_message)
+            self.ws.send(json.dumps({"cmd": "emote", "text": message_to_send}))
 
         elif message.split()[0] == "/clear":
             os.system('cls' if os.name=='nt' else 'clear')
