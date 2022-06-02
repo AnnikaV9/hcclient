@@ -190,6 +190,7 @@ class Client:
 
         elif message.split()[0] == "/me":
             split_message = message.split()
+            split_message.pop(0)
             message_to_send = ' '.join(split_message)
             self.ws.send(json.dumps({"cmd": "emote", "text": message_to_send}))
 
