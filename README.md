@@ -1,9 +1,35 @@
 # hcclient <br /> <a target="_blank" href="https://github.com/AnnikaV9/carrotsh/blob/master/LICENSE" title="License"><img src="https://img.shields.io/static/v1?label=License&message=The%20Unlicense&color=blue&style=flat-square"></a>
-A terminal client for connecting to [hack.chat](https://github.com/hack-chat/main) servers.
+A terminal client for connecting to [hack.chat](https://github.com/hack-chat/main) instances.
 
 <br />
+<br />
 
-## Installation
+## Table of Contents
+- [Introduction](#introduction)
+- [Prerequisites](#prerequisites)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Colors](#colors)
+- [Configuration](#configuration)
+
+<br />
+<br />
+
+## Introduction <a name="introduction"></a>
+*"hack.chat is a minimal, distraction-free, accountless, logless, disappearing chat service which is easily deployable as your own service."* - [hack.chat](https://github.com/hack-chat/main)
+
+hcclient is a configurable terminal client for connecting to [hack.chat](https://github.com/hack-chat/main) instances. It's written in python, and run as a container. The Alpine docker image is used due to its minimal size.
+
+<br />
+<br />
+
+## Prerequisites <a name="prerequisites"></a>
+Either [Docker](https://docs.docker.com/engine/) or [Podman](https://github.com/containers/podman) needs to be installed on your system.
+
+<br />
+<br />
+
+## Installation <a name="installation"></a>
 
 ```
 # Clone the repository
@@ -26,8 +52,9 @@ podman run --rm -it annikav9/hcclient --help
 ```
 
 <br />
+<br />
 
-## Usage
+## Usage <a name="usage"></a>
 ```
 $ docker run --rm -it annikav9/hcclient --help
 $ podman run --rm -it annikav9/hcclient --help
@@ -83,8 +110,9 @@ optional arguments:
 ```
 
 <br />
+<br />
 
-## Colors
+## Colors <a name="colors"></a>
 The default color scheme can be overidden by using arguments such as `--message-color` or `--timestamp-color`. More options can be viewed with `--help`. Colors are provided by [termcolor](https://pypi.org/project/termcolor/). Valid colors are:
 - grey
 - red
@@ -96,9 +124,10 @@ The default color scheme can be overidden by using arguments such as `--message-
 - white
 
 <br />
+<br />
 
-## Configuration
-By default, hcclient does not save to or read from any configuration file. It might be troublesome to have to type long passwords and colors every time you wish to connect. This can be solved by creating a bash script to call hcclient with your preferred arguments. Examples:
+## Configuration <a name="configuration"></a>
+By default, hcclient does not save to or read from any configuration file. It might be troublesome to have to type long passwords and colors every time you wish to connect. You can create a bash script to call hcclient with your preferred arguments. For example:
 
 *hcclient.sh*
 ```bash
@@ -119,3 +148,8 @@ The script can then be run like:
 ```
 ./hcclient.sh -c mychannel -n mynick
 ```
+
+<br />
+<br />
+
+**Credits to everyone [here](https://github.com/AnnikaV9/hcclient/graphs/contributors)**
