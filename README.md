@@ -111,8 +111,8 @@ or
 ```bash
 #!/bin/bash
 podman run --rm -it annikav9/hcclient --trip-password mypassword \
-                                      --timestamp-color green
-                                      --no-clear
+                                      --timestamp-color green \
+                                      --no-clear \
                                       "$@"
 ```
 The script can then be run like:
