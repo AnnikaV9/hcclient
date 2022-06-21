@@ -155,6 +155,6 @@ The script can then be run like:
 
 ## Contributing <a name="contributing"></a>
 
-All contributions are welcome!
+All contributions are welcome! :D
 
 **Credits to everyone [here](https://github.com/AnnikaV9/hcclient/graphs/contributors)**
