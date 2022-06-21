@@ -11,6 +11,7 @@ A terminal client for connecting to [hack.chat](https://github.com/hack-chat/mai
 - [Usage](#usage)
 - [Colors](#colors)
 - [Configuration](#configuration)
+- [Contributing](#contributing)
 
 <br />
 <br />
@@ -151,5 +152,9 @@ The script can then be run like:
 
 <br />
 <br />
+
+## Contributing <a name="contributing"></a>
+
+All contributions are welcome!
 
 **Credits to everyone [here](https://github.com/AnnikaV9/hcclient/graphs/contributors)**
