@@ -2,6 +2,10 @@
 A terminal client for connecting to [hack.chat](https://github.com/hack-chat/main) instances.
 
 <br />
+
+![Screenshot from 2022-06-22 08-34-16-cropped](https://user-images.githubusercontent.com/68383195/174918828-9e664535-d39f-4a0c-8645-088604816f7d.png)
+
+<br />
 <br />
 
 ## Table of Contents
