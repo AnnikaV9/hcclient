@@ -1,9 +1,11 @@
-# hcclient <br /> <a target="_blank" href="https://github.com/AnnikaV9/carrotsh/blob/master/LICENSE" title="License"><img src="https://img.shields.io/static/v1?label=License&message=The%20Unlicense&color=blue&style=flat-square"></a>
-A terminal client for connecting to [hack.chat](https://github.com/hack-chat/main) instances.
+<div align="center">
+<h1> hcclient <br /> <a target="_blank" href="https://github.com/AnnikaV9/carrotsh/blob/master/LICENSE" title="License"><img src="https://img.shields.io/static/v1?label=License&message=The%20Unlicense&color=blue&style=flat-square"></a></h1>
+A terminal client for connecting to <a href="https://github.com/hack-chat/main">hack.chat</a> instances.
 
 <br />
+<br />
 
-![Screenshot from 2022-06-22 08-34-16-cropped](https://user-images.githubusercontent.com/68383195/174918828-9e664535-d39f-4a0c-8645-088604816f7d.png)
+<img src="https://user-images.githubusercontent.com/68383195/174918828-9e664535-d39f-4a0c-8645-088604816f7d.png" width="100%"></div>
 
 <br />
 <br />
