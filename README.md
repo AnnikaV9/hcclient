@@ -31,8 +31,9 @@ hcclient is a configurable terminal client for connecting to [hack.chat](https:/
 <br />
 
 ## Prerequisites <a name="prerequisites"></a>
-Either [Docker](https://docs.docker.com/engine/) or [Podman](https://github.com/containers/podman) needs to be installed on your system.
-
+Either [Docker](https://docs.docker.com/engine/) or [Podman](https://github.com/containers/podman) is recommended to be installed on your system.
+<br />
+You can run the client directly without using a container, but you'll have to install pip dependencies locally or in a virtualenv.
 <br />
 <br />
 
