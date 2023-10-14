@@ -54,7 +54,7 @@ class Client:
 
                         print("{}|{}|{}".format(termcolor.colored(packet_receive_time, self.args.timestamp_color),
                                                 termcolor.colored("CLIENT", self.args.client_color),                
-                                                termcolor.colored("You are now connected to channel: {} - Type '/help' for a list of commands you can use with this client\n\n".format(self.channel), self.args.client_color)))
+                                                termcolor.colored("You are now connected to channel: {} - Type '/help' for a list of commands you can use with this client".format(self.channel), self.args.client_color)))
 
                     elif received["cmd"] == "chat":
                         if len(received.get("trip", "")) < 6:
@@ -65,9 +65,11 @@ class Client:
                         
                         if received["uType"] == "mod":
                             color_to_use = self.args.mod_nickname_color
+                            received["nick"] = "⭐ {}".format(received["nick"]) if not self.args.no_icon else received["nick"]
                         
                         elif received["uType"] == "admin":
                             color_to_use = self.args.admin_nickname_color
+                            received["nick"] = "⭐ {}".format(received["nick"]) if not self.args.no_icon else received ["nick"]
 
                         else:
                             color_to_use = self.args.nickname_color
@@ -290,11 +292,7 @@ class Client:
             self.ws.send(json.dumps({"cmd": "chat", "text": message}))
 
             if message == "/help":
-                print("""
-
-
-All '/n/'s will be converted into linebreaks
-
+                print("""Any '/n/' will be converted into a linebreak
 
 Raw json packets can be sent with '/raw'
 Usage: /raw <json>
@@ -319,8 +317,6 @@ Usage: /whisper <user> <message> or /w <user> <message>
 
 Use '/reply' to reply to the user who last whispered to you
 Usage: /reply <message> or /r <message>
-
-
                 """)
 
 
@@ -337,6 +333,7 @@ if __name__ == "__main__":
     optional_group.add_argument("--no-parse", help="log received packets without parsing",  dest="no_parse", action="store_true")
     optional_group.add_argument("--no-clear", help="disables terminal clearing when joining a new channel", dest="no_clear", action="store_true")
     optional_group.add_argument("--is-mod", help="enables moderator commands",  dest="is_mod", action="store_true")
+    optional_group.add_argument("--no-icon", help="disables moderator/admin icon",  dest="no_icon", action="store_true")
     optional_group.add_argument("--message-color", help="sets the message color (default: white)")
     optional_group.add_argument("--whisper-color", help="sets the whisper color (default: green)")
     optional_group.add_argument("--emote-color", help="sets the emote color (default: green)")
@@ -350,6 +347,7 @@ if __name__ == "__main__":
     optional_group.set_defaults(no_parse=False,
                                 no_clear=False,
                                 is_mod=False,
+                                no_icon=False,
                                 message_color="white",
                                 whisper_color="green",
                                 emote_color="green",

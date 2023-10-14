@@ -68,14 +68,16 @@ $ docker run --rm -it annikav9/hcclient --help
 $ podman run --rm -it annikav9/hcclient --help
 
 usage:  [-h] -c CHANNEL -n NICKNAME [-t TRIP_PASSWORD] [-w WEBSOCKET_ADDRESS]
-        [--no-parse] [--no-clear] [--is-mod] [--message-color MESSAGE_COLOR]
-        [--whisper-color WHISPER_COLOR] [--emote-color EMOTE_COLOR]
-        [--nickname-color NICKNAME_COLOR] [--warning-color WARNING_COLOR]
-        [--server-color SERVER_COLOR] [--client-color CLIENT_COLOR]
-        [--timestamp-color TIMESTAMP_COLOR] [--mod-nickname-color MOD_NICKNAME_COLOR]
+        [--no-parse] [--no-clear] [--is-mod] [--no-icon]
+        [--message-color MESSAGE_COLOR] [--whisper-color WHISPER_COLOR]
+        [--emote-color EMOTE_COLOR] [--nickname-color NICKNAME_COLOR]
+        [--warning-color WARNING_COLOR] [--server-color SERVER_COLOR]
+        [--client-color CLIENT_COLOR] [--timestamp-color TIMESTAMP_COLOR]
+        [--mod-nickname-color MOD_NICKNAME_COLOR]
         [--admin-nickname-color ADMIN_NICKNAME_COLOR]
 
-Terminal client for connecting to hack.chat servers. Colors are provided by termcolor.
+Terminal client for connecting to hack.chat servers. Colors are provided by
+termcolor.
 
 options:
   -h, --help            show this help message and exit
@@ -95,6 +97,7 @@ optional arguments:
   --no-parse            log received packets without parsing
   --no-clear            disables terminal clearing when joining a new channel
   --is-mod              enables moderator commands
+  --no-icon             disables moderator/admin icon
   --message-color MESSAGE_COLOR
                         sets the message color (default: white)
   --whisper-color WHISPER_COLOR
