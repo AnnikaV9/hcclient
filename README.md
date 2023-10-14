@@ -5,7 +5,7 @@ A terminal client for connecting to <a href="https://github.com/hack-chat/main">
 <br />
 <br />
 
-<img src="https://user-images.githubusercontent.com/68383195/174918828-9e664535-d39f-4a0c-8645-088604816f7d.png" width="100%"></div>
+<img src="https://github.com/AnnikaV9/hcclient/assets/68383195/b13d463d-4efc-46a5-9f08-63977ef4e6f0" width="70%"></div>
 
 <br />
 <br />
@@ -33,7 +33,7 @@ hcclient is a configurable terminal client for connecting to [hack.chat](https:/
 ## Prerequisites <a name="prerequisites"></a>
 Either [Docker](https://docs.docker.com/engine/) or [Podman](https://github.com/containers/podman) is recommended to be installed on your system.
 <br /><br />
-You can run the client directly without using a container, this requires python and pip. you'll have to install pip dependencies locally or in a virtualenv.
+You can run the client directly without using a container, this requires python and pip. You'll have to install pip dependencies locally or in a virtualenv.
 <br />
 <br />
 
@@ -47,16 +47,16 @@ git clone https://github.com/AnnikaV9/hcclient.git
 cd hcclient
 
 # Build the image
-docker build -t annikav9/hcclient .
+docker build -t hcclient .
 
 # Or with Podman
-podman build -t annikav9/hcclient .
+podman build -t hcclient .
 
 # Run hcclient
-docker run --rm -it annikav9/hcclient --help
+docker run --rm -it hcclient --help
 
 # Or with Podman
-podman run --rm -it annikav9/hcclient --help
+podman run --rm -it hcclient --help
 ```
 
 <br />
@@ -64,8 +64,8 @@ podman run --rm -it annikav9/hcclient --help
 
 ## Usage <a name="usage"></a>
 ```
-$ docker run --rm -it annikav9/hcclient --help
-$ podman run --rm -it annikav9/hcclient --help
+$ docker run --rm -it hcclient --help
+$ podman run --rm -it hcclient --help
 
 usage:  [-h] -c CHANNEL -n NICKNAME [-t TRIP_PASSWORD] [-w WEBSOCKET_ADDRESS]
         [--no-parse] [--no-clear] [--is-mod] [--no-icon]
@@ -138,26 +138,26 @@ The default color scheme can be overidden by using arguments such as `--message-
 <br />
 
 ## Configuration <a name="configuration"></a>
-By default, hcclient does not save to or read from any configuration file. It might be troublesome to have to type long passwords and colors every time you wish to connect. You can create a bash script to call hcclient with your preferred arguments. For example:
+hcclient does not save to or read from any configuration file. It might be troublesome to have to type long passwords and colors every time you wish to connect. You can create a bash script to call hcclient with your preferred arguments. For example:
 
-*hcclient.sh*
+*profile1.sh*
 ```bash
 #!/bin/bash
-docker run --rm -it annikav9/hcclient --trip-password mypassword \
-                                      --server-color red \
-                                      "$@"
+docker run --rm -it hcclient --trip-password mypassword \
+                             --server-color red \
+                             "$@"
 ```
 or
 ```bash
 #!/bin/bash
-podman run --rm -it annikav9/hcclient --trip-password mypassword \
-                                      --timestamp-color green \
-                                      --no-clear \
-                                      "$@"
+podman run --rm -it hcclient --trip-password mypassword \
+                             --timestamp-color green \
+                             --no-clear \
+                             "$@"
 ```
 The script can then be run like:
 ```
-./hcclient.sh -c mychannel -n mynick
+./profile1.sh -c mychannel -n mynick
 ```
 
 <br />
