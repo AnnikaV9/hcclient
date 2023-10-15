@@ -30,10 +30,9 @@ As this client is written to be compatible with the official live instance runni
 <br />
 
 ## Prerequisites <a name="prerequisites"></a>
-Either [Docker](https://docs.docker.com/engine/) or [Podman](https://github.com/containers/podman) is recommended.<br />
-The `tput` command (provided by ncurses) is an optional dependency that allows saving and restoring terminal contents.
+Either [Docker](https://docs.docker.com/engine/) or [Podman](https://github.com/containers/podman) is recommended.
 <br /><br />
-You can run the client directly without using a container, this requires python >= 3.10 and pip. You'll have to install pip dependencies locally or in a virtualenv.
+You can run the client directly without using a container, this requires python >= 3.10 and pip. You'll have to install pip dependencies locally or in a virtualenv. The `tput` command (provided by ncurses) is an optional dependency that allows saving and restoring terminal contents.
 
 <br />
 
