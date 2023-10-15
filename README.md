@@ -30,9 +30,12 @@ As this client is written to be compatible with the official live instance runni
 <br />
 
 ## Prerequisites <a name="prerequisites"></a>
-Either [Docker](https://docs.docker.com/engine/) or [Podman](https://github.com/containers/podman) is recommended.
-<br /><br />
-You can run the client directly without using a container, this requires python >= 3.10 and pip. You'll have to install pip dependencies locally or in a virtualenv. The `tput` command (provided by ncurses) is an optional dependency that allows saving and restoring terminal contents.
+Either [Docker](https://docs.docker.com/engine/) or [Podman](https://github.com/containers/podman) is recommended. The container image is built with hcclient's dependencies.  
+<br />
+You *can* run the client directly without using a container, however:
+- This requires python >= 3.10 and pip. <br />
+- You'll have to install pip dependencies locally or in a virtual environment.<br />
+- The `tput` command (provided by ncurses) is an optionally dependency that allows saving and restoring terminal contents.
 
 <br />
 
@@ -46,25 +49,17 @@ git clone https://github.com/AnnikaV9/hcclient.git
 cd hcclient
 
 # Build the image
-docker build -t hcclient .
-
-# Or with Podman
-podman build -t hcclient .
+docker/podman build -t hcclient .
 
 # Run hcclient
-docker run --rm -it hcclient --help
-
-# Or with Podman
-podman run --rm -it hcclient --help
+docker/podman run --rm -it hcclient --help
 ```
 
-<br />
 <br />
 
 ## Usage <a name="usage"></a>
 ```
-$ docker run --rm -it hcclient --help
-$ podman run --rm -it hcclient --help
+$ docker/podman run --rm -it hcclient --help
 
 usage:  [-h] -c CHANNEL -n NICKNAME [-t TRIP_PASSWORD] [-w WEBSOCKET_ADDRESS]
         [--no-parse] [--no-clear] [--is-mod] [--no-icon]
@@ -120,7 +115,6 @@ optional arguments:
 ```
 
 <br />
-<br />
 
 ## Colors <a name="colors"></a>
 The default color scheme can be overidden by using arguments such as `--message-color` or `--timestamp-color`. More options can be viewed with `--help`. Colors are provided by [termcolor](https://pypi.org/project/termcolor/). Valid colors are:
@@ -134,10 +128,9 @@ The default color scheme can be overidden by using arguments such as `--message-
 - white
 
 <br />
-<br />
 
 ## Configuration <a name="configuration"></a>
-hcclient does not save to or read from any configuration file. It might be troublesome to have to type long passwords and colors every time you wish to connect. You can create a bash script to call hcclient with your preferred arguments. For example:
+hcclient does not save to or read from any configuration file. It might be troublesome to have to type long passwords and colors every time you wish to connect. You can create a shell script to act as a profile and call hcclient with your preferred arguments. For example:
 
 *profile1.sh*
 ```bash
@@ -154,12 +147,11 @@ podman run --rm -it hcclient --trip-password mypassword \
                              --no-clear \
                              "$@"
 ```
-The script can then be run like:
+The profile can then be used like:
 ```
-./profile1.sh -c mychannel -n mynick
+bash profile1.sh -c mychannel -n mynick
 ```
 
-<br />
 <br />
 
 ## Contributing <a name="contributing"></a>
