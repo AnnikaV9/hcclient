@@ -12,6 +12,7 @@ import colorama
 import datetime
 import termcolor
 import readline
+import shutil
 
 
 class Client:
@@ -20,6 +21,10 @@ class Client:
         self.args = args
         self.nick = self.args.nickname
         self.online_users = []
+
+        self.term_content_saved = False
+        self.manage_term_contents()
+
         self.ws = websocket.create_connection(self.args.websocket_address)
         self.ws.send(json.dumps({
             "cmd": "join",
@@ -30,6 +35,21 @@ class Client:
         self.thread_ping = threading.Thread(target=self.ping_thread, daemon=True)
         self.thread_input = threading.Thread(target=self.input_thread, daemon=True)
 
+    def manage_term_contents(self):
+        if not self.args.no_clear:
+            if shutil.which("tput"):
+                os.system("tput smcup")
+                self.term_content_saved = True
+
+            else:
+                try:
+                    print("'tput' binary not found in path, terminal contents will not be saved. Exit and run with --no-clear to preserve terminal contents or press enter to continue anyway")
+                    input()
+                
+                except KeyboardInterrupt:
+                    sys.exit(0)
+
+            os.system("cls" if os.name=="nt" else "clear")
 
     def main_thread(self):
         try:
@@ -48,9 +68,6 @@ class Client:
                                     self.online_users.remove(self.nick)
                                 self.online_users.append(nick)
                                 self.channel = received["users"][0]["channel"]
-
-                            if not self.args.no_clear:
-                                os.system("cls" if os.name=="nt" else "clear")
 
                             print("{}|{}|{}".format(termcolor.colored(packet_receive_time, self.args.timestamp_color),
                                                     termcolor.colored("CLIENT", self.args.client_color),                
@@ -174,7 +191,13 @@ class Client:
                         self.ws.send(json.dumps({"cmd": "changenick", "nick": parsed_message[2]}))
 
                 case "/clear":
-                    os.system("cls" if os.name=="nt" else "clear")
+                    if not self.args.no_clear:
+                        os.system("cls" if os.name=="nt" else "clear")
+                    
+                    else:
+                        print("{}|{}|{}".format(termcolor.colored("-NIL-", self.args.timestamp_color),
+                                                termcolor.colored("CLIENT", self.args.client_color),
+                                                termcolor.colored("Clearing is disabled (--no-clear)", self.args.client_color)))
 
                 case "/ban":
                     if self.args.is_mod:
@@ -287,7 +310,7 @@ if __name__ == "__main__":
     optional_group.add_argument("-t", "--trip-password", help="specify a tripcode password to use when joining")
     optional_group.add_argument("-w", "--websocket-address", help="specify the websocket address to connect to (default: wss://hack-chat/chat-ws)")
     optional_group.add_argument("--no-parse", help="log received packets without parsing",  dest="no_parse", action="store_true")
-    optional_group.add_argument("--no-clear", help="disables terminal clearing when joining a new channel", dest="no_clear", action="store_true")
+    optional_group.add_argument("--no-clear", help="disables clearing of the terminal", dest="no_clear", action="store_true")
     optional_group.add_argument("--is-mod", help="enables moderator commands",  dest="is_mod", action="store_true")
     optional_group.add_argument("--no-icon", help="disables moderator/admin icon",  dest="no_icon", action="store_true")
     optional_group.add_argument("--message-color", help="sets the message color (default: white)")
@@ -325,5 +348,10 @@ if __name__ == "__main__":
     client.thread_input.start()
     client.main_thread()
 
-    print("Exiting...")
+    print("Exiting, press enter if stuck here")
+    
+    if client.term_content_saved:
+        os.system("tput rmcup")
+    
     colorama.deinit()
+    sys.exit(0)
