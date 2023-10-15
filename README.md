@@ -16,6 +16,7 @@ A terminal client for connecting to <a href="https://hack.chat">hack.chat</a>
 - [Usage](#usage)
 - [Colors](#colors)
 - [Configuration](#configuration)
+- [Known Issues](#issues)
 - [Contributing](#contributing)
 
 <br />
@@ -151,6 +152,14 @@ The profile can then be used like:
 ```
 bash profile1.sh -c mychannel -n mynick
 ```
+
+<br />
+
+## Known Issues <a name="issues"></a>
+
+- Not compatible with hack.chat's new `updateMessage` implementation. You won't be able to see the output of any bots that use `updateMessage` to display delayed/streamed output.
+
+- Some terminal emulators will have locked scrolling when hcclient is run without `--no-clear`. This is an issue with how the terminal emulators interact with the alternate screen `tput smcup` invokes. To fix this, run with `--no-clear`.
 
 <br />
 
