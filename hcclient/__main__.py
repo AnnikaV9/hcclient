@@ -11,12 +11,12 @@ import argparse
 import colorama
 import datetime
 import termcolor
+import readline
 
 
 class Client:
 
     def __init__(self, args):
-
         self.args = args
         self.nick = self.args.nickname
         self.online_users = []
@@ -32,7 +32,6 @@ class Client:
 
 
     def main_thread(self):
-
         try:
             while self.ws.connected:
                 received = json.loads(self.ws.recv())
@@ -42,257 +41,220 @@ class Client:
                     print("\n{}|{}".format(packet_receive_time, received))
 
                 else:
-                    if received["cmd"] == "onlineSet":
-                        for nick in received["nicks"]:
-                            if self.nick in self.online_users:
-                                self.online_users.remove(self.nick)
-                            self.online_users.append(nick)
-                            self.channel = received["users"][0]["channel"]
+                    match received["cmd"]:
+                        case "onlineSet":
+                            for nick in received["nicks"]:
+                                if self.nick in self.online_users:
+                                    self.online_users.remove(self.nick)
+                                self.online_users.append(nick)
+                                self.channel = received["users"][0]["channel"]
 
-                        if not self.args.no_clear:
-                            os.system('cls' if os.name=='nt' else 'clear')
+                            if not self.args.no_clear:
+                                os.system("cls" if os.name=="nt" else "clear")
 
-                        print("{}|{}|{}".format(termcolor.colored(packet_receive_time, self.args.timestamp_color),
-                                                termcolor.colored("CLIENT", self.args.client_color),                
-                                                termcolor.colored("You are now connected to channel: {} - Type '/help' for a list of commands you can use with this client".format(self.channel), self.args.client_color)))
+                            print("{}|{}|{}".format(termcolor.colored(packet_receive_time, self.args.timestamp_color),
+                                                    termcolor.colored("CLIENT", self.args.client_color),                
+                                                    termcolor.colored("Channel: {} - Users: {}".format(self.channel, ", ".join(self.online_users)), self.args.client_color)))
 
-                    elif received["cmd"] == "chat":
-                        if len(received.get("trip", "")) < 6:
-                            tripcode = "NOTRIP"
+                        case "chat":
+                            if len(received.get("trip", "")) < 6:
+                                tripcode = "NOTRIP"
 
-                        else:
-                            tripcode = received.get("trip", "")
-                        
-                        if received["uType"] == "mod":
-                            color_to_use = self.args.mod_nickname_color
-                            received["nick"] = "⭐ {}".format(received["nick"]) if not self.args.no_icon else received["nick"]
-                        
-                        elif received["uType"] == "admin":
-                            color_to_use = self.args.admin_nickname_color
-                            received["nick"] = "⭐ {}".format(received["nick"]) if not self.args.no_icon else received ["nick"]
+                            else:
+                                tripcode = received.get("trip", "")
 
-                        else:
-                            color_to_use = self.args.nickname_color
-                        
-                        print("{}|{}|[{}] {}".format(termcolor.colored(packet_receive_time, self.args.timestamp_color),
-                                                     termcolor.colored(tripcode, color_to_use),
-                                                     termcolor.colored(received["nick"], color_to_use),
-                                                     termcolor.colored(received["text"], self.args.message_color)))
+                            if received["uType"] == "mod":
+                                color_to_use = self.args.mod_nickname_color
+                                received["nick"] = "⭐ {}".format(received["nick"]) if not self.args.no_icon else received["nick"]
 
-                    elif received["cmd"] == "onlineAdd":
-                        self.online_users.append(received["nick"])
-                        print("{}|{}|{}".format(termcolor.colored(packet_receive_time, self.args.timestamp_color),
-                                                termcolor.colored("SERVER", self.args.server_color),
-                                                termcolor.colored(received["nick"] + " joined", self.args.server_color)))
+                            elif received["uType"] == "admin":
+                                color_to_use = self.args.admin_nickname_color
+                                received["nick"] = "⭐ {}".format(received["nick"]) if not self.args.no_icon else received ["nick"]
 
-                    elif received["cmd"] == "onlineRemove":
-                        self.online_users.remove(received["nick"])
-                        print("{}|{}|{}".format(termcolor.colored(packet_receive_time, self.args.timestamp_color),
-                                                termcolor.colored("SERVER", self.args.server_color),
-                                                termcolor.colored(received["nick"] + " left", self.args.server_color)))
+                            else:
+                                color_to_use = self.args.nickname_color 
 
-                    elif received["cmd"] == "emote":
+                            print("{}|{}|[{}] {}".format(termcolor.colored(packet_receive_time, self.args.timestamp_color),
+                                                         termcolor.colored(tripcode, color_to_use),
+                                                         termcolor.colored(received["nick"], color_to_use),
+                                                         termcolor.colored(received["text"], self.args.message_color)))
 
-                        if len(received.get("trip", "")) < 6:
-                            tripcode = "NOTRIP"
+                        case "info":
+                            if received.get("type") is not None and received.get("type") == "whisper":
+                                if len(received.get("trip", "")) < 6:
+                                    tripcode = "NOTRIP"
 
-                        else:
-                            tripcode = received.get("trip", "")
+                                else:
+                                    tripcode = received.get("trip", "")
 
-                        print("{}|{}|{}".format(termcolor.colored(packet_receive_time, self.args.timestamp_color),
-                                                termcolor.colored(tripcode, self.args.emote_color),
-                                                termcolor.colored(received["text"], self.args.emote_color)))
+                                print("{}|{}|[{}] {}".format(termcolor.colored(packet_receive_time, self.args.timestamp_color),
+                                                             termcolor.colored(tripcode, self.args.whisper_color),
+                                                             termcolor.colored(received["text"], self.args.whisper_color)))
+                            else:
+                                print("{}|{}|{}".format(termcolor.colored(packet_receive_time, self.args.timestamp_color),
+                                                        termcolor.colored("SERVER", self.args.server_color),
+                                                        termcolor.colored(received["text"], self.args.server_color)))
 
-                    elif received["cmd"] == "info" and received.get("type") is not None and received.get("type") == "whisper":
+                        case "onlineAdd":
+                            self.online_users.append(received["nick"])
 
-                        if len(received.get("trip", "")) < 6:
-                            tripcode = "NOTRIP"
+                            print("{}|{}|{}".format(termcolor.colored(packet_receive_time, self.args.timestamp_color),
+                                                    termcolor.colored("SERVER", self.args.server_color),
+                                                    termcolor.colored(received["nick"] + " joined", self.args.server_color)))
 
-                        else:
-                            tripcode = received.get("trip", "")
+                        case "onlineRemove":
+                            self.online_users.remove(received["nick"])
 
-                        print("{}|{}|{}".format(termcolor.colored(packet_receive_time, self.args.timestamp_color),
-                                                termcolor.colored(tripcode, self.args.whisper_color),
-                                                termcolor.colored(received["text"], self.args.whisper_color)))
+                            print("{}|{}|{}".format(termcolor.colored(packet_receive_time, self.args.timestamp_color),
+                                                    termcolor.colored("SERVER", self.args.server_color),
+                                                    termcolor.colored(received["nick"] + " left", self.args.server_color)))
 
-                    elif received["cmd"] == "info":
+                        case "emote":
+                            if len(received.get("trip", "")) < 6:
+                                tripcode = "NOTRIP"
 
-                        print("{}|{}|{}".format(termcolor.colored(packet_receive_time, self.args.timestamp_color),
-                                                termcolor.colored("SERVER", self.args.server_color),
-                                                termcolor.colored(received["text"], self.args.server_color)))
+                            else:
+                                tripcode = received.get("trip", "")
 
-                    elif received["cmd"] == "warn":
+                            print("{}|{}|{}".format(termcolor.colored(packet_receive_time, self.args.timestamp_color),
+                                                    termcolor.colored(tripcode, self.args.emote_color),
+                                                    termcolor.colored(received["text"], self.args.emote_color)))
 
-                        print("{}|{}|{}".format(termcolor.colored(packet_receive_time, self.args.timestamp_color),
-                                                termcolor.colored("!WARN!", self.args.warning_color),
-                                                termcolor.colored(received["text"], self.args.warning_color)))
- 
+                        case "warn":
+                            print("{}|{}|{}".format(termcolor.colored(packet_receive_time, self.args.timestamp_color),
+                                                    termcolor.colored("!WARN!", self.args.warning_color),
+                                                    termcolor.colored(received["text"], self.args.warning_color)))
+
         except KeyboardInterrupt:
             None
 
 
     def ping_thread(self):
-
         while self.ws.connected:
             self.ws.send(json.dumps({"cmd": "ping"}))
             time.sleep(60)
 
 
     def input_thread(self):
-
         while self.ws.connected:
             self.send_input(input())
 
 
     def send_input(self, message):
-
-        message = message.replace("/n/",
-                                  "\n")
-
+        message = message.replace("/n/", "\n")
 
         if len(message) == 0:
-            pass # Eat up empty messages
-
-        elif message.split()[0] == "/raw":
-            split_message = message.split()
-            split_message.pop(0)
-            to_send = ' '.join(split_message)
-
-            try:
-                json_to_send = json.loads(to_send)
-                self.ws.send(json.dumps(json_to_send))
-
-            except:
-                print("{}|{}|Error sending json: {}".format(termcolor.colored("-NIL-", self.args.timestamp_color),
-                                                            termcolor.colored("CLIENT", self.args.client_color),
-                                                            termcolor.colored(sys.exc_info(), self.args.client_color)))
-
-        elif message == "/list":
-            print("{}|{}|{}".format(termcolor.colored("-NIL-", self.args.timestamp_color),
-                                                      termcolor.colored("CLIENT", self.args.client_color),
-                                                      termcolor.colored("Channel: {} - Online users: {}".format(self.channel, ", ".join(self.online_users)), self.args.client_color)))
-
-        elif message.split()[0] == "/move":
-            split_message = message.split()
-            split_message.pop(0)
-            channel_to_join = ' '.join(split_message)
-            self.ws.send(json.dumps({"cmd": "move", "channel": channel_to_join}))
-
-        elif message.split()[0] == "/nick":
-            split_message = message.split()
-            split_message.pop(0)
-            nick_to_change = ''.join(split_message)
-
-            if re.match("^[A-Za-z0-9_]*$", nick_to_change):
-                self.ws.send(json.dumps({"cmd": "changenick", "nick": nick_to_change}))
-                self.nick = nick_to_change
-            
-            else:
-                self.ws.send(json.dumps({"cmd": "changenick", "nick": nick_to_change}))
-
-        elif message.split()[0] == "/me":
-            split_message = message.split()
-            split_message.pop(0)
-            message_to_send = ' '.join(split_message)
-            self.ws.send(json.dumps({"cmd": "emote", "text": message_to_send}))
-
-        elif message.split()[0] == "/clear":
-            os.system('cls' if os.name=='nt' else 'clear')
-            
-        elif message.split()[0] == "/ban" and self.args.is_mod:
-            split_message = message.split()
-            split_message.pop(0)
-            [self.ws.send(json.dumps({"cmd": "ban", "nick": user})) for user in split_message]
-
-        elif message.split()[0] == "/unban" and self.args.is_mod:
-            split_message = message.split()
-            split_message.pop(0)
-            [self.ws.send(json.dumps({"cmd": "unban", "nick": user})) for user in split_message]
-
-        elif message.split()[0] == "/unbanall" and self.args.is_mod:
-            split_message = message.split()
-            split_message.pop(0)
-            self.ws.send(json.dumps({"cmd": "unbanall" }))
-
-        elif message.split()[0] == "/dumb" and self.args.is_mod:
-            split_message = message.split()
-            split_message.pop(0)
-            [self.ws.send(json.dumps({"cmd": "dumb", "nick": user})) for user in split_message]
-
-        elif message.split()[0] == "/speak" and self.args.is_mod:
-            split_message = message.split()
-            split_message.pop(0)
-            [self.ws.send(json.dumps({"cmd": "speak", "nick": user})) for user in split_message]
-
-        elif message.split()[0] == "/moveuser" and self.args.is_mod:
-            split_message = message.split()
-            split_message.pop(0)
-            self.ws.send(json.dumps({"cmd": "moveuser", "nick": split_message[0], "channel": split_message[1]})) 
-
-        elif message.split()[0] == "/kick" and self.args.is_mod:
-            split_message = message.split()
-            split_message.pop(0)
-            [self.ws.send(json.dumps({"cmd": "kick", "nick": user})) for user in split_message]
-
-        elif message.split()[0] == "/kickasone" and self.args.is_mod:
-            split_message = message.split()
-            split_message.pop(0)
-            self.ws.send(json.dumps({"cmd": "kick", "nick": split_message})) # supply a list so everyone gets banished to the same room
-
-        elif message.split()[0] == "/overflow" and self.args.is_mod:
-            split_message = message.split()
-            split_message.pop(0)
-            [self.ws.send(json.dumps({"cmd": "overflow", "nick": user})) for user in split_message]
-
-        elif message.split()[0] == "/authtrip" and self.args.is_mod:
-            split_message = message.split()
-            split_message.pop(0)
-            [self.ws.send(json.dumps({"cmd": "authtrip", "trip": trip})) for trip in split_message]
-
-        elif message.split()[0] == "/deauthtrip" and self.args.is_mod:
-            split_message = message.split()
-            split_message.pop(0)
-            [self.ws.send(json.dumps({"cmd": "deauthtrip", "trip": trip})) for trip in split_message]
-
-        elif message.split()[0] == "/enablecaptcha" and self.args.is_mod:
-            split_message = message.split()
-            split_message.pop(0)
-            self.ws.send(json.dumps({"cmd": "enablecaptcha"}))
-
-        elif message.split()[0] == "/disablecaptcha" and self.args.is_mod:
-            split_message = message.split()
-            split_message.pop(0)
-            self.ws.send(json.dumps({"cmd": "disablecaptcha"}))
-
-        elif message.split()[0] == "/lockroom" and self.args.is_mod:
-            split_message = message.split()
-            split_message.pop(0)
-            self.ws.send(json.dumps({"cmd": "lockroom"}))
-
-        elif message.split()[0] == "/unlockroom" and self.args.is_mod:
-            split_message = message.split()
-            split_message.pop(0)
-            if split_message:
-                self.ws.send(json.dumps({"cmd": "unlockroom", "channel": split_message[0]}))
-            else:
-                self.ws.send(json.dumps({"cmd": "unlockroom"}))
-
-        elif message.split()[0] == "/forcecolor" and self.args.is_mod:
-            split_message = message.split()
-            split_message.pop(0)
-            self.ws.send(json.dumps({"cmd": "forcecolor", "nick": split_message[0], "color": split_message[1]}))
-
-        elif message.split()[0] == "/anticmd" and self.args.is_mod:
-            split_message = message.split()
-            split_message.pop(0)
-            self.ws.send(json.dumps({"cmd": "anticmd", "prepender": split_message[0], "reject": split_message[1]}))
-
+            pass
 
         else:
-            self.ws.send(json.dumps({"cmd": "chat", "text": message}))
+            parsed_message = message.partition(" ")
+            match parsed_message[0]:
+                case "/raw":
+                    try:
+                        json_to_send = json.loads(parsed_message[2])
+                        self.ws.send(json.dumps(json_to_send))
 
-            if message == "/help":
-                print("""Any '/n/' will be converted into a linebreak
+                    except:
+                        print("{}|{}|Error sending json: {}".format(termcolor.colored("-NIL-", self.args.timestamp_color),
+                                                                    termcolor.colored("CLIENT", self.args.client_color),
+                                                                    termcolor.colored(sys.exc_info(), self.args.client_color)))
+
+                case "/list":
+                    print("{}|{}|{}".format(termcolor.colored("-NIL-", self.args.timestamp_color),
+                                            termcolor.colored("CLIENT", self.args.client_color),
+                                            termcolor.colored("Channel: {} - Users: {}".format(self.channel, ", ".join(self.online_users)), self.args.client_color)))
+
+                case "/nick":
+                    if re.match("^[A-Za-z0-9_]*$", parsed_message[2]) and len(parsed_message[2]) < 25:
+                        self.ws.send(json.dumps({"cmd": "changenick", "nick": parsed_message[2]}))
+                        self.nick = parsed_message[2]
+
+                    else:
+                        # We send it anyway, the server will handle it and return a warning
+                        self.ws.send(json.dumps({"cmd": "changenick", "nick": parsed_message[2]}))
+
+                case "/clear":
+                    os.system("cls" if os.name=="nt" else "clear")
+
+                case "/ban":
+                    if self.args.is_mod:
+                        [self.ws.send(json.dumps({"cmd": "ban", "nick": user})) for user in parsed_message[2].split(" ")]
+
+                case "/unban":
+                    if self.args.is_mod:
+                        [self.ws.send(json.dumps({"cmd": "unban", "nick": user})) for user in parsed_message[2].split(" ")]
+
+                case "/unbanall":
+                    if self.args.is_mod:
+                        self.ws.send(json.dumps({"cmd": "unbanall"}))
+
+                case "/dumb":
+                    if self.args.is_mod:
+                        [self.ws.send(json.dumps({"cmd": "dumb", "nick": user})) for user in parsed_message[2].split(" ")]
+
+                case "/speak":
+                    if self.args.is_mod:
+                        [self.ws.send(json.dumps({"cmd": "speak", "nick": user})) for user in parsed_message[2].split(" ")]
+
+                case "/moveuser":
+                    if self.args.is_mod:
+                        message_args = parsed_message[2].split(" ")
+                        self.ws.send(json.dumps({"cmd": "moveuser", "nick": message_args[0], "channel": message_args[1]}))
+
+                case "/kick":
+                    if self.args.is_mod:
+                        [self.ws.send(json.dumps({"cmd": "kick", "nick": user})) for user in parsed_message[2].split(" ")]
+
+                case "/kickasone":
+                    if self.args.is_mod:
+                        self.ws.send(json.dumps({"cmd": "kick", "nick": parsed_message[2].split(" ")})) # supply a list so everyone gets banished to the same room
+
+                case "/overflow":
+                    if self.args.is_mod:
+                        [self.ws.send(json.dumps({"cmd": "overflow", "nick": user})) for user in parsed_message[2].split(" ")]
+
+                case "/authtrip":
+                    if self.args.is_mod:
+                        [self.ws.send(json.dumps({"cmd": "authtrip", "trip": trip})) for trip in parsed_message[2].split(" ")]
+
+                case "/deauthtrip":
+                    if self.args.is_mod:
+                        [self.ws.send(json.dumps({"cmd": "deauthtrip", "trip": trip})) for trip in parsed_message[2].split(" ")]
+
+                case "/enablecaptcha":
+                    if self.args.is_mod:
+                        self.ws.send(json.dumps({"cmd": "enablecaptcha"}))
+
+                case "/disablecaptcha":
+                    if self.args.is_mod:
+                        self.ws.send(json.dumps({"cmd": "disablecaptcha"}))
+
+                case "/lockroom":
+                    if self.args.is_mod:
+                        self.ws.send(json.dumps({"cmd": "lockroom"}))
+
+                case "/unlockroom":
+                    if self.args.is_mod:
+                        self.ws.send(json.dumps({"cmd": "unlockroom"}))
+
+                case "/forcecolor":
+                    if self.args.is_mod:
+                        message_args = parsed_message[2].split(" ")
+                        self.ws.send(json.dumps({"cmd": "forcecolor", "nick": message_args[0], "color": message_args[1]}))
+
+                case "/anticmd":
+                    if self.args.is_mod:
+                        self.ws.send(json.dumps({"cmd": "anticmd"}))
+
+                case "/uwuify":
+                    if self.args.is_mod:
+                        self.ws.send(json.dumps({"cmd": "uwuify", "nick": parsed_message[2]}))
+
+                case "/help":
+                    if parsed_message[2] == "":
+                        print("""Any '/n/' will be converted into a linebreak
+
+Client-specific commands:
 
 Raw json packets can be sent with '/raw'
 Usage: /raw <json>
@@ -303,29 +265,23 @@ Usage: /list
 Chat can be cleared with '/clear'
 Usage: /clear
 
-Channel can be changed with '/move'
-Usage: /move <newchannel>
-
 Nickname can be changed with '/nick'
 Usage: /nick <newnick>
 
-Action messages can be sent with '/me'
-Usage: /me <message>
+Server-specific commands should be displayed below:
+                        """)
+                        self.ws.send(json.dumps({"cmd": "help"}))
 
-Whispers can be sent with '/whisper'
-Usage: /whisper <user> <message> or /w <user> <message>
+                    else:
+                        self.ws.send(json.dumps({"cmd": "help", "command": parsed_message[2]}))
 
-Use '/reply' to reply to the user who last whispered to you
-Usage: /reply <message> or /r <message>
-                """)
-
-
+                case _:
+                    self.ws.send(json.dumps({"cmd": "chat", "text": message}))
 
 if __name__ == "__main__":
-
     parser = argparse.ArgumentParser(description="Terminal client for connecting to hack.chat servers. Colors are provided by termcolor.")
-    required_group = parser.add_argument_group('required arguments')
-    optional_group = parser.add_argument_group('optional arguments')
+    required_group = parser.add_argument_group("required arguments")
+    optional_group = parser.add_argument_group("optional arguments")
     required_group.add_argument("-c", "--channel", help="specify the channel to join", required=True)
     required_group.add_argument("-n", "--nickname", help="specify the nickname to use", required=True)
     optional_group.add_argument("-t", "--trip-password", help="specify a tripcode password to use when joining")
@@ -361,7 +317,7 @@ if __name__ == "__main__":
                                 trip_password="",
                                 websocket_address="wss://hack.chat/chat-ws")
     args = parser.parse_args()
-    
+
     colorama.init()
 
     client = Client(args)
@@ -371,4 +327,3 @@ if __name__ == "__main__":
 
     print("Exiting...")
     colorama.deinit()
-
