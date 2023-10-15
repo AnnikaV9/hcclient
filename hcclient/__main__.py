@@ -12,6 +12,7 @@ import colorama
 import datetime
 import termcolor
 import shutil
+import atexit
 
 try:
     import readline
@@ -47,7 +48,7 @@ class Client:
 
             else:
                 try:
-                    print("'tput' binary not found in path, terminal contents will not be saved. Exit and run with --no-clear to preserve terminal contents or press enter to continue anyway")
+                    print("Warning!\nThe 'tput' command was not found in your path.\nThis means that the terminal's contents will not be saved.\nExit and re-run with --no-clear as a workaround.\nPress enter to continue and clear the terminal anyway.")
                     input()
                 
                 except KeyboardInterrupt:
@@ -352,10 +353,7 @@ if __name__ == "__main__":
     client.thread_input.start()
     client.main_thread()
 
-    print("Exiting, press enter if stuck here")
-    
-    if client.term_content_saved:
-        os.system("tput rmcup")
-    
+    atexit.register(lambda: os.system("tput rmcup") if client.term_content_saved else None)
+
     colorama.deinit()
     sys.exit(0)
