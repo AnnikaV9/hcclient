@@ -5,7 +5,7 @@ A terminal client for connecting to <a href="https://hack.chat">hack.chat</a>
 <br />
 <br />
 
-<img src="https://github.com/AnnikaV9/hcclient/assets/68383195/84e5876f-26a5-4c67-b429-5e559750ab20" width="90%"></div>
+<img src="https://github.com/AnnikaV9/hcclient/assets/68383195/b0c692ed-2cc4-4bb9-a3cf-73d82039bdf3" width="70%"></div>
 
 <br />
 
