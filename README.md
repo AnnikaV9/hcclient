@@ -1,13 +1,12 @@
 <div align="center">
 <h1> hcclient <br /> <a target="_blank" href="https://github.com/AnnikaV9/carrotsh/blob/master/LICENSE" title="License"><img src="https://img.shields.io/static/v1?label=License&message=The%20Unlicense&color=blue&style=flat-square"></a></h1>
-A terminal client for connecting to <a href="https://github.com/hack-chat/main">hack.chat</a> instances.
+A terminal client for connecting to <a href="https://hack.chat">hack.chat</a>
 
 <br />
 <br />
 
-<img src="https://github.com/AnnikaV9/hcclient/assets/68383195/b13d463d-4efc-46a5-9f08-63977ef4e6f0" width="70%"></div>
+<img src="https://github.com/AnnikaV9/hcclient/assets/68383195/84e5876f-26a5-4c67-b429-5e559750ab20" width="90%"></div>
 
-<br />
 <br />
 
 ## Table of Contents
@@ -20,21 +19,21 @@ A terminal client for connecting to <a href="https://github.com/hack-chat/main">
 - [Contributing](#contributing)
 
 <br />
-<br />
 
 ## Introduction <a name="introduction"></a>
 *"hack.chat is a minimal, distraction-free, accountless, logless, disappearing chat service which is easily deployable as your own service."* - [hack.chat](https://github.com/hack-chat/main)
 
-hcclient is a configurable terminal client for connecting to [hack.chat](https://github.com/hack-chat/main) instances. It's written in python, and run as a container. The Alpine docker image is used due to its minimal size.
+hcclient is a configurable terminal client for connecting to [hack.chat](https://hack.chat). It's written in python, and run as a container. The Alpine docker image is used due to its minimal size.
 
-<br />
+As this client is written to be compatible with the official live instance running at https://hack.chat, compatibility with your own self-hosted instance or other alternate instances is not guaranteed.
+
 <br />
 
 ## Prerequisites <a name="prerequisites"></a>
 Either [Docker](https://docs.docker.com/engine/) or [Podman](https://github.com/containers/podman) is recommended to be installed on your system.
 <br /><br />
-You can run the client directly without using a container, this requires python and pip. You'll have to install pip dependencies locally or in a virtualenv.
-<br />
+You can run the client directly without using a container, this requires python >= 3.10 and pip. You'll have to install pip dependencies locally or in a virtualenv.
+
 <br />
 
 ## Installation <a name="installation"></a>
