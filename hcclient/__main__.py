@@ -11,8 +11,12 @@ import argparse
 import colorama
 import datetime
 import termcolor
-import readline
 import shutil
+
+try:
+    import readline
+except:
+    None
 
 
 class Client:
