@@ -11,6 +11,7 @@ A terminal client for connecting to <a href="https://hack.chat">hack.chat</a>
 
 ## Table of Contents
 - [Introduction](#introduction)
+- [Features](#features)
 - [Prerequisites](#prerequisites)
 - [Installation](#installation)
 - [Usage](#usage)
@@ -27,6 +28,14 @@ A terminal client for connecting to <a href="https://hack.chat">hack.chat</a>
 hcclient is a configurable terminal client for connecting to [hack.chat](https://hack.chat). It's written in python, and run as a container. The Alpine docker image is used due to its minimal size.
 
 As this client is written to be compatible with the official live instance running at https://hack.chat, compatibility with your own self-hosted instance or other alternate instances is not guaranteed.
+
+<br />
+
+## Features <a name="features"></a>
+- **Cross-platform:** &nbsp;No platform specific modules used, should work fine on most systems.
+- **Colors:** &nbsp;Configured with command line flags, colors provided by termcolor.
+- **Autocompletion:** &nbsp;Starting your message with `@` will bring up a menu with a list of online users.
+- **Moderator mode:** &nbsp;Enabled with `--is-mod`, gives you a bunch of `/` commands for moderator actions.
 
 <br />
 
