@@ -1,4 +1,8 @@
 #!/usr/bin/python3
+#
+# Author:    AnnikaV9
+# License:   Unlicense
+# Version:   1.1.0
 
 import json
 import threading
@@ -13,16 +17,15 @@ import datetime
 import termcolor
 import shutil
 import atexit
-
-try:
-    import readline
-except:
-    None
+import prompt_toolkit
 
 
 class Client:
 
     def __init__(self, args):
+        colorama.init()
+        sys.excepthook = self.close
+
         self.args = args
         self.nick = self.args.nickname
         self.online_users = []
@@ -41,7 +44,7 @@ class Client:
         self.thread_input = threading.Thread(target=self.input_thread, daemon=True)
 
     def manage_term_contents(self):
-        if not self.args.no_clear:
+        if self.args.clear:
             if shutil.which("tput"):
                 os.system("tput smcup")
                 self.term_content_saved = True
@@ -158,9 +161,14 @@ class Client:
 
 
     def input_thread(self):
+        prompt_session = prompt_toolkit.PromptSession()
         while self.ws.connected:
-            self.send_input(input())
-
+            try:
+                self.send_input(prompt_session.prompt())
+            
+            except KeyboardInterrupt:
+                self.close()
+          
 
     def send_input(self, message):
         message = message.replace("/n/", "\n")
@@ -195,13 +203,13 @@ class Client:
                         self.ws.send(json.dumps({"cmd": "changenick", "nick": parsed_message[2]}))
 
                 case "/clear":
-                    if not self.args.no_clear:
+                    if self.args.clear:
                         os.system("cls" if os.name=="nt" else "clear")
                     
                     else:
                         print("{}|{}| {}".format(termcolor.colored("-NIL-", self.args.timestamp_color),
                                                 termcolor.colored("CLIENT", self.args.client_color),
-                                                termcolor.colored("Clearing is disabled (--no-clear)", self.args.client_color)))
+                                                termcolor.colored("Clearing is disabled, enable with --clear", self.args.client_color)))
 
                 case "/ban":
                     if self.args.is_mod:
@@ -304,6 +312,12 @@ Server-specific commands should be displayed below:
 
                 case _:
                     self.ws.send(json.dumps({"cmd": "chat", "text": message}))
+    
+    def close(self, *error):
+        colorama.deinit()
+        os.system("tput rmcup") if client.term_content_saved else None
+        print(error) if error else None
+        sys.exit(0)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Terminal client for connecting to hack.chat servers. Colors are provided by termcolor.")
@@ -314,7 +328,7 @@ if __name__ == "__main__":
     optional_group.add_argument("-t", "--trip-password", help="specify a tripcode password to use when joining")
     optional_group.add_argument("-w", "--websocket-address", help="specify the websocket address to connect to (default: wss://hack-chat/chat-ws)")
     optional_group.add_argument("--no-parse", help="log received packets without parsing",  dest="no_parse", action="store_true")
-    optional_group.add_argument("--no-clear", help="disables clearing of the terminal", dest="no_clear", action="store_true")
+    optional_group.add_argument("--clear", help="enables clearing of the terminal", dest="clear", action="store_true")
     optional_group.add_argument("--is-mod", help="enables moderator commands",  dest="is_mod", action="store_true")
     optional_group.add_argument("--no-icon", help="disables moderator/admin icon",  dest="no_icon", action="store_true")
     optional_group.add_argument("--message-color", help="sets the message color (default: white)")
@@ -327,8 +341,9 @@ if __name__ == "__main__":
     optional_group.add_argument("--timestamp-color", help="sets the timestamp color (default: white)")
     optional_group.add_argument("--mod-nickname-color", help="sets the moderator nickname color (default: cyan)")
     optional_group.add_argument("--admin-nickname-color", help="sets the admin nickname color (default: red)")
+    optional_group.add_argument("--version", help="displays the version and exits", action="version", version="1.1.0")
     optional_group.set_defaults(no_parse=False,
-                                no_clear=False,
+                                clear=False,
                                 is_mod=False,
                                 no_icon=False,
                                 message_color="white",
@@ -345,14 +360,8 @@ if __name__ == "__main__":
                                 websocket_address="wss://hack.chat/chat-ws")
     args = parser.parse_args()
 
-    colorama.init()
-
     client = Client(args)
     client.thread_ping.start()
     client.thread_input.start()
     client.main_thread()
-
-    atexit.register(lambda: os.system("tput rmcup") if client.term_content_saved else None)
-
-    colorama.deinit()
-    sys.exit(0)
+    client.close()

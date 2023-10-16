@@ -48,7 +48,7 @@ As a container:
 wget https://github.com/AnnikaV9/hcclient/releases/download/v1.0.0/hcclient-1.0.0-image.tar.xz
 
 # Install the image
-docker/podman load -i hcclient-1.0.0-image.tar.xz
+docker/podman load -i hcclient-1.1.0-image.tar.xz
 
 # Run hcclient
 docker/podman run --rm -it hcclient --help
@@ -61,10 +61,10 @@ As a regular python script:
 wget https://github.com/AnnikaV9/hcclient/archive/refs/tags/v1.0.0.tar.gz
 
 # Extract the archive
-tar xvf v1.0.0.tar.gz
+tar xvf v1.1.0.tar.gz
 
 # Change the working directory
-cd hcclient-1.0.0
+cd hcclient-1.1.0
 
 # Install the dependencies
 pip install -r requirements.txt
@@ -107,7 +107,7 @@ optional arguments:
                         specify the websocket address to connect to (default:
                         wss://hack-chat/chat-ws)
   --no-parse            log received packets without parsing
-  --no-clear            disables clearing of the terminal
+  --clear               enables clearing of the terminal
   --is-mod              enables moderator commands
   --no-icon             disables moderator/admin icon
   --message-color MESSAGE_COLOR
@@ -130,6 +130,7 @@ optional arguments:
                         sets the moderator nickname color (default: cyan)
   --admin-nickname-color ADMIN_NICKNAME_COLOR
                         sets the admin nickname color (default: red)
+  --version             displays the version and exits
 ```
 
 <br />
@@ -176,7 +177,7 @@ bash profile1.sh -c mychannel -n mynick
 
 - Not compatible with hack.chat's new `updateMessage` implementation. You won't be able to see the output of any bots that use `updateMessage` to display delayed/streamed output.
 
-- Some terminal emulators will have locked scrolling when hcclient is run without `--no-clear`. This is an issue with how the terminal emulators interact with the alternate screen `tput smcup` invokes. To fix this, run with `--no-clear`.
+- Some terminal emulators will have locked scrolling when hcclient is run with `--clear`. This is an issue with how the terminal emulators interact with the alternate screen `tput smcup` invokes. There's no fix for this at the moment, so run hcclient without `--clear` if you want to be able to scroll.
 
 <br />
 
