@@ -42,6 +42,20 @@ You *can* run the client directly without using a container, however:
 
 ## Installation <a name="installation"></a>
 
+As a container:
+```
+# Download the latest image
+wget https://github.com/AnnikaV9/hcclient/releases/download/v1.0.0/hcclient-1.0.0-image.tar.xz
+
+# Install the image
+docker/podman load -i hcclient-1.0.0-image.tar.xz
+
+# Run hcclient
+docker/podman run --rm -it hcclient --help
+```
+<br />
+
+As a script:
 ```
 # Clone the repository
 git clone https://github.com/AnnikaV9/hcclient.git
@@ -49,11 +63,11 @@ git clone https://github.com/AnnikaV9/hcclient.git
 # Change the working directory
 cd hcclient
 
-# Build the image
-docker/podman build -t hcclient .
+# Install dependencies
+pip install -r requirements.txt
 
 # Run hcclient
-docker/podman run --rm -it hcclient --help
+python3 hcclient --help
 ```
 
 <br />
