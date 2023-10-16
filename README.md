@@ -33,7 +33,8 @@ As this client is written to be compatible with the official live instance runni
 
 ## Features <a name="features"></a>
 - **Cross-platform:** &nbsp;No platform specific modules used, should work fine on most systems.
-- **Colors:** &nbsp;Configured with command line flags, colors provided by termcolor.
+- **Color theming:** &nbsp;Configured with command line flags, colors provided by termcolor.
+- **Send/Receive raw packets:** &nbsp;Send json packets without parsing with `/raw`, display received packets as json with `--no-parse`.
 - **Autocompletion:** &nbsp;Starting your message with `@` will bring up a menu with a list of online users.
 - **Moderator mode:** &nbsp;Enabled with `--is-mod`, gives you a bunch of `/` commands for moderator actions.
 
