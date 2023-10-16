@@ -74,7 +74,7 @@ class Client:
                                 self.online_users.append(nick)
                                 self.channel = received["users"][0]["channel"]
 
-                            print("{}|{}|{}".format(termcolor.colored(packet_receive_time, self.args.timestamp_color),
+                            print("{}|{}| {}".format(termcolor.colored(packet_receive_time, self.args.timestamp_color),
                                                     termcolor.colored("CLIENT", self.args.client_color),                
                                                     termcolor.colored("Channel: {} - Users: {}".format(self.channel, ", ".join(self.online_users)), self.args.client_color)))
 
@@ -96,7 +96,7 @@ class Client:
                             else:
                                 color_to_use = self.args.nickname_color 
 
-                            print("{}|{}|[{}] {}".format(termcolor.colored(packet_receive_time, self.args.timestamp_color),
+                            print("{}|{}| [{}] {}".format(termcolor.colored(packet_receive_time, self.args.timestamp_color),
                                                          termcolor.colored(tripcode, color_to_use),
                                                          termcolor.colored(received["nick"], color_to_use),
                                                          termcolor.colored(received["text"], self.args.message_color)))
@@ -109,25 +109,25 @@ class Client:
                                 else:
                                     tripcode = received.get("trip", "")
 
-                                print("{}|{}|[{}] {}".format(termcolor.colored(packet_receive_time, self.args.timestamp_color),
+                                print("{}|{}| {}".format(termcolor.colored(packet_receive_time, self.args.timestamp_color),
                                                              termcolor.colored(tripcode, self.args.whisper_color),
                                                              termcolor.colored(received["text"], self.args.whisper_color)))
                             else:
-                                print("{}|{}|{}".format(termcolor.colored(packet_receive_time, self.args.timestamp_color),
+                                print("{}|{}| {}".format(termcolor.colored(packet_receive_time, self.args.timestamp_color),
                                                         termcolor.colored("SERVER", self.args.server_color),
                                                         termcolor.colored(received["text"], self.args.server_color)))
 
                         case "onlineAdd":
                             self.online_users.append(received["nick"])
 
-                            print("{}|{}|{}".format(termcolor.colored(packet_receive_time, self.args.timestamp_color),
+                            print("{}|{}| {}".format(termcolor.colored(packet_receive_time, self.args.timestamp_color),
                                                     termcolor.colored("SERVER", self.args.server_color),
                                                     termcolor.colored(received["nick"] + " joined", self.args.server_color)))
 
                         case "onlineRemove":
                             self.online_users.remove(received["nick"])
 
-                            print("{}|{}|{}".format(termcolor.colored(packet_receive_time, self.args.timestamp_color),
+                            print("{}|{}| {}".format(termcolor.colored(packet_receive_time, self.args.timestamp_color),
                                                     termcolor.colored("SERVER", self.args.server_color),
                                                     termcolor.colored(received["nick"] + " left", self.args.server_color)))
 
@@ -138,12 +138,12 @@ class Client:
                             else:
                                 tripcode = received.get("trip", "")
 
-                            print("{}|{}|{}".format(termcolor.colored(packet_receive_time, self.args.timestamp_color),
+                            print("{}|{}| {}".format(termcolor.colored(packet_receive_time, self.args.timestamp_color),
                                                     termcolor.colored(tripcode, self.args.emote_color),
                                                     termcolor.colored(received["text"], self.args.emote_color)))
 
                         case "warn":
-                            print("{}|{}|{}".format(termcolor.colored(packet_receive_time, self.args.timestamp_color),
+                            print("{}|{}| {}".format(termcolor.colored(packet_receive_time, self.args.timestamp_color),
                                                     termcolor.colored("!WARN!", self.args.warning_color),
                                                     termcolor.colored(received["text"], self.args.warning_color)))
 
@@ -176,12 +176,12 @@ class Client:
                         self.ws.send(json.dumps(json_to_send))
 
                     except:
-                        print("{}|{}|Error sending json: {}".format(termcolor.colored("-NIL-", self.args.timestamp_color),
+                        print("{}|{}| Error sending json: {}".format(termcolor.colored("-NIL-", self.args.timestamp_color),
                                                                     termcolor.colored("CLIENT", self.args.client_color),
                                                                     termcolor.colored(sys.exc_info(), self.args.client_color)))
 
                 case "/list":
-                    print("{}|{}|{}".format(termcolor.colored("-NIL-", self.args.timestamp_color),
+                    print("{}|{}| {}".format(termcolor.colored("-NIL-", self.args.timestamp_color),
                                             termcolor.colored("CLIENT", self.args.client_color),
                                             termcolor.colored("Channel: {} - Users: {}".format(self.channel, ", ".join(self.online_users)), self.args.client_color)))
 
@@ -199,7 +199,7 @@ class Client:
                         os.system("cls" if os.name=="nt" else "clear")
                     
                     else:
-                        print("{}|{}|{}".format(termcolor.colored("-NIL-", self.args.timestamp_color),
+                        print("{}|{}| {}".format(termcolor.colored("-NIL-", self.args.timestamp_color),
                                                 termcolor.colored("CLIENT", self.args.client_color),
                                                 termcolor.colored("Clearing is disabled (--no-clear)", self.args.client_color)))
 
