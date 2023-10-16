@@ -65,7 +65,7 @@ class Client:
                 if self.args.no_parse:
                     print("\n{}|{}".format(packet_receive_time, received))
 
-                else:
+                elif "cmd" in received:
                     match received["cmd"]:
                         case "onlineSet":
                             for nick in received["nicks"]:
