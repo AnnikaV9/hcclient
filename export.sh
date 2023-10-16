@@ -1,10 +1,10 @@
 #!/bin/sh
 
-mkdir dist || exit
+mkdir dist &&
 
-podman build --tag hcclient \
-             --output type=tar,dest=dist/hcclient.tar \
-             . || exit
+podman build --tag hcclient . &&
+podman save --output dist/hcclient.tar &&
+
 
 xz --compress \
    --keep \
