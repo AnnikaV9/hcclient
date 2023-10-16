@@ -1,2 +1,3 @@
 .venv
 hcclient/__pycache__
+dist/
