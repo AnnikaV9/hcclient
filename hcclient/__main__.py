@@ -165,10 +165,9 @@ class Client:
     def send_input(self, message):
         message = message.replace("/n/", "\n")
 
-        if len(message) == 0:
-            pass
+        if len(message) > 0:
+            print("\033[A{}\033[A".format(" " * len(message)))
 
-        else:
             parsed_message = message.partition(" ")
             match parsed_message[0]:
                 case "/raw":
