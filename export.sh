@@ -3,7 +3,7 @@
 mkdir dist &&
 
 podman build --tag hcclient . &&
-podman save --output dist/hcclient.tar &&
+podman save --output dist/hcclient.tar hcclient &&
 
 
 xz --compress \
