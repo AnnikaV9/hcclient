@@ -55,19 +55,22 @@ docker/podman run --rm -it hcclient --help
 ```
 <br />
 
-As a script:
+As a regular python script:
 ```
-# Clone the repository
-git clone https://github.com/AnnikaV9/hcclient.git
+# Download the latest source release
+wget https://github.com/AnnikaV9/hcclient/archive/refs/tags/v1.0.0.tar.gz
+
+# Extract the archive
+tar xvf v1.0.0.tar.gz
 
 # Change the working directory
-cd hcclient
+cd hcclient-1.0.0
 
-# Install dependencies
+# Install the dependencies
 pip install -r requirements.txt
 
 # Run hcclient
-python3 hcclient --help
+python hcclient --help
 ```
 
 <br />
