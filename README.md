@@ -45,7 +45,7 @@ You *can* run the client directly without using a container, however:
 As a container:
 ```
 # Download the latest image
-wget https://github.com/AnnikaV9/hcclient/releases/download/v1.0.0/hcclient-1.0.0-image.tar.xz
+wget https://github.com/AnnikaV9/hcclient/releases/download/v1.0.0/hcclient-1.1.0-image.tar.xz
 
 # Install the image
 docker/podman load -i hcclient-1.1.0-image.tar.xz
@@ -58,7 +58,7 @@ docker/podman run --rm -it hcclient --help
 As a regular python script:
 ```
 # Download the latest source release
-wget https://github.com/AnnikaV9/hcclient/archive/refs/tags/v1.0.0.tar.gz
+wget https://github.com/AnnikaV9/hcclient/archive/refs/tags/v1.1.0.tar.gz
 
 # Extract the archive
 tar xvf v1.1.0.tar.gz
