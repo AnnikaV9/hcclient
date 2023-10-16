@@ -164,7 +164,9 @@ class Client:
         prompt_session = prompt_toolkit.PromptSession()
         while self.ws.connected:
             try:
-                self.send_input(prompt_session.prompt())
+                online_users_prepended = ["@{}".format(user) for user in self.online_users]
+                nick_completer = prompt_toolkit.completion.WordCompleter(online_users_prepended)
+                self.send_input(prompt_session.prompt("", completer=nick_completer, wrap_lines=False))
             
             except KeyboardInterrupt:
                 self.close()
@@ -174,7 +176,8 @@ class Client:
         message = message.replace("/n/", "\n")
 
         if len(message) > 0:
-            print("\033[A{}\033[A".format(" " * len(message)))
+
+            print("\033[A{}\033[A".format(" " * shutil.get_terminal_size().columns))
 
             parsed_message = message.partition(" ")
             match parsed_message[0]:
