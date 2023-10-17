@@ -2,7 +2,7 @@
 #
 # Author:    AnnikaV9
 # License:   Unlicense
-# Version:   1.3.0
+# Version:   1.3.1
 
 import json
 import threading
@@ -310,7 +310,7 @@ class Client:
                     if parsed_message[2] == "":
                         print("""Any '/n/' will be converted into a linebreak
 
-Press CTRL+A to enter buffer mode, where received messages will be held until you press ENTER
+Press CTRL+A to enter buffer mode - incoming messages will be held in a buffer until you press ENTER and exit buffer mode
 
 Client-specific commands:
 
@@ -364,7 +364,7 @@ if __name__ == "__main__":
     optional_group.add_argument("--timestamp-color", help="sets the timestamp color (default: white)")
     optional_group.add_argument("--mod-nickname-color", help="sets the moderator nickname color (default: cyan)")
     optional_group.add_argument("--admin-nickname-color", help="sets the admin nickname color (default: red)")
-    optional_group.add_argument("--version", help="displays the version and exits", action="version", version="1.3.0")
+    optional_group.add_argument("--version", help="displays the version and exits", action="version", version="1.3.1")
     optional_group.set_defaults(no_parse=False,
                                 clear=False,
                                 is_mod=False,
