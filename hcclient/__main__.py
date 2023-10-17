@@ -165,7 +165,7 @@ class Client:
         while self.ws.connected:
             try:
                 online_users_prepended = ["@{}".format(user) for user in self.online_users]
-                nick_completer = prompt_toolkit.completion.WordCompleter(online_users_prepended)
+                nick_completer = prompt_toolkit.completion.WordCompleter(online_users_prepended, match_middle=True, ignore_case=True, sentence=True)
                 self.send_input(prompt_session.prompt("", completer=nick_completer, wrap_lines=False))
             
             except KeyboardInterrupt:
