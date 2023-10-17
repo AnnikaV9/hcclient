@@ -44,29 +44,29 @@ As this client is written to be compatible with the official live instance runni
 ## Prerequisites <a name="prerequisites"></a>
 Either [Docker](https://docs.docker.com/engine/) or [Podman](https://github.com/containers/podman) is recommended. The container image is built with hcclient's dependencies.  
 <br />
-You *can* run the client directly without using a container, however:
+You *can* run the client directly without using a container, on non-linux systems however:
 - This requires python >= 3.10 and pip. <br />
 - You'll have to install pip dependencies locally or in a virtual environment.<br />
 - The `tput` command (provided by ncurses) is an optionally dependency that allows saving and restoring terminal contents.
+
+For linux based systems, an x86-64 binary is provided. Only `tput` would be an external dependency.
 
 <br />
 
 ## Installation <a name="installation"></a>
 
-As a container:
+On Linux based systems:
 ```
-# Download the latest image
-wget https://github.com/AnnikaV9/hcclient/releases/download/v1.3.1/hcclient-1.3.1-image.tar.xz
+# Download the latest binary
+wget -O hcclient https://github.com/AnnikaV9/hcclient/releases/download/v1.3.1/hcclient-1.3.1-linux-x86-64
 
-# Install the image
-docker/podman load -i hcclient-1.3.1-image.tar.xz
+# Move binary to somewhere in PATH
+mv hcclient ~/.local/bin/
 
 # Run hcclient
-docker/podman run --rm -it hcclient --help
+hcclient --help
 ```
-<br />
-
-As a regular python script:
+On other platforms:
 ```
 # Download the latest source release
 wget https://github.com/AnnikaV9/hcclient/archive/refs/tags/v1.3.1.tar.gz
@@ -83,12 +83,22 @@ pip install -r requirements.txt
 # Run hcclient
 python hcclient --help
 ```
+As a container:
+```
+# Download the latest image
+wget https://github.com/AnnikaV9/hcclient/releases/download/v1.3.1/hcclient-1.3.1-image.tar.xz
 
+# Install the image
+docker/podman load -i hcclient-1.3.1-image.tar.xz
+
+# Run hcclient
+docker/podman run --rm -it hcclient --help
+```
 <br />
 
 ## Usage <a name="usage"></a>
 ```
-$ docker/podman run --rm -it hcclient --help
+$ hcclient --help
 
 usage:  [-h] -c CHANNEL -n NICKNAME [-t TRIP_PASSWORD] [-w WEBSOCKET_ADDRESS]
         [--no-parse] [--no-clear] [--is-mod] [--no-icon]
@@ -165,21 +175,21 @@ hcclient does not save to or read from any configuration file. It might be troub
 *profile1.sh*
 ```bash
 #!/bin/bash
-docker run --rm -it hcclient --trip-password mypassword \
-                             --server-color red \
-                             "$@"
+hcclient --trip-password mypassword \
+         --server-color red \
+         "$@"
 ```
 or
 ```bash
 #!/bin/bash
-podman run --rm -it hcclient --trip-password mypassword \
-                             --timestamp-color green \
-                             --no-clear \
-                             "$@"
+hcclient --trip-password mypassword \
+         --timestamp-color green \
+         --no-clear \
+         "$@"
 ```
 The profile can then be used like:
 ```
-bash profile1.sh -c mychannel -n mynick
+sh profile1.sh -c mychannel -n mynick
 ```
 
 <br />
