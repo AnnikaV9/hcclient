@@ -388,10 +388,11 @@ if __name__ == "__main__":
     bindings = prompt_toolkit.key_binding.KeyBindings()
     @bindings.add("c-a")
     def _(event):
-        client.buffer_mode = True
-        print("{}|{}| {}".format(termcolor.colored("-NIL-", args.timestamp_color),
-                                 termcolor.colored("CLIENT", args.client_color),
-                                 termcolor.colored("Received messages are held in buffer, press ENTER to retrieve them", args.client_color)))
+        if not client.buffer_mode:
+            client.buffer_mode = True
+            print("{}|{}| {}".format(termcolor.colored("-NIL-", args.timestamp_color),
+                                     termcolor.colored("CLIENT", args.client_color),
+                                     termcolor.colored("Received messages are held in buffer, press ENTER to retrieve them", args.client_color)))
 
     client.thread_ping.start()
     client.thread_input.start()
