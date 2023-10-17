@@ -2,7 +2,7 @@
 #
 # Author:    AnnikaV9
 # License:   Unlicense
-# Version:   1.2.0
+# Version:   1.3.0
 
 import json
 import threading
@@ -29,6 +29,9 @@ class Client:
         self.args = args
         self.nick = self.args.nickname
         self.online_users = []
+
+        self.message_buffer = []
+        self.buffer_mode = False
 
         self.term_content_saved = False
         self.manage_term_contents()
@@ -58,6 +61,13 @@ class Client:
                     sys.exit(0)
 
             os.system("cls" if os.name=="nt" else "clear")
+    
+    def print_or_buffer(self, message):
+        if self.buffer_mode:
+            self.message_buffer.append(message)
+
+        else:
+            print(message)
 
     def main_thread(self):
         try:
@@ -66,7 +76,7 @@ class Client:
                 packet_receive_time = datetime.datetime.now().strftime("%H:%M")
 
                 if self.args.no_parse:
-                    print("\n{}|{}".format(packet_receive_time, received))
+                    self.print_or_buffer("\n{}|{}".format(packet_receive_time, received))
 
                 elif "cmd" in received:
                     match received["cmd"]:
@@ -77,9 +87,9 @@ class Client:
                                 self.online_users.append(nick)
                                 self.channel = received["users"][0]["channel"]
 
-                            print("{}|{}| {}".format(termcolor.colored(packet_receive_time, self.args.timestamp_color),
-                                                    termcolor.colored("CLIENT", self.args.client_color),                
-                                                    termcolor.colored("Channel: {} - Users: {}".format(self.channel, ", ".join(self.online_users)), self.args.client_color)))
+                            self.print_or_buffer("{}|{}| {}".format(termcolor.colored(packet_receive_time, self.args.timestamp_color),
+                                                    termcolor.colored("SERVER", self.args.server_color),                
+                                                    termcolor.colored("Channel: {} - Users: {}".format(self.channel, ", ".join(self.online_users)), self.args.server_color)))
 
                         case "chat":
                             if len(received.get("trip", "")) < 6:
@@ -99,7 +109,7 @@ class Client:
                             else:
                                 color_to_use = self.args.nickname_color 
 
-                            print("{}|{}| [{}] {}".format(termcolor.colored(packet_receive_time, self.args.timestamp_color),
+                            self.print_or_buffer("{}|{}| [{}] {}".format(termcolor.colored(packet_receive_time, self.args.timestamp_color),
                                                          termcolor.colored(tripcode, color_to_use),
                                                          termcolor.colored(received["nick"], color_to_use),
                                                          termcolor.colored(received["text"], self.args.message_color)))
@@ -112,25 +122,25 @@ class Client:
                                 else:
                                     tripcode = received.get("trip", "")
 
-                                print("{}|{}| {}".format(termcolor.colored(packet_receive_time, self.args.timestamp_color),
+                                self.print_or_buffer("{}|{}| {}".format(termcolor.colored(packet_receive_time, self.args.timestamp_color),
                                                              termcolor.colored(tripcode, self.args.whisper_color),
                                                              termcolor.colored(received["text"], self.args.whisper_color)))
                             else:
-                                print("{}|{}| {}".format(termcolor.colored(packet_receive_time, self.args.timestamp_color),
+                                self.print_or_buffer("{}|{}| {}".format(termcolor.colored(packet_receive_time, self.args.timestamp_color),
                                                         termcolor.colored("SERVER", self.args.server_color),
                                                         termcolor.colored(received["text"], self.args.server_color)))
 
                         case "onlineAdd":
                             self.online_users.append(received["nick"])
 
-                            print("{}|{}| {}".format(termcolor.colored(packet_receive_time, self.args.timestamp_color),
+                            self.print_or_buffer("{}|{}| {}".format(termcolor.colored(packet_receive_time, self.args.timestamp_color),
                                                     termcolor.colored("SERVER", self.args.server_color),
                                                     termcolor.colored(received["nick"] + " joined", self.args.server_color)))
 
                         case "onlineRemove":
                             self.online_users.remove(received["nick"])
 
-                            print("{}|{}| {}".format(termcolor.colored(packet_receive_time, self.args.timestamp_color),
+                            self.print_or_buffer("{}|{}| {}".format(termcolor.colored(packet_receive_time, self.args.timestamp_color),
                                                     termcolor.colored("SERVER", self.args.server_color),
                                                     termcolor.colored(received["nick"] + " left", self.args.server_color)))
 
@@ -141,12 +151,12 @@ class Client:
                             else:
                                 tripcode = received.get("trip", "")
 
-                            print("{}|{}| {}".format(termcolor.colored(packet_receive_time, self.args.timestamp_color),
+                            self.print_or_buffer("{}|{}| {}".format(termcolor.colored(packet_receive_time, self.args.timestamp_color),
                                                     termcolor.colored(tripcode, self.args.emote_color),
                                                     termcolor.colored(received["text"], self.args.emote_color)))
 
                         case "warn":
-                            print("{}|{}| {}".format(termcolor.colored(packet_receive_time, self.args.timestamp_color),
+                            self.print_or_buffer("{}|{}| {}".format(termcolor.colored(packet_receive_time, self.args.timestamp_color),
                                                     termcolor.colored("!WARN!", self.args.warning_color),
                                                     termcolor.colored(received["text"], self.args.warning_color)))
 
@@ -159,14 +169,13 @@ class Client:
             self.ws.send(json.dumps({"cmd": "ping"}))
             time.sleep(60)
 
-
     def input_thread(self):
         prompt_session = prompt_toolkit.PromptSession()
         while self.ws.connected:
             try:
                 online_users_prepended = ["@{}".format(user) for user in self.online_users]
                 nick_completer = prompt_toolkit.completion.WordCompleter(online_users_prepended, match_middle=True, ignore_case=True, sentence=True)
-                self.send_input(prompt_session.prompt("", completer=nick_completer, wrap_lines=False))
+                self.send_input(prompt_session.prompt("", completer=nick_completer, wrap_lines=False, key_bindings=bindings))
             
             except KeyboardInterrupt:
                 self.close()
@@ -174,10 +183,19 @@ class Client:
 
     def send_input(self, message):
         message = message.replace("/n/", "\n")
+        
+        if self.buffer_mode:
+            print("\033[A{0}\033[A\033[A{0}\033[A".format(" " * shutil.get_terminal_size().columns))
+
+        else:
+            print("\033[A{}\033[A".format(" " * shutil.get_terminal_size().columns))
+        
+        self.buffer_mode = False
+        for line in self.message_buffer:
+            print(line)
+        self.message_buffer = []
 
         if len(message) > 0:
-
-            print("\033[A{}\033[A".format(" " * shutil.get_terminal_size().columns))
 
             parsed_message = message.partition(" ")
             match parsed_message[0]:
@@ -292,6 +310,8 @@ class Client:
                     if parsed_message[2] == "":
                         print("""Any '/n/' will be converted into a linebreak
 
+Press CTRL+A to enter buffer mode, where received messages will be held until you press ENTER
+
 Client-specific commands:
 
 Raw json packets can be sent with '/raw'
@@ -344,7 +364,7 @@ if __name__ == "__main__":
     optional_group.add_argument("--timestamp-color", help="sets the timestamp color (default: white)")
     optional_group.add_argument("--mod-nickname-color", help="sets the moderator nickname color (default: cyan)")
     optional_group.add_argument("--admin-nickname-color", help="sets the admin nickname color (default: red)")
-    optional_group.add_argument("--version", help="displays the version and exits", action="version", version="1.2.0")
+    optional_group.add_argument("--version", help="displays the version and exits", action="version", version="1.3.0")
     optional_group.set_defaults(no_parse=False,
                                 clear=False,
                                 is_mod=False,
@@ -364,6 +384,15 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     client = Client(args)
+    
+    bindings = prompt_toolkit.key_binding.KeyBindings()
+    @bindings.add("c-a")
+    def _(event):
+        client.buffer_mode = True
+        print("{}|{}| {}".format(termcolor.colored("-NIL-", args.timestamp_color),
+                                 termcolor.colored("CLIENT", args.client_color),
+                                 termcolor.colored("Received messages are held in buffer, press ENTER to retrieve them", args.client_color)))
+
     client.thread_ping.start()
     client.thread_input.start()
     client.main_thread()

@@ -35,8 +35,9 @@ As this client is written to be compatible with the official live instance runni
 - **Cross-platform:** &nbsp;No platform specific modules used, should work fine on most systems.
 - **Color theming:** &nbsp;Configured with command line flags, colors provided by termcolor.
 - **Send/Receive raw packets:** &nbsp;Send json packets without parsing with `/raw`, display received packets as json with `--no-parse`.
-- **Autocompletion:** &nbsp;Starting your message with `@` will bring up a menu with a list of online users.
-- **Moderator mode:** &nbsp;Enabled with `--is-mod`, gives you a bunch of `/` commands for moderator actions.
+- **Autocompletion:** &nbsp;Starting your message with `@` will bring up a menu with a list of online users. Cycling through them with arrow keys or continue typing to filter the suggestions even more.
+- **Buffer mode:** &nbsp;Press `ctrl+a` to enable buffer mode, which will redirect all received messages to a temporary buffer. Now you can type your long message in peace without worrying about incoming messages overwriting them. Pressing `ENTER` will retreive all the held messages and disable buffer mode.
+- **Moderator mode:** &nbsp;Enabled with `--is-mod`, gives you a bunch of `/` commands for moderator actions. Moderator commands are not documented in `/help`, check the source code for the list of available ones and their parameters.
 
 <br />
 
@@ -55,10 +56,10 @@ You *can* run the client directly without using a container, however:
 As a container:
 ```
 # Download the latest image
-wget https://github.com/AnnikaV9/hcclient/releases/download/v1.2.0/hcclient-1.2.0-image.tar.xz
+wget https://github.com/AnnikaV9/hcclient/releases/download/v1.3.0/hcclient-1.3.0-image.tar.xz
 
 # Install the image
-docker/podman load -i hcclient-1.2.0-image.tar.xz
+docker/podman load -i hcclient-1.3.0-image.tar.xz
 
 # Run hcclient
 docker/podman run --rm -it hcclient --help
@@ -68,13 +69,13 @@ docker/podman run --rm -it hcclient --help
 As a regular python script:
 ```
 # Download the latest source release
-wget https://github.com/AnnikaV9/hcclient/archive/refs/tags/v1.2.0.tar.gz
+wget https://github.com/AnnikaV9/hcclient/archive/refs/tags/v1.3.0.tar.gz
 
 # Extract the archive
-tar xvf v1.2.0.tar.gz
+tar xvf v1.3.0.tar.gz
 
 # Change the working directory
-cd hcclient-1.2.0
+cd hcclient-1.3.0
 
 # Install the dependencies
 pip install -r requirements.txt
