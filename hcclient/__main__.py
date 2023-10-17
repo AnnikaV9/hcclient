@@ -308,26 +308,16 @@ class Client:
 
                 case "/help":
                     if parsed_message[2] == "":
-                        print("""Any '/n/' will be converted into a linebreak
-
-Press CTRL+A to enter buffer mode - incoming messages will be held in a buffer until you press ENTER and exit buffer mode
+                        print("""Any '/n/' will be converted into a linebreak.
+Press CTRL+A to enter buffer mode - incoming messages will be held in a buffer until you press ENTER and exit buffer mode.
 
 Client-specific commands:
+/raw <json>
+/list
+/clear
+/nick <newnick>
 
-Raw json packets can be sent with '/raw'
-Usage: /raw <json>
-
-User list can be viewed with '/list'
-Usage: /list
-
-Chat can be cleared with '/clear'
-Usage: /clear
-
-Nickname can be changed with '/nick'
-Usage: /nick <newnick>
-
-Server-specific commands should be displayed below:
-                        """)
+Server-specific commands should be displayed below:""")
                         self.ws.send(json.dumps({"cmd": "help"}))
 
                     else:
