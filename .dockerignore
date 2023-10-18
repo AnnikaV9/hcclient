@@ -5,5 +5,5 @@ LICENSE
 .venv
 dist
 build
-hcclient.spec
+hcclient*.spec
 export.sh
