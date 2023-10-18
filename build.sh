@@ -1,4 +1,6 @@
 #!/bin/bash
+#
+# Requires ldd and binutils
 
 VERSION="1.3.3"
 
