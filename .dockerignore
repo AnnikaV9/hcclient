@@ -2,3 +2,7 @@
 Dockerfile*
 README.md
 LICENSE
+.venv
+dist
+build
+hcclient.spec
