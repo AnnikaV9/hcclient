@@ -12,4 +12,11 @@ xz --compress \
    --threads=8 \
    -6 \
    -v -v \
-   dist/hcclient.tar
+   dist/hcclient.tar &&
+
+pyinstaller --onefile \
+            --clean \
+            --name hcclient \
+            hcclient/__main__.py &&
+
+staticx --strip dist/hcclient dist/hcclient-static
