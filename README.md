@@ -49,7 +49,7 @@ You *can* run the client directly without using a container, on non-linux system
 - You'll have to install pip dependencies locally or in a virtual environment.<br />
 - The `tput` command (provided by ncurses) is an optionally dependency that allows saving and restoring terminal contents.
 
-For linux based systems, an x86-64 binary is provided. Only `tput` is an external dependency.
+For linux based systems, statically and dynamically linked x86-64 binaries are provided. Only `tput` is an external dependency.
 
 <br />
 
@@ -59,6 +59,9 @@ On Linux based systems:
 ```
 # Download the latest binary
 wget -O hcclient https://github.com/AnnikaV9/hcclient/releases/download/v1.3.2/hcclient-1.3.2-linux-x86-64
+
+# Or the statically linked binary
+wget -O hcclient https://github.com/AnnikaV9/hcclient/releases/download/v1.3.2/hcclient-1.3.2-linux-x86-64-static
 
 # Move binary to somewhere in PATH
 mv hcclient ~/.local/bin/
