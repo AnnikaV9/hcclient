@@ -63,7 +63,10 @@ wget -O hcclient https://github.com/AnnikaV9/hcclient/releases/download/v1.3.2/h
 # Or the statically linked binary
 wget -O hcclient https://github.com/AnnikaV9/hcclient/releases/download/v1.3.2/hcclient-1.3.2-linux-x86-64-static
 
-# Move binary to somewhere in PATH
+# Make the binary executable
+chmod +x hcclient
+
+# Move it to somewhere in PATH
 mv hcclient ~/.local/bin/
 
 # Run hcclient
