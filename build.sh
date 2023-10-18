@@ -32,7 +32,7 @@ container() {
    xz --compress \
       --keep \
       --extreme \
-      --threads=8 \
+      --threads=0 \
       -6 \
       -v -v \
       dist/hcclient-$VERSION-image.tar
