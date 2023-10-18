@@ -60,7 +60,7 @@ On Linux based systems:
 # Download the latest binary
 wget -O hcclient https://github.com/AnnikaV9/hcclient/releases/download/v1.3.2/hcclient-1.3.2-linux-x86-64
 
-# Or the statically linked binary
+# Or the statically linked binary if the above one doesn't work
 wget -O hcclient https://github.com/AnnikaV9/hcclient/releases/download/v1.3.2/hcclient-1.3.2-linux-x86-64-static
 
 # Make the binary executable
