@@ -6,3 +6,4 @@ LICENSE
 dist
 build
 hcclient.spec
+export.sh
