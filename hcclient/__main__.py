@@ -2,7 +2,7 @@
 #
 # Author:    AnnikaV9
 # License:   Unlicense
-# Version:   1.3.1
+# Version:   1.3.2
 
 import json
 import threading
@@ -54,7 +54,7 @@ class Client:
 
             else:
                 try:
-                    print("Warning!\nThe 'tput' command was not found in your path.\nThis means that the terminal's contents will not be saved.\nExit and re-run with --no-clear as a workaround.\nPress enter to continue and clear the terminal anyway.")
+                    print("Warning!\nThe 'tput' command was not found in your path.\nThis means that the terminal's contents will not be saved.\nExit and re-run without --clear as a workaround.\nPress enter to continue and clear the terminal anyway.")
                     input()
                 
                 except KeyboardInterrupt:
@@ -184,11 +184,11 @@ class Client:
     def send_input(self, message):
         message = message.replace("/n/", "\n")
         
+        cols = shutil.get_terminal_size().columns
+        print("\033[A{}\033[A".format(" " * cols))
         if self.buffer_mode:
-            print("\033[A{0}\033[A\033[A{0}\033[A".format(" " * shutil.get_terminal_size().columns))
-
-        else:
-            print("\033[A{}\033[A".format(" " * shutil.get_terminal_size().columns))
+            for i in range(int(-(-80//cols))):
+                print("\033[A{}\033[A".format(" " * cols))
         
         self.buffer_mode = False
         for line in self.message_buffer:
@@ -309,6 +309,7 @@ class Client:
                 case "/help":
                     if parsed_message[2] == "":
                         print("""Any '/n/' will be converted into a linebreak.
+
 Press CTRL+A to enter buffer mode - incoming messages will be held in a buffer until you press ENTER and exit buffer mode.
 
 Client-specific commands:
@@ -354,7 +355,7 @@ if __name__ == "__main__":
     optional_group.add_argument("--timestamp-color", help="sets the timestamp color (default: white)")
     optional_group.add_argument("--mod-nickname-color", help="sets the moderator nickname color (default: cyan)")
     optional_group.add_argument("--admin-nickname-color", help="sets the admin nickname color (default: red)")
-    optional_group.add_argument("--version", help="displays the version and exits", action="version", version="1.3.1")
+    optional_group.add_argument("--version", help="displays the version and exits", action="version", version="1.3.2")
     optional_group.set_defaults(no_parse=False,
                                 clear=False,
                                 is_mod=False,

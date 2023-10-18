@@ -49,7 +49,7 @@ You *can* run the client directly without using a container, on non-linux system
 - You'll have to install pip dependencies locally or in a virtual environment.<br />
 - The `tput` command (provided by ncurses) is an optionally dependency that allows saving and restoring terminal contents.
 
-For linux based systems, an x86-64 binary is provided. Only `tput` would be an external dependency.
+For linux based systems, an x86-64 binary is provided. Only `tput` is an external dependency.
 
 <br />
 
@@ -58,7 +58,7 @@ For linux based systems, an x86-64 binary is provided. Only `tput` would be an e
 On Linux based systems:
 ```
 # Download the latest binary
-wget -O hcclient https://github.com/AnnikaV9/hcclient/releases/download/v1.3.1/hcclient-1.3.1-linux-x86-64
+wget -O hcclient https://github.com/AnnikaV9/hcclient/releases/download/v1.3.2/hcclient-1.3.2-linux-x86-64
 
 # Move binary to somewhere in PATH
 mv hcclient ~/.local/bin/
@@ -69,13 +69,13 @@ hcclient --help
 On other platforms:
 ```
 # Download the latest source release
-wget https://github.com/AnnikaV9/hcclient/archive/refs/tags/v1.3.1.tar.gz
+wget https://github.com/AnnikaV9/hcclient/archive/refs/tags/v1.3.2.tar.gz
 
 # Extract the archive
-tar xvf v1.3.1.tar.gz
+tar xvf v1.3.2.tar.gz
 
 # Change the working directory
-cd hcclient-1.3.1
+cd hcclient-1.3.2
 
 # Install the dependencies
 pip install -r requirements.txt
@@ -86,10 +86,10 @@ python hcclient --help
 As a container:
 ```
 # Download the latest image
-wget https://github.com/AnnikaV9/hcclient/releases/download/v1.3.1/hcclient-1.3.1-image.tar.xz
+wget https://github.com/AnnikaV9/hcclient/releases/download/v1.3.2/hcclient-1.3.2-image.tar.xz
 
 # Install the image
-docker/podman load -i hcclient-1.3.1-image.tar.xz
+docker/podman load -i hcclient-1.3.2-image.tar.xz
 
 # Run hcclient
 docker/podman run --rm -it hcclient --help
