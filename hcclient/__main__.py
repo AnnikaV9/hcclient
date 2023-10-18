@@ -2,7 +2,7 @@
 #
 # Author:    AnnikaV9
 # License:   Unlicense
-# Version:   1.3.2
+# Version:   1.3.3
 
 import json
 import threading
@@ -56,12 +56,12 @@ class Client:
                 try:
                     print("Warning!\nThe 'tput' command was not found in your path.\nThis means that the terminal's contents will not be saved.\nExit and re-run without --clear as a workaround.\nPress enter to continue and clear the terminal anyway.")
                     input()
-                
+
                 except KeyboardInterrupt:
                     sys.exit(0)
 
             os.system("cls" if os.name=="nt" else "clear")
-    
+
     def print_or_buffer(self, message):
         if self.buffer_mode:
             self.message_buffer.append(message)
@@ -160,9 +160,8 @@ class Client:
                                                     termcolor.colored("!WARN!", self.args.warning_color),
                                                     termcolor.colored(received["text"], self.args.warning_color)))
 
-        except KeyboardInterrupt:
-            None
-
+        except (KeyboardInterrupt, json.decoder.JSONDecodeError):
+            self.close()
 
     def ping_thread(self):
         while self.ws.connected:
@@ -171,32 +170,30 @@ class Client:
 
     def input_thread(self):
         prompt_session = prompt_toolkit.PromptSession()
-        while self.ws.connected:
-            try:
+        try:
+            while self.ws.connected:
                 online_users_prepended = ["@{}".format(user) for user in self.online_users]
                 nick_completer = prompt_toolkit.completion.WordCompleter(online_users_prepended, match_middle=True, ignore_case=True, sentence=True)
                 self.send_input(prompt_session.prompt("", completer=nick_completer, wrap_lines=False, key_bindings=bindings))
-            
-            except KeyboardInterrupt:
-                self.close()
-          
+
+        except KeyboardInterrupt:
+            self.ws.close()
 
     def send_input(self, message):
         message = message.replace("/n/", "\n")
-        
+
         cols = shutil.get_terminal_size().columns
         print("\033[A{}\033[A".format(" " * cols))
         if self.buffer_mode:
             for i in range(int(-(-80//cols))):
                 print("\033[A{}\033[A".format(" " * cols))
-        
+
         self.buffer_mode = False
         for line in self.message_buffer:
             print(line)
         self.message_buffer = []
 
         if len(message) > 0:
-
             parsed_message = message.partition(" ")
             match parsed_message[0]:
                 case "/raw":
@@ -226,7 +223,7 @@ class Client:
                 case "/clear":
                     if self.args.clear:
                         os.system("cls" if os.name=="nt" else "clear")
-                    
+
                     else:
                         print("{}|{}| {}".format(termcolor.colored("-NIL-", self.args.timestamp_color),
                                                 termcolor.colored("CLIENT", self.args.client_color),
@@ -326,12 +323,12 @@ Server-specific commands should be displayed below:""")
 
                 case _:
                     self.ws.send(json.dumps({"cmd": "chat", "text": message}))
-    
+
     def close(self, *error):
         colorama.deinit()
         os.system("tput rmcup") if client.term_content_saved else None
         print(error) if error else None
-        sys.exit(0)
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Terminal client for connecting to hack.chat servers. Colors are provided by termcolor.")
@@ -355,7 +352,7 @@ if __name__ == "__main__":
     optional_group.add_argument("--timestamp-color", help="sets the timestamp color (default: white)")
     optional_group.add_argument("--mod-nickname-color", help="sets the moderator nickname color (default: cyan)")
     optional_group.add_argument("--admin-nickname-color", help="sets the admin nickname color (default: red)")
-    optional_group.add_argument("--version", help="displays the version and exits", action="version", version="1.3.2")
+    optional_group.add_argument("--version", help="displays the version and exits", action="version", version="1.3.3")
     optional_group.set_defaults(no_parse=False,
                                 clear=False,
                                 is_mod=False,
@@ -375,7 +372,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     client = Client(args)
-    
+
     bindings = prompt_toolkit.key_binding.KeyBindings()
     @bindings.add("c-a")
     def _(event):
@@ -388,4 +385,4 @@ if __name__ == "__main__":
     client.thread_ping.start()
     client.thread_input.start()
     client.main_thread()
-    client.close()
+    sys.exit(0)
