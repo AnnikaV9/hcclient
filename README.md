@@ -36,7 +36,7 @@ As this client is written to be compatible with the official live instance runni
 - **Color theming:** &nbsp;Configured with command line flags, colors provided by termcolor.
 - **Send/Receive raw packets:** &nbsp;Send json packets without parsing with `/raw`, display received packets as json with `--no-parse`.
 - **Autocompletion:** &nbsp;Starting your message with `@` will bring up a menu with a list of online users. Cycle through them with arrow keys or continue typing to filter the suggestions even more.
-- **Buffer mode:** &nbsp;Press `ctrl+a` to enable buffer mode, which will redirect all received messages to a temporary buffer. You can then type your long message in peace without worrying about incoming messages overwriting it. Pressing `ENTER` will retreive all the held messages and disable buffer mode.
+- **Buffer mode:** &nbsp;Press `ctrl+a` to enable buffer mode, which will redirect all received messages to a temporary buffer. You can then type your long message in peace without worrying about incoming messages overwriting it. Pressing `ENTER` will retrieve all the held messages and disable buffer mode.
 - **Moderator mode:** &nbsp;Enabled with `--is-mod`, gives you a bunch of `/` commands for moderator actions. Moderator commands are not documented in `/help`, check the source code for the list of available ones and their parameters.
 
 <br />
