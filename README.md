@@ -25,9 +25,9 @@ A terminal client for connecting to <a href="https://hack.chat">hack.chat</a>
 ## Introduction <a name="introduction"></a>
 *"hack.chat is a minimal, distraction-free, accountless, logless, disappearing chat service which is easily deployable as your own service."* - [hack.chat](https://github.com/hack-chat/main)
 
-hcclient is a configurable terminal client for connecting to [hack.chat](https://hack.chat). It's written in python, and run as a container. The Alpine docker image is used due to its minimal size.
+hcclient is a configurable terminal client for connecting to [hack.chat](https://hack.chat).
 
-As this client is written to be compatible with the official live instance running at https://hack.chat, compatibility with your own self-hosted instance or other alternate instances is not guaranteed.
+**Note:** &nbsp;As this client is written to be compatible with the official live instance running at https://hack.chat, compatibility with your own self-hosted instance or other alternate instances is not guaranteed.
 
 <br />
 
@@ -36,7 +36,8 @@ As this client is written to be compatible with the official live instance runni
 - **Color theming:** &nbsp;Configured with command line flags, colors provided by termcolor.
 - **Send/Receive raw packets:** &nbsp;Send json packets without parsing with `/raw`, display received packets as json with `--no-parse`.
 - **Autocompletion:** &nbsp;Starting your message with `@` will bring up a menu with a list of online users. Cycle through them with arrow keys or continue typing to filter the suggestions even more.
-- **Buffer mode:** &nbsp;Press `ctrl+a` to enable buffer mode, which will redirect all received messages to a temporary buffer. You can then type your long message in peace without worrying about incoming messages overwriting it. Pressing `ENTER` will retrieve all the held messages and disable buffer mode.
+- **Overwrite prevention:** &nbsp;Text that you have typed but not sent is stored and refilled to a new prompt whenever a message gets received. You can type long messages as slow as you want, and received messages won't overwrite your progress.
+- **Desktop notifications:** &nbsp;Receive notifications whenever someone mentions you or sends you a whisper. (Not supported in container mode)
 - **Moderator mode:** &nbsp;Enabled with `--is-mod`, gives you a bunch of `/` commands for moderator actions. Moderator commands are not documented in `/help`, check the source code for the list of available ones and their parameters.
 
 <br />
@@ -58,10 +59,10 @@ For linux based systems, statically and dynamically linked x86-64 binaries are p
 On Linux based systems:
 ```
 # Download the latest binary
-wget -O hcclient https://github.com/AnnikaV9/hcclient/releases/download/v1.3.3/hcclient-1.3.3-linux-x86-64
+wget -O hcclient https://github.com/AnnikaV9/hcclient/releases/download/v1.4.0/hcclient-1.4.0-linux-x86-64
 
 # Or the statically linked binary if the above one doesn't work
-wget -O hcclient https://github.com/AnnikaV9/hcclient/releases/download/v1.3.3/hcclient-1.3.3-linux-x86-64-static
+wget -O hcclient https://github.com/AnnikaV9/hcclient/releases/download/v1.4.0/hcclient-1.4.0-linux-x86-64-static
 
 # Make the binary executable
 chmod +x hcclient
@@ -75,13 +76,13 @@ hcclient --help
 On other platforms:
 ```
 # Download the latest source release
-wget https://github.com/AnnikaV9/hcclient/archive/refs/tags/v1.3.3.tar.gz
+wget https://github.com/AnnikaV9/hcclient/archive/refs/tags/v1.4.0.tar.gz
 
 # Extract the archive
-tar xvf v1.3.3.tar.gz
+tar xvf v1.4.0.tar.gz
 
 # Change the working directory
-cd hcclient-1.3.3
+cd hcclient-1.4.0
 
 # Install the dependencies
 pip install -r requirements.txt
@@ -92,10 +93,10 @@ python hcclient --help
 As a container:
 ```
 # Download the latest image
-wget https://github.com/AnnikaV9/hcclient/releases/download/v1.3.3/hcclient-1.3.3-image.tar.xz
+wget https://github.com/AnnikaV9/hcclient/releases/download/v1.4.0/hcclient-1.4.0-image.tar.xz
 
 # Install the image
-docker/podman load -i hcclient-1.3.3-image.tar.xz
+docker/podman load -i hcclient-1.4.0-image.tar.xz
 
 # Run hcclient
 docker/podman run --rm -it hcclient --help
@@ -137,6 +138,7 @@ optional arguments:
   --clear               enables clearing of the terminal
   --is-mod              enables moderator commands
   --no-icon             disables moderator/admin icon
+  --no-notify           disables desktop notifications
   --message-color MESSAGE_COLOR
                         sets the message color (default: white)
   --whisper-color WHISPER_COLOR

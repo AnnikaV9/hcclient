@@ -18,6 +18,7 @@ import termcolor
 import shutil
 import atexit
 import prompt_toolkit
+import notifypy
 
 
 class Client:
@@ -30,8 +31,7 @@ class Client:
         self.nick = self.args.nickname
         self.online_users = []
 
-        self.message_buffer = []
-        self.buffer_mode = False
+        self.prompt_data = ""
 
         self.term_content_saved = False
         self.manage_term_contents()
@@ -62,12 +62,15 @@ class Client:
 
             os.system("cls" if os.name=="nt" else "clear")
 
-    def print_or_buffer(self, message):
-        if self.buffer_mode:
-            self.message_buffer.append(message)
+    def print_msg(self, message):
+        self.prompt_data = self.prompt_session.default_buffer.document.text
+        print("\n\033[A{}\033[A\n{}".format(" " * shutil.get_terminal_size().columns, message))
 
-        else:
-            print(message)
+        try:
+            self.prompt_session.app.exit()
+
+        except Exception:
+            None
 
     def main_thread(self):
         try:
@@ -76,7 +79,7 @@ class Client:
                 packet_receive_time = datetime.datetime.now().strftime("%H:%M")
 
                 if self.args.no_parse:
-                    self.print_or_buffer("\n{}|{}".format(packet_receive_time, received))
+                    self.print_msg("\n{}|{}".format(packet_receive_time, received))
 
                 elif "cmd" in received:
                     match received["cmd"]:
@@ -87,7 +90,7 @@ class Client:
                                 self.online_users.append(nick)
                                 self.channel = received["users"][0]["channel"]
 
-                            self.print_or_buffer("{}|{}| {}".format(termcolor.colored(packet_receive_time, self.args.timestamp_color),
+                            self.print_msg("{}|{}| {}".format(termcolor.colored(packet_receive_time, self.args.timestamp_color),
                                                     termcolor.colored("SERVER", self.args.server_color),                
                                                     termcolor.colored("Channel: {} - Users: {}".format(self.channel, ", ".join(self.online_users)), self.args.server_color)))
 
@@ -109,7 +112,13 @@ class Client:
                             else:
                                 color_to_use = self.args.nickname_color 
 
-                            self.print_or_buffer("{}|{}| [{}] {}".format(termcolor.colored(packet_receive_time, self.args.timestamp_color),
+                            if f"@{self.nick}" in received["text"] and not self.args.no_notify:
+                                notification = notifypy.Notify()
+                                notification.title = "hcclient"
+                                notification.message = "[{}] {}".format(received["nick"], received["text"])
+                                notification.send()
+
+                            self.print_msg("{}|{}| [{}] {}".format(termcolor.colored(packet_receive_time, self.args.timestamp_color),
                                                          termcolor.colored(tripcode, color_to_use),
                                                          termcolor.colored(received["nick"], color_to_use),
                                                          termcolor.colored(received["text"], self.args.message_color)))
@@ -122,25 +131,31 @@ class Client:
                                 else:
                                     tripcode = received.get("trip", "")
 
-                                self.print_or_buffer("{}|{}| {}".format(termcolor.colored(packet_receive_time, self.args.timestamp_color),
+                                if f"@{self.nick}" not in received["text"] and not self.args.no_notify:
+                                    notification = notifypy.Notify()
+                                    notification.title = "hcclient"
+                                    notification.message = "{}".format(received["text"])
+                                    notification.send()
+
+                                self.print_msg("{}|{}| {}".format(termcolor.colored(packet_receive_time, self.args.timestamp_color),
                                                              termcolor.colored(tripcode, self.args.whisper_color),
                                                              termcolor.colored(received["text"], self.args.whisper_color)))
                             else:
-                                self.print_or_buffer("{}|{}| {}".format(termcolor.colored(packet_receive_time, self.args.timestamp_color),
+                                self.print_msg("{}|{}| {}".format(termcolor.colored(packet_receive_time, self.args.timestamp_color),
                                                         termcolor.colored("SERVER", self.args.server_color),
                                                         termcolor.colored(received["text"], self.args.server_color)))
 
                         case "onlineAdd":
                             self.online_users.append(received["nick"])
 
-                            self.print_or_buffer("{}|{}| {}".format(termcolor.colored(packet_receive_time, self.args.timestamp_color),
+                            self.print_msg("{}|{}| {}".format(termcolor.colored(packet_receive_time, self.args.timestamp_color),
                                                     termcolor.colored("SERVER", self.args.server_color),
                                                     termcolor.colored(received["nick"] + " joined", self.args.server_color)))
 
                         case "onlineRemove":
                             self.online_users.remove(received["nick"])
 
-                            self.print_or_buffer("{}|{}| {}".format(termcolor.colored(packet_receive_time, self.args.timestamp_color),
+                            self.print_msg("{}|{}| {}".format(termcolor.colored(packet_receive_time, self.args.timestamp_color),
                                                     termcolor.colored("SERVER", self.args.server_color),
                                                     termcolor.colored(received["nick"] + " left", self.args.server_color)))
 
@@ -151,12 +166,12 @@ class Client:
                             else:
                                 tripcode = received.get("trip", "")
 
-                            self.print_or_buffer("{}|{}| {}".format(termcolor.colored(packet_receive_time, self.args.timestamp_color),
+                            self.print_msg("{}|{}| {}".format(termcolor.colored(packet_receive_time, self.args.timestamp_color),
                                                     termcolor.colored(tripcode, self.args.emote_color),
                                                     termcolor.colored(received["text"], self.args.emote_color)))
 
                         case "warn":
-                            self.print_or_buffer("{}|{}| {}".format(termcolor.colored(packet_receive_time, self.args.timestamp_color),
+                            self.print_msg("{}|{}| {}".format(termcolor.colored(packet_receive_time, self.args.timestamp_color),
                                                     termcolor.colored("!WARN!", self.args.warning_color),
                                                     termcolor.colored(received["text"], self.args.warning_color)))
 
@@ -169,29 +184,28 @@ class Client:
             time.sleep(60)
 
     def input_thread(self):
-        prompt_session = prompt_toolkit.PromptSession()
         try:
             while self.ws.connected:
                 online_users_prepended = ["@{}".format(user) for user in self.online_users]
+
+                self.prompt_session = prompt_toolkit.PromptSession(reserve_space_for_menu=1)
                 nick_completer = prompt_toolkit.completion.WordCompleter(online_users_prepended, match_middle=True, ignore_case=True, sentence=True)
-                self.send_input(prompt_session.prompt("", completer=nick_completer, wrap_lines=False, key_bindings=bindings))
+
+                print("\033[A{}\033[A".format(" " * shutil.get_terminal_size().columns))
+                self.send_input(self.prompt_session.prompt("", default=self.prompt_data, completer=nick_completer, wrap_lines=False))
 
         except KeyboardInterrupt:
             self.ws.close()
 
     def send_input(self, message):
-        message = message.replace("/n/", "\n")
+        try:
+            message = message.replace("/n/", "\n")
+        
+        except AttributeError:
+            return
 
+        self.prompt_data = ""
         cols = shutil.get_terminal_size().columns
-        print("\033[A{}\033[A".format(" " * cols))
-        if self.buffer_mode:
-            for i in range(int(-(-80//cols))):
-                print("\033[A{}\033[A".format(" " * cols))
-
-        self.buffer_mode = False
-        for line in self.message_buffer:
-            print(line)
-        self.message_buffer = []
 
         if len(message) > 0:
             parsed_message = message.partition(" ")
@@ -307,8 +321,6 @@ class Client:
                     if parsed_message[2] == "":
                         print("""Any '/n/' will be converted into a linebreak.
 
-Press CTRL+A to enter buffer mode - incoming messages will be held in a buffer until you press ENTER and exit buffer mode.
-
 Client-specific commands:
 /raw <json>
 /list
@@ -342,6 +354,7 @@ if __name__ == "__main__":
     optional_group.add_argument("--clear", help="enables clearing of the terminal", dest="clear", action="store_true")
     optional_group.add_argument("--is-mod", help="enables moderator commands",  dest="is_mod", action="store_true")
     optional_group.add_argument("--no-icon", help="disables moderator/admin icon",  dest="no_icon", action="store_true")
+    optional_group.add_argument("--no-notify", help="disables desktop notifications",  dest="no_notify", action="store_true")
     optional_group.add_argument("--message-color", help="sets the message color (default: white)")
     optional_group.add_argument("--whisper-color", help="sets the whisper color (default: green)")
     optional_group.add_argument("--emote-color", help="sets the emote color (default: green)")
@@ -357,6 +370,7 @@ if __name__ == "__main__":
                                 clear=False,
                                 is_mod=False,
                                 no_icon=False,
+                                no_notify=False,
                                 message_color="white",
                                 whisper_color="green",
                                 emote_color="green",
@@ -370,19 +384,11 @@ if __name__ == "__main__":
                                 trip_password="",
                                 websocket_address="wss://hack.chat/chat-ws")
     args = parser.parse_args()
+    print()
 
     client = Client(args)
-
-    bindings = prompt_toolkit.key_binding.KeyBindings()
-    @bindings.add("c-a")
-    def _(event):
-        if not client.buffer_mode:
-            client.buffer_mode = True
-            print("{}|{}| {}".format(termcolor.colored("-NIL-", args.timestamp_color),
-                                     termcolor.colored("CLIENT", args.client_color),
-                                     termcolor.colored("Received messages are held in buffer, press ENTER to retrieve them", args.client_color)))
-
     client.thread_ping.start()
     client.thread_input.start()
     client.main_thread()
+
     sys.exit(0)
