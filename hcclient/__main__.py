@@ -2,7 +2,7 @@
 #
 # Author:    AnnikaV9
 # License:   Unlicense
-# Version:   1.4.1
+# Version:   1.4.2
 
 import json
 import threading
@@ -63,7 +63,9 @@ class Client:
 
             os.system("cls" if os.name=="nt" else "clear")
 
-    def print_msg(self, message):
+    def print_msg(self, message, cmd=False):
+        time.sleep(0.1) if cmd else None # this is to prevent the prompt from being printed before the message (it's a hacky solution but it works)
+
         self.prompt_data = self.prompt_session.default_buffer.document.text
         print("\n\033[A{}\033[A\n{}".format(" " * shutil.get_terminal_size().columns, message))
 
@@ -209,12 +211,13 @@ class Client:
         
         except AttributeError:
             return
-        
-        self.prompt_history.append(message.replace("\n", "\\n"))
-        self.prompt_history.pop(0) if len(self.prompt_history) > 10 else None
+
         self.prompt_data = ""
 
         if len(message) > 0:
+            self.prompt_history.append(message.replace("\n", "\\n"))
+            self.prompt_history.pop(0) if len(self.prompt_history) > 10 else None
+
             parsed_message = message.partition(" ")
             match parsed_message[0]:
                 case "/raw":
@@ -223,14 +226,13 @@ class Client:
                         self.ws.send(json.dumps(json_to_send))
 
                     except:
-                        print("{}|{}| Error sending json: {}".format(termcolor.colored("-NIL-", self.args.timestamp_color),
-                                                                    termcolor.colored("CLIENT", self.args.client_color),
-                                                                    termcolor.colored(sys.exc_info(), self.args.client_color)))
+                        threading.Thread(target=lambda: self.print_msg("{}|{}| Invalid json".format(termcolor.colored("-NIL-", self.args.timestamp_color),
+                                                                                                    termcolor.colored("CLIENT", self.args.client_color)), cmd=True)).start()
 
                 case "/list":
-                    print("{}|{}| {}".format(termcolor.colored("-NIL-", self.args.timestamp_color),
-                                            termcolor.colored("CLIENT", self.args.client_color),
-                                            termcolor.colored("Channel: {} - Users: {}".format(self.channel, ", ".join(self.online_users)), self.args.client_color)))
+                    threading.Thread(target=lambda: self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args.timestamp_color),
+                                                                                      termcolor.colored("CLIENT", self.args.client_color),
+                                                                                      termcolor.colored("Channel: {} - Users: {}".format(self.channel, ", ".join(self.online_users)), self.args.client_color)), cmd=True)).start()
 
                 case "/nick":
                     if re.match("^[A-Za-z0-9_]*$", parsed_message[2]) and len(parsed_message[2]) < 25:
@@ -246,9 +248,9 @@ class Client:
                         os.system("cls" if os.name=="nt" else "clear")
 
                     else:
-                        print("{}|{}| {}".format(termcolor.colored("-NIL-", self.args.timestamp_color),
-                                                termcolor.colored("CLIENT", self.args.client_color),
-                                                termcolor.colored("Clearing is disabled, enable with --clear", self.args.client_color)))
+                        threading.Thread(target=lambda: self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args.timestamp_color),
+                                                                                          termcolor.colored("CLIENT", self.args.client_color),
+                                                                                          termcolor.colored("Clearing is disabled, enable with --clear", self.args.client_color)), cmd=True)).start()
 
                 case "/ban":
                     if self.args.is_mod:
@@ -326,7 +328,7 @@ class Client:
 
                 case "/help":
                     if parsed_message[2] == "":
-                        print("""Any '/n/' will be converted into a linebreak.
+                        threading.Thread(target=lambda: self.print_msg("""Any '/n/' will be converted into a linebreak.
 
 Client-specific commands:
 /raw <json>
@@ -334,7 +336,7 @@ Client-specific commands:
 /clear
 /nick <newnick>
 
-Server-specific commands should be displayed below:""")
+Server-specific commands should be displayed below:""", cmd=True)).start()
                         self.ws.send(json.dumps({"cmd": "help"}))
 
                     else:
@@ -372,7 +374,7 @@ if __name__ == "__main__":
     optional_group.add_argument("--timestamp-color", help="sets the timestamp color (default: white)")
     optional_group.add_argument("--mod-nickname-color", help="sets the moderator nickname color (default: cyan)")
     optional_group.add_argument("--admin-nickname-color", help="sets the admin nickname color (default: red)")
-    optional_group.add_argument("--version", help="displays the version and exits", action="version", version="1.4.1")
+    optional_group.add_argument("--version", help="displays the version and exits", action="version", version="1.4.2")
     optional_group.set_defaults(no_parse=False,
                                 clear=False,
                                 is_mod=False,
