@@ -35,7 +35,7 @@ hcclient is a configurable terminal client for connecting to [hack.chat](https:/
 - **Cross-platform:** &nbsp;No platform specific modules used, should work fine on most systems.
 - **Color theming:** &nbsp;Configured with command line flags, colors provided by termcolor.
 - **Send/Receive raw packets:** &nbsp;Send json packets without parsing with `/raw`, display received packets as json with `--no-parse`.
-- **Autocompletion:** &nbsp;Starting your message with `@` will bring up a menu with a list of online users. Cycle through them with arrow keys or continue typing to filter the suggestions even more.
+- **Suggestions:** &nbsp;Starting your message with `@` will bring up a menu with a list of online users. Cycle through them with arrow keys or continue typing to filter the suggestions even more. Outside of the menu, arrow keys cycle through message history.
 - **Overwrite prevention:** &nbsp;Text that you have typed but not sent is stored and refilled to a new prompt whenever a message gets received. You can type long messages as slow as you want, and received messages won't overwrite your progress.
 - **Desktop notifications:** &nbsp;Receive notifications whenever someone mentions you or sends you a whisper. (Not supported in container mode)
 - **Moderator mode:** &nbsp;Enabled with `--is-mod`, gives you a bunch of `/` commands for moderator actions. Moderator commands are not documented in `/help`, check the source code for the list of available ones and their parameters.
@@ -59,10 +59,10 @@ For linux based systems, statically and dynamically linked x86-64 binaries are p
 On Linux based systems:
 ```
 # Download the latest binary
-wget -O hcclient https://github.com/AnnikaV9/hcclient/releases/download/v1.4.0/hcclient-1.4.0-linux-x86-64
+wget -O hcclient https://github.com/AnnikaV9/hcclient/releases/download/v1.4.1/hcclient-1.4.1-linux-x86-64
 
 # Or the statically linked binary if the above one doesn't work
-wget -O hcclient https://github.com/AnnikaV9/hcclient/releases/download/v1.4.0/hcclient-1.4.0-linux-x86-64-static
+wget -O hcclient https://github.com/AnnikaV9/hcclient/releases/download/v1.4.1/hcclient-1.4.1-linux-x86-64-static
 
 # Make the binary executable
 chmod +x hcclient
@@ -76,13 +76,13 @@ hcclient --help
 On other platforms:
 ```
 # Download the latest source release
-wget https://github.com/AnnikaV9/hcclient/archive/refs/tags/v1.4.0.tar.gz
+wget https://github.com/AnnikaV9/hcclient/archive/refs/tags/v1.4.1.tar.gz
 
 # Extract the archive
-tar xvf v1.4.0.tar.gz
+tar xvf v1.4.1.tar.gz
 
 # Change the working directory
-cd hcclient-1.4.0
+cd hcclient-1.4.1
 
 # Install the dependencies
 pip install -r requirements.txt
@@ -93,10 +93,10 @@ python hcclient --help
 As a container:
 ```
 # Download the latest image
-wget https://github.com/AnnikaV9/hcclient/releases/download/v1.4.0/hcclient-1.4.0-image.tar.xz
+wget https://github.com/AnnikaV9/hcclient/releases/download/v1.4.1/hcclient-1.4.1-image.tar.xz
 
 # Install the image
-docker/podman load -i hcclient-1.4.0-image.tar.xz
+docker/podman load -i hcclient-1.4.1-image.tar.xz
 
 # Run hcclient
 docker/podman run --rm -it hcclient --help

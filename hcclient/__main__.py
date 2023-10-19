@@ -2,7 +2,7 @@
 #
 # Author:    AnnikaV9
 # License:   Unlicense
-# Version:   1.3.3
+# Version:   1.4.1
 
 import json
 import threading
@@ -32,6 +32,7 @@ class Client:
         self.online_users = []
 
         self.prompt_data = ""
+        self.prompt_history = []
 
         self.term_content_saved = False
         self.manage_term_contents()
@@ -188,24 +189,30 @@ class Client:
             while self.ws.connected:
                 online_users_prepended = ["@{}".format(user) for user in self.online_users]
 
-                self.prompt_session = prompt_toolkit.PromptSession(reserve_space_for_menu=1)
+                history = prompt_toolkit.history.InMemoryHistory()
+                for entry in self.prompt_history:
+                    history.append_string(entry)
+
+                self.prompt_session = prompt_toolkit.PromptSession(reserve_space_for_menu=3, history=history)
                 nick_completer = prompt_toolkit.completion.WordCompleter(online_users_prepended, match_middle=True, ignore_case=True, sentence=True)
 
                 print("\033[A{}\033[A".format(" " * shutil.get_terminal_size().columns))
-                self.send_input(self.prompt_session.prompt("", default=self.prompt_data, completer=nick_completer, wrap_lines=False))
+                self.send_input(self.prompt_session.prompt("> ", default=self.prompt_data, completer=nick_completer, wrap_lines=False))
 
         except KeyboardInterrupt:
             self.ws.close()
 
     def send_input(self, message):
+
         try:
-            message = message.replace("/n/", "\n")
+            message = message.replace("\\n", "\n")
         
         except AttributeError:
             return
-
+        
+        self.prompt_history.append(message.replace("\n", "\\n"))
+        self.prompt_history.pop(0) if len(self.prompt_history) > 10 else None
         self.prompt_data = ""
-        cols = shutil.get_terminal_size().columns
 
         if len(message) > 0:
             parsed_message = message.partition(" ")
@@ -365,7 +372,7 @@ if __name__ == "__main__":
     optional_group.add_argument("--timestamp-color", help="sets the timestamp color (default: white)")
     optional_group.add_argument("--mod-nickname-color", help="sets the moderator nickname color (default: cyan)")
     optional_group.add_argument("--admin-nickname-color", help="sets the admin nickname color (default: red)")
-    optional_group.add_argument("--version", help="displays the version and exits", action="version", version="1.3.3")
+    optional_group.add_argument("--version", help="displays the version and exits", action="version", version="1.4.1")
     optional_group.set_defaults(no_parse=False,
                                 clear=False,
                                 is_mod=False,
