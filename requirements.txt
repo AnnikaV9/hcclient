@@ -1,4 +1,7 @@
 colorama~=0.4.6
+jeepney~=0.8.0
+loguru~=0.6.0
+notify-py~=0.3.42
 prompt-toolkit~=3.0.39
 termcolor~=2.3.0
 wcwidth~=0.2.8
