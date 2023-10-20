@@ -369,7 +369,7 @@ Server-specific commands should be displayed below:""", cmd=True)).start()
     # close the client and print an error if there is one
     def close(self, *error):
         colorama.deinit()
-        os.system("tput rmcup") if client.term_content_saved else None
+        os.system("tput rmcup") if self.term_content_saved else None
         print(error) if error else None
 
 
