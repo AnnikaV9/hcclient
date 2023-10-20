@@ -2,8 +2,9 @@
 #
 # Author:    AnnikaV9
 # License:   Unlicense
-# Version:   1.4.2
+# Version:   1.4.3
 
+# import required modules
 import json
 import threading
 import websocket
@@ -21,8 +22,10 @@ import prompt_toolkit
 import notifypy
 
 
+# define the client class
 class Client:
 
+    # initialize the client
     def __init__(self, args):
         colorama.init()
         sys.excepthook = self.close
@@ -44,9 +47,13 @@ class Client:
             "nick": "{}#{}".format(self.args.nickname, self.args.trip_password)
         }))
 
+        self.input_lock = False
+        self.thread_lock = threading.Lock()
+
         self.thread_ping = threading.Thread(target=self.ping_thread, daemon=True)
         self.thread_input = threading.Thread(target=self.input_thread, daemon=True)
 
+    # manage terminal contents
     def manage_term_contents(self):
         if self.args.clear:
             if shutil.which("tput"):
@@ -63,18 +70,24 @@ class Client:
 
             os.system("cls" if os.name=="nt" else "clear")
 
+    # print a message to the terminal and reprompt
     def print_msg(self, message, cmd=False):
-        time.sleep(0.1) if cmd else None # this is to prevent the prompt from being printed before the message (it's a hacky solution but it works)
+        self.thread_lock.acquire()
+
+        while self.input_lock:
+            None
 
         self.prompt_data = self.prompt_session.default_buffer.document.text
         print("\n\033[A{}\033[A\n{}".format(" " * shutil.get_terminal_size().columns, message))
 
         try:
             self.prompt_session.app.exit()
+            self.thread_lock.release()
 
         except Exception:
-            None
+            self.thread_lock.release()
 
+    # main loop that receives and parses packets
     def main_thread(self):
         try:
             while self.ws.connected:
@@ -178,17 +191,21 @@ class Client:
                                                     termcolor.colored("!WARN!", self.args.warning_color),
                                                     termcolor.colored(received["text"], self.args.warning_color)))
 
-        except (KeyboardInterrupt, json.decoder.JSONDecodeError):
+        except (KeyboardInterrupt, json.decoder.JSONDecodeError, websocket._exceptions.WebSocketConnectionClosedException):
             self.close()
 
+    # ping thread acting as a heartbeat
     def ping_thread(self):
         while self.ws.connected:
             self.ws.send(json.dumps({"cmd": "ping"}))
             time.sleep(60)
 
+    # input thread that handles user input
     def input_thread(self):
         try:
             while self.ws.connected:
+                self.input_lock = True
+
                 online_users_prepended = ["@{}".format(user) for user in self.online_users]
 
                 history = prompt_toolkit.history.InMemoryHistory()
@@ -199,20 +216,24 @@ class Client:
                 nick_completer = prompt_toolkit.completion.WordCompleter(online_users_prepended, match_middle=True, ignore_case=True, sentence=True)
 
                 print("\033[A{}\033[A".format(" " * shutil.get_terminal_size().columns))
+
+                self.input_lock = False
                 self.send_input(self.prompt_session.prompt("> ", default=self.prompt_data, completer=nick_completer, wrap_lines=False))
 
         except KeyboardInterrupt:
             self.ws.close()
 
+    # send input to the server and handle client commands
     def send_input(self, message):
 
         try:
             message = message.replace("\\n", "\n")
-        
+
         except AttributeError:
             return
 
         self.prompt_data = ""
+        self.input_lock = True
 
         if len(message) > 0:
             self.prompt_history.append(message.replace("\n", "\\n"))
@@ -328,7 +349,7 @@ class Client:
 
                 case "/help":
                     if parsed_message[2] == "":
-                        threading.Thread(target=lambda: self.print_msg("""Any '/n/' will be converted into a linebreak.
+                        threading.Thread(target=lambda: self.print_msg("""Any '\\n' will be converted into a linebreak.
 
 Client-specific commands:
 /raw <json>
@@ -345,12 +366,14 @@ Server-specific commands should be displayed below:""", cmd=True)).start()
                 case _:
                     self.ws.send(json.dumps({"cmd": "chat", "text": message}))
 
+    # close the client and print an error if there is one
     def close(self, *error):
         colorama.deinit()
         os.system("tput rmcup") if client.term_content_saved else None
         print(error) if error else None
 
 
+# run the client
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Terminal client for connecting to hack.chat servers. Colors are provided by termcolor.")
     required_group = parser.add_argument_group("required arguments")
@@ -374,7 +397,7 @@ if __name__ == "__main__":
     optional_group.add_argument("--timestamp-color", help="sets the timestamp color (default: white)")
     optional_group.add_argument("--mod-nickname-color", help="sets the moderator nickname color (default: cyan)")
     optional_group.add_argument("--admin-nickname-color", help="sets the admin nickname color (default: red)")
-    optional_group.add_argument("--version", help="displays the version and exits", action="version", version="1.4.2")
+    optional_group.add_argument("--version", help="displays the version and exits", action="version", version="1.4.3")
     optional_group.set_defaults(no_parse=False,
                                 clear=False,
                                 is_mod=False,
