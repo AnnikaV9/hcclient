@@ -36,7 +36,7 @@ hcclient is a configurable terminal client for connecting to [hack.chat](https:/
 - **Color theming:** &nbsp;Configured with command line flags, colors provided by termcolor.
 - **Send/Receive raw packets:** &nbsp;Send json packets without parsing with `/raw`, display received packets as json with `--no-parse`.
 - **Suggestions:** &nbsp;Starting your message with `@` will bring up a menu with a list of online users. Cycle through them with arrow keys or continue typing to filter the suggestions even more. Outside of the menu, arrow keys cycle through message history.
-- **Overwrite prevention:** &nbsp;Text that you have typed but not sent is stored and refilled to a new prompt whenever a message gets received. You can type long messages as slow as you want, and received messages won't overwrite your progress.
+- **Patched stdout:** &nbsp;Type long messages as slow as you want, received messages won't overwrite your progress.
 - **Desktop notifications:** &nbsp;Receive notifications whenever someone mentions you or sends you a whisper. (Not supported in container mode)
 - **Moderator mode:** &nbsp;Enabled with `--is-mod`, gives you a bunch of `/` commands for moderator actions. Moderator commands are not documented in `/help`, check the source code for the list of available ones and their parameters.
 
