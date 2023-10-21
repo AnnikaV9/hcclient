@@ -59,10 +59,10 @@ For linux based systems, statically and dynamically linked x86-64 binaries are p
 On Linux based systems:
 ```
 # Download the latest binary
-wget -O hcclient https://github.com/AnnikaV9/hcclient/releases/download/v1.4.4/hcclient-1.4.4-linux-x86-64
+wget -O hcclient https://github.com/AnnikaV9/hcclient/releases/download/v1.5.0/hcclient-1.5.0-linux-x86-64
 
 # Or the statically linked binary if the above one doesn't work
-wget -O hcclient https://github.com/AnnikaV9/hcclient/releases/download/v1.4.4/hcclient-1.4.4-linux-x86-64-static
+wget -O hcclient https://github.com/AnnikaV9/hcclient/releases/download/v1.5.0/hcclient-1.5.0-linux-x86-64-static
 
 # Make the binary executable
 chmod +x hcclient
@@ -76,13 +76,13 @@ hcclient --help
 On other platforms:
 ```
 # Download the latest source release
-wget https://github.com/AnnikaV9/hcclient/archive/refs/tags/v1.4.4.tar.gz
+wget https://github.com/AnnikaV9/hcclient/archive/refs/tags/v1.5.0.tar.gz
 
 # Extract the archive
-tar xvf v1.4.4.tar.gz
+tar xvf v1.5.0.tar.gz
 
 # Change the working directory
-cd hcclient-1.4.4
+cd hcclient-1.5.0
 
 # Install the dependencies
 pip install -r requirements.txt
@@ -93,10 +93,10 @@ python hcclient --help
 As a container:
 ```
 # Download the latest image
-wget https://github.com/AnnikaV9/hcclient/releases/download/v1.4.4/hcclient-1.4.4-image.tar.xz
+wget https://github.com/AnnikaV9/hcclient/releases/download/v1.5.0/hcclient-1.5.0-image.tar.xz
 
 # Install the image
-docker/podman load -i hcclient-1.4.4-image.tar.xz
+docker/podman load -i hcclient-1.5.0-image.tar.xz
 
 # Run hcclient
 docker/podman run --rm -it hcclient --help
@@ -139,10 +139,6 @@ optional arguments:
   --is-mod              enables moderator commands
   --no-icon             disables moderator/admin icon
   --no-notify           disables desktop notifications
-  --parse-interval PARSE_INTERVAL
-                        sets the interval in seconds between the parsing of
-                        packets. increase if the prompt isn't being cleared
-                        properly on received messages (default: 0.3)
   --message-color MESSAGE_COLOR
                         sets the message color (default: white)
   --whisper-color WHISPER_COLOR

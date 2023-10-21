@@ -2,7 +2,7 @@
 #
 # Author:    AnnikaV9
 # License:   Unlicense
-# Version:   1.4.4
+# Version:   1.5.0
 
 # import required modules
 import json
@@ -380,7 +380,7 @@ if __name__ == "__main__":
     optional_group.add_argument("--timestamp-color", help="sets the timestamp color (default: white)")
     optional_group.add_argument("--mod-nickname-color", help="sets the moderator nickname color (default: cyan)")
     optional_group.add_argument("--admin-nickname-color", help="sets the admin nickname color (default: red)")
-    optional_group.add_argument("--version", help="displays the version and exits", action="version", version="1.4.4")
+    optional_group.add_argument("--version", help="displays the version and exits", action="version", version="1.5.0")
     optional_group.set_defaults(no_parse=False,
                                 clear=False,
                                 is_mod=False,

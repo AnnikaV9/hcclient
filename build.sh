@@ -2,7 +2,7 @@
 #
 # Requires ldd and binutils
 
-VERSION="1.4.4"
+VERSION="1.5.0"
 
 binaries() {
    for cmd in ldd objdump objcopy python3
