@@ -191,6 +191,11 @@ class Client:
                                                     termcolor.colored("!WARN!", self.args.warning_color),
                                                     termcolor.colored(received["text"], self.args.warning_color)))
 
+                time.sleep(self.args.parse_interval) # ensure there's a decent interval between print_msg calls
+                                                     # hacky way to ensure the prompt is reset properly, but it works
+                                                     # can be disabled with --parse-interval 0
+                                                     # if you have a better solution, please let me know
+
         except (KeyboardInterrupt, json.decoder.JSONDecodeError, websocket._exceptions.WebSocketConnectionClosedException):
             self.close()
 
@@ -387,6 +392,7 @@ if __name__ == "__main__":
     optional_group.add_argument("--is-mod", help="enables moderator commands",  dest="is_mod", action="store_true")
     optional_group.add_argument("--no-icon", help="disables moderator/admin icon",  dest="no_icon", action="store_true")
     optional_group.add_argument("--no-notify", help="disables desktop notifications",  dest="no_notify", action="store_true")
+    optional_group.add_argument("--parse-interval", help="sets the interval in seconds between the parsing of packets. increase if the prompt isn't being cleared properly on received messages (default: 0.3)", dest="parse_interval", action="store", type=float)
     optional_group.add_argument("--message-color", help="sets the message color (default: white)")
     optional_group.add_argument("--whisper-color", help="sets the whisper color (default: green)")
     optional_group.add_argument("--emote-color", help="sets the emote color (default: green)")
@@ -403,6 +409,7 @@ if __name__ == "__main__":
                                 is_mod=False,
                                 no_icon=False,
                                 no_notify=False,
+                                parse_interval=0.3,
                                 message_color="white",
                                 whisper_color="green",
                                 emote_color="green",
