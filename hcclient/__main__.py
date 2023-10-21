@@ -22,7 +22,6 @@ import prompt_toolkit
 import notifypy
 
 
-
 # define the client class
 class Client:
 
@@ -78,116 +77,111 @@ class Client:
 
     # main loop that receives and parses packets
     def main_thread(self):
-        try:
-            while self.ws.connected:
-                received = json.loads(self.ws.recv())
-                packet_receive_time = datetime.datetime.now().strftime("%H:%M")
+        while self.ws.connected:
+            received = json.loads(self.ws.recv())
+            packet_receive_time = datetime.datetime.now().strftime("%H:%M")
 
-                if self.args.no_parse:
-                    self.print_msg("\n{}|{}".format(packet_receive_time, received))
+            if self.args.no_parse:
+                self.print_msg("\n{}|{}".format(packet_receive_time, received))
 
-                elif "cmd" in received:
-                    match received["cmd"]:
-                        case "onlineSet":
-                            for nick in received["nicks"]:
-                                if self.nick in self.online_users:
-                                    self.online_users.remove(self.nick)
-                                self.online_users.append(nick)
-                            self.online_users_prepended = ["@{}".format(user) for user in self.online_users]
-                            self.online_users_prepended.sort()
+            match received["cmd"]:
+                case "onlineSet":
+                    for nick in received["nicks"]:
+                        if self.nick in self.online_users:
+                            self.online_users.remove(self.nick)
+                        self.online_users.append(nick)
+                    self.online_users_prepended = ["@{}".format(user) for user in self.online_users]
+                    self.online_users_prepended.sort()
 
-                            self.channel = received["users"][0]["channel"]
+                    self.channel = received["users"][0]["channel"]
 
-                            self.print_msg("{}|{}| {}".format(termcolor.colored(packet_receive_time, self.args.timestamp_color),
-                                                              termcolor.colored("SERVER", self.args.server_color),                
-                                                              termcolor.colored("Channel: {} - Users: {}".format(self.channel, ", ".join(self.online_users)), self.args.server_color)))
+                    self.print_msg("{}|{}| {}".format(termcolor.colored(packet_receive_time, self.args.timestamp_color),
+                                                      termcolor.colored("SERVER", self.args.server_color),                
+                                                      termcolor.colored("Channel: {} - Users: {}".format(self.channel, ", ".join(self.online_users)), self.args.server_color)))
 
-                        case "chat":
-                            if len(received.get("trip", "")) < 6:
-                                tripcode = "NOTRIP"
+                case "chat":
+                    if len(received.get("trip", "")) < 6:
+                        tripcode = "NOTRIP"
 
-                            else:
-                                tripcode = received.get("trip", "")
+                    else:
+                        tripcode = received.get("trip", "")
 
-                            if received["uType"] == "mod":
-                                color_to_use = self.args.mod_nickname_color
-                                received["nick"] = "⭐ {}".format(received["nick"]) if not self.args.no_icon else received["nick"]
+                    if received["uType"] == "mod":
+                        color_to_use = self.args.mod_nickname_color
+                        received["nick"] = "⭐ {}".format(received["nick"]) if not self.args.no_icon else received["nick"]
 
-                            elif received["uType"] == "admin":
-                                color_to_use = self.args.admin_nickname_color
-                                received["nick"] = "⭐ {}".format(received["nick"]) if not self.args.no_icon else received ["nick"]
+                    elif received["uType"] == "admin":
+                        color_to_use = self.args.admin_nickname_color
+                        received["nick"] = "⭐ {}".format(received["nick"]) if not self.args.no_icon else received ["nick"]
 
-                            else:
-                                color_to_use = self.args.nickname_color 
+                    else:
+                        color_to_use = self.args.nickname_color 
 
-                            if f"@{self.nick}" in received["text"] and not self.args.no_notify:
-                                notification = notifypy.Notify()
-                                notification.title = "hcclient"
-                                notification.message = "[{}] {}".format(received["nick"], received["text"])
-                                notification.send()
+                    if f"@{self.nick}" in received["text"] and not self.args.no_notify:
+                        notification = notifypy.Notify()
+                        notification.title = "hcclient"
+                        notification.message = "[{}] {}".format(received["nick"], received["text"])
+                        notification.send()
 
-                            self.print_msg("{}|{}| [{}] {}".format(termcolor.colored(packet_receive_time, self.args.timestamp_color),
-                                                                   termcolor.colored(tripcode, color_to_use),
-                                                                   termcolor.colored(received["nick"], color_to_use),
-                                                                   termcolor.colored(received["text"], self.args.message_color)))
+                    self.print_msg("{}|{}| [{}] {}".format(termcolor.colored(packet_receive_time, self.args.timestamp_color),
+                                                           termcolor.colored(tripcode, color_to_use),
+                                                           termcolor.colored(received["nick"], color_to_use),
+                                                           termcolor.colored(received["text"], self.args.message_color)))
 
-                        case "info":
-                            if received.get("type") is not None and received.get("type") == "whisper":
-                                if len(received.get("trip", "")) < 6:
-                                    tripcode = "NOTRIP"
+                case "info":
+                    if received.get("type") is not None and received.get("type") == "whisper":
+                        if len(received.get("trip", "")) < 6:
+                            tripcode = "NOTRIP"
 
-                                else:
-                                    tripcode = received.get("trip", "")
+                        else:
+                            tripcode = received.get("trip", "")
 
-                                if f"@{self.nick}" not in received["text"] and not self.args.no_notify:
-                                    notification = notifypy.Notify()
-                                    notification.title = "hcclient"
-                                    notification.message = "{}".format(received["text"])
-                                    notification.send()
+                        if f"@{self.nick}" not in received["text"] and not self.args.no_notify:
+                            notification = notifypy.Notify()
+                            notification.title = "hcclient"
+                            notification.message = "{}".format(received["text"])
+                            notification.send()
 
-                                self.print_msg("{}|{}| {}".format(termcolor.colored(packet_receive_time, self.args.timestamp_color),
-                                                                  termcolor.colored(tripcode, self.args.whisper_color),
-                                                                  termcolor.colored(received["text"], self.args.whisper_color)))
-                            else:
-                                self.print_msg("{}|{}| {}".format(termcolor.colored(packet_receive_time, self.args.timestamp_color),
-                                                                  termcolor.colored("SERVER", self.args.server_color),
-                                                                  termcolor.colored(received["text"], self.args.server_color)))
+                        self.print_msg("{}|{}| {}".format(termcolor.colored(packet_receive_time, self.args.timestamp_color),
+                                                          termcolor.colored(tripcode, self.args.whisper_color),
+                                                          termcolor.colored(received["text"], self.args.whisper_color)))
+                    else:
+                        self.print_msg("{}|{}| {}".format(termcolor.colored(packet_receive_time, self.args.timestamp_color),
+                                                          termcolor.colored("SERVER", self.args.server_color),
+                                                          termcolor.colored(received["text"], self.args.server_color)))
 
-                        case "onlineAdd":
-                            self.online_users.append(received["nick"])
-                            self.online_users_prepended.append("@{}".format(received["nick"]))
-                            self.online_users_prepended.sort()
+                case "onlineAdd":
+                    self.online_users.append(received["nick"])
+                    self.online_users_prepended.append("@{}".format(received["nick"]))
+                    self.online_users_prepended.sort()
 
-                            self.print_msg("{}|{}| {}".format(termcolor.colored(packet_receive_time, self.args.timestamp_color),
-                                                              termcolor.colored("SERVER", self.args.server_color),
-                                                              termcolor.colored(received["nick"] + " joined", self.args.server_color)))
+                    self.print_msg("{}|{}| {}".format(termcolor.colored(packet_receive_time, self.args.timestamp_color),
+                                                      termcolor.colored("SERVER", self.args.server_color),
+                                                      termcolor.colored(received["nick"] + " joined", self.args.server_color)))
 
-                        case "onlineRemove":
-                            self.online_users.remove(received["nick"])
-                            self.online_users_prepended.remove("@{}".format(received["nick"]))
+                case "onlineRemove":
+                    self.online_users.remove(received["nick"])
+                    self.online_users_prepended.remove("@{}".format(received["nick"]))
 
-                            self.print_msg("{}|{}| {}".format(termcolor.colored(packet_receive_time, self.args.timestamp_color),
-                                                              termcolor.colored("SERVER", self.args.server_color),
-                                                              termcolor.colored(received["nick"] + " left", self.args.server_color)))
+                    self.print_msg("{}|{}| {}".format(termcolor.colored(packet_receive_time, self.args.timestamp_color),
+                                                      termcolor.colored("SERVER", self.args.server_color),
+                                                      termcolor.colored(received["nick"] + " left", self.args.server_color)))
 
-                        case "emote":
-                            if len(received.get("trip", "")) < 6:
-                                tripcode = "NOTRIP"
+                case "emote":
+                    if len(received.get("trip", "")) < 6:
+                        tripcode = "NOTRIP"
 
-                            else:
-                                tripcode = received.get("trip", "")
+                    else:
+                        tripcode = received.get("trip", "")
 
-                            self.print_msg("{}|{}| {}".format(termcolor.colored(packet_receive_time, self.args.timestamp_color),
-                                                              termcolor.colored(tripcode, self.args.emote_color),
-                                                              termcolor.colored(received["text"], self.args.emote_color)))
+                    self.print_msg("{}|{}| {}".format(termcolor.colored(packet_receive_time, self.args.timestamp_color),
+                                                      termcolor.colored(tripcode, self.args.emote_color),
+                                                      termcolor.colored(received["text"], self.args.emote_color)))
 
-                        case "warn":
-                            self.print_msg("{}|{}| {}".format(termcolor.colored(packet_receive_time, self.args.timestamp_color),
-                                                              termcolor.colored("!WARN!", self.args.warning_color),
-                                                              termcolor.colored(received["text"], self.args.warning_color)))
-
-        except (KeyboardInterrupt, json.decoder.JSONDecodeError, websocket._exceptions.WebSocketConnectionClosedException):
-            self.close()
+                case "warn":
+                    self.print_msg("{}|{}| {}".format(termcolor.colored(packet_receive_time, self.args.timestamp_color),
+                                                      termcolor.colored("!WARN!", self.args.warning_color),
+                                                      termcolor.colored(received["text"], self.args.warning_color)))
 
     # ping thread acting as a heartbeat
     def ping_thread(self):
@@ -197,18 +191,19 @@ class Client:
 
     # input thread that handles user input
     def input_thread(self):
-        try:
-            while self.ws.connected:
-                self.input_lock = True
+        while self.ws.connected:
+            self.input_lock = True
 
-                nick_completer = prompt_toolkit.completion.WordCompleter(self.online_users_prepended, match_middle=True, ignore_case=True, sentence=True)
+            nick_completer = prompt_toolkit.completion.WordCompleter(self.online_users_prepended, match_middle=True, ignore_case=True, sentence=True)
 
-                with prompt_toolkit.patch_stdout.patch_stdout(raw=True):
-                    self.input_lock = False
+            with prompt_toolkit.patch_stdout.patch_stdout(raw=True):
+                self.input_lock = False
+
+                try:
                     self.send_input(self.prompt_session.prompt("> ", completer=nick_completer, wrap_lines=False))
 
-        except KeyboardInterrupt:
-            self.ws.close()
+                except KeyboardInterrupt:
+                    self.close(clean=True)
 
     # send input to the server and handle client commands
     def send_input(self, message):
@@ -230,8 +225,8 @@ class Client:
 
                     except:
                         self.print_msg("{}|{}| Error sending json: {}".format(termcolor.colored("-NIL-", self.args.timestamp_color),
-                                                                                termcolor.colored("CLIENT", self.args.client_color),
-                                                                                termcolor.colored("{}".format(sys.exc_info()[1]), self.args.client_color)))
+                                                                              termcolor.colored("CLIENT", self.args.client_color),
+                                                                              termcolor.colored("{}".format(sys.exc_info()[1]), self.args.client_color)))
 
                 case "/list":
                     self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args.timestamp_color),
@@ -350,10 +345,18 @@ Server-specific commands should be displayed below:""")
                     self.ws.send(json.dumps({"cmd": "chat", "text": message}))
 
     # close the client and print an error if there is one
-    def close(self, *error):
+    def close(self, clean=False,*error):
         colorama.deinit()
-        os.system("tput rmcup") if self.term_content_saved else None
-        print(error) if error else None
+
+        if self.term_content_saved:
+            os.system("tput rmcup")
+
+        if error and not clean:
+            print(error)
+            os._exit(1)
+
+        else:
+            os._exit(0)
 
 
 # run the client
@@ -404,5 +407,3 @@ if __name__ == "__main__":
     client.thread_ping.start()
     client.thread_input.start()
     client.main_thread()
-
-    sys.exit(0)
