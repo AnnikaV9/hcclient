@@ -72,9 +72,9 @@ class Client:
 
     # print a message to the terminal
     def print_msg(self, message):
-            while self.input_lock:
-                    None
-            print(message)
+        while self.input_lock:
+                None
+        print(message)
 
     # main loop that receives and parses packets
     def main_thread(self):
@@ -206,13 +206,13 @@ class Client:
                 with prompt_toolkit.patch_stdout.patch_stdout(raw=True):
                     self.input_lock = False
                     self.send_input(self.prompt_session.prompt("> ", completer=nick_completer, wrap_lines=False))
-                    print("\033[A{}\033[A".format(" " * shutil.get_terminal_size().columns))
 
         except KeyboardInterrupt:
             self.ws.close()
 
     # send input to the server and handle client commands
     def send_input(self, message):
+        print("\033[A{}\033[A".format(" " * shutil.get_terminal_size().columns))
 
         try:
             message = message.replace("\\n", "\n")
@@ -229,12 +229,12 @@ class Client:
                         self.ws.send(json.dumps(json_to_send))
 
                     except:
-                        self.print_msg("{}|{}| Error sending json: {}\n".format(termcolor.colored("-NIL-", self.args.timestamp_color),
+                        self.print_msg("{}|{}| Error sending json: {}".format(termcolor.colored("-NIL-", self.args.timestamp_color),
                                                                                 termcolor.colored("CLIENT", self.args.client_color),
                                                                                 termcolor.colored("{}".format(sys.exc_info()[1]), self.args.client_color)))
 
                 case "/list":
-                    self.print_msg("{}|{}| {}\n".format(termcolor.colored("-NIL-", self.args.timestamp_color),
+                    self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args.timestamp_color),
                                                       termcolor.colored("CLIENT", self.args.client_color),
                                                       termcolor.colored("Channel: {} - Users: {}".format(self.channel, ", ".join(self.online_users)), self.args.client_color)))
 
@@ -252,7 +252,7 @@ class Client:
                         os.system("cls" if os.name=="nt" else "clear")
 
                     else:
-                        self.print_msg("{}|{}| {}\n".format(termcolor.colored("-NIL-", self.args.timestamp_color),
+                        self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args.timestamp_color),
                                                           termcolor.colored("CLIENT", self.args.client_color),
                                                           termcolor.colored("Clearing is disabled, enable with --clear", self.args.client_color)))
 
@@ -340,7 +340,7 @@ Client-specific commands:
 /clear
 /nick <newnick>
 
-Server-specific commands should be displayed below:\n""")
+Server-specific commands should be displayed below:""")
                         self.ws.send(json.dumps({"cmd": "help"}))
 
                     else:
