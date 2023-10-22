@@ -2,7 +2,7 @@
 #
 # Author:    AnnikaV9
 # License:   Unlicense
-# Version:   1.5.0
+# Version:   1.5.1
 
 # import required modules
 import json
@@ -345,7 +345,7 @@ Server-specific commands should be displayed below:""")
                     self.ws.send(json.dumps({"cmd": "chat", "text": message}))
 
     # close the client and print an error if there is one
-    def close(self, clean=False,*error):
+    def close(self, clean=False, *error):
         colorama.deinit()
 
         if self.term_content_saved:
@@ -382,7 +382,7 @@ if __name__ == "__main__":
     optional_group.add_argument("--timestamp-color", help="sets the timestamp color (default: white)")
     optional_group.add_argument("--mod-nickname-color", help="sets the moderator nickname color (default: cyan)")
     optional_group.add_argument("--admin-nickname-color", help="sets the admin nickname color (default: red)")
-    optional_group.add_argument("--version", help="displays the version and exits", action="version", version="1.5.0")
+    optional_group.add_argument("--version", help="displays the version and exits", action="version", version="1.5.1")
     optional_group.set_defaults(no_parse=False,
                                 clear=False,
                                 is_mod=False,
