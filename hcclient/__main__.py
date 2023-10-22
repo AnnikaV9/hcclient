@@ -368,7 +368,6 @@ def generate_config(config):
         with open("config.json", "x") as config_file:
             json.dump(config, config_file, indent=2)
             print("Configuration written to config.json")
-            sys.exit(0)
 
     except:
         sys.exit("Error!\n{}".format(sys.exc_info()[1]))
@@ -435,6 +434,7 @@ if __name__ == "__main__":
 
     if args.gen_config:
         generate_config(args)
+        sys.exit(0)
 
     if args.config_file:
         config = load_config(args.config_file)
