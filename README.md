@@ -182,23 +182,18 @@ hcclient does not save to or read from any configuration file. It might be troub
 
 *profile1.sh*
 ```bash
-#!/bin/bash
+#!/bin/sh
 hcclient --trip-password mypassword \
          --server-color red \
          "$@"
 ```
-or
-```bash
-#!/bin/bash
-hcclient --trip-password mypassword \
-         --timestamp-color green \
-         --no-clear \
-         "$@"
-```
+
 The profile can then be used like:
 ```
 sh profile1.sh -c mychannel -n mynick
 ```
+
+Alternatively, use a shell alias.
 
 <br />
 
