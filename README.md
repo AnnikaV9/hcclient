@@ -43,26 +43,25 @@ hcclient is a configurable terminal client for connecting to [hack.chat](https:/
 <br />
 
 ## Prerequisites <a name="prerequisites"></a>
-Either [Docker](https://docs.docker.com/engine/) or [Podman](https://github.com/containers/podman) is recommended. The container image is built with hcclient's dependencies.  
-<br />
-You *can* run the client directly without using a container, on non-linux systems however:
-- This requires python >= 3.10 and pip. <br />
-- You'll have to install pip dependencies locally or in a virtual environment.<br />
-- The `tput` command (provided by ncurses) is an optionally dependency that allows saving and restoring terminal contents.
+For x86_64 linux, statically and dynamically linked binaries are provided with the interpreter and dependencies bundled in.
 
-For linux based systems, statically and dynamically linked x86-64 binaries are provided. Only `tput` is an external dependency.
+On other platforms:
+- Requires python >= 3.10 and pip. <br />
+- You'll have to install pip dependencies locally or in a virtual environment.<br />
+
+A [Docker](https://docs.docker.com/engine/)/[Podman](https://github.com/containers/podman) compatible image is provided. 
 
 <br />
 
 ## Installation <a name="installation"></a>
 
-On Linux based systems:
+On x86_64 linux:
 ```
 # Download the latest binary
-wget -O hcclient https://github.com/AnnikaV9/hcclient/releases/download/v1.5.1/hcclient-1.5.1-linux-x86-64
+wget -O hcclient https://github.com/AnnikaV9/hcclient/releases/download/v1.6.0/hcclient-1.6.0-linux-x86-64
 
 # Or the statically linked binary if the above one doesn't work
-wget -O hcclient https://github.com/AnnikaV9/hcclient/releases/download/v1.5.1/hcclient-1.5.1-linux-x86-64-static
+wget -O hcclient https://github.com/AnnikaV9/hcclient/releases/download/v1.6.0/hcclient-1.6.0-linux-x86-64-static
 
 # Make the binary executable
 chmod +x hcclient
@@ -76,13 +75,13 @@ hcclient --help
 On other platforms:
 ```
 # Download the latest source release
-wget https://github.com/AnnikaV9/hcclient/archive/refs/tags/v1.5.1.tar.gz
+wget https://github.com/AnnikaV9/hcclient/archive/refs/tags/v1.6.0.tar.gz
 
 # Extract the archive
-tar xvf v1.5.1.tar.gz
+tar xvf v1.6.0.tar.gz
 
 # Change the working directory
-cd hcclient-1.5.1
+cd hcclient-1.6.0
 
 # Install the dependencies
 pip install -r requirements.txt
@@ -93,10 +92,10 @@ python hcclient --help
 As a container:
 ```
 # Download the latest image
-wget https://github.com/AnnikaV9/hcclient/releases/download/v1.5.1/hcclient-1.5.1-image.tar.xz
+wget https://github.com/AnnikaV9/hcclient/releases/download/v1.6.0/hcclient-1.6.0-image.tar.xz
 
 # Install the image
-docker/podman load -i hcclient-1.5.1-image.tar.xz
+docker/podman load -i hcclient-1.6.0-image.tar.xz
 
 # Run hcclient
 docker/podman run --rm -it hcclient --help
@@ -107,14 +106,15 @@ docker/podman run --rm -it hcclient --help
 ```
 $ hcclient --help
 
-usage:  [-h] -c CHANNEL -n NICKNAME [-t TRIP_PASSWORD] [-w WEBSOCKET_ADDRESS]
-        [--no-parse] [--no-clear] [--is-mod] [--no-icon]
-        [--message-color MESSAGE_COLOR] [--whisper-color WHISPER_COLOR]
-        [--emote-color EMOTE_COLOR] [--nickname-color NICKNAME_COLOR]
-        [--warning-color WARNING_COLOR] [--server-color SERVER_COLOR]
-        [--client-color CLIENT_COLOR] [--timestamp-color TIMESTAMP_COLOR]
+usage:  [-h] -c CHANNEL -n NICKNAME [-l CONFIG_FILE] [-t TRIP_PASSWORD]
+        [-w WEBSOCKET_ADDRESS] [--no-parse] [--clear] [--is-mod] [--no-icon]
+        [--no-notify] [--message-color MESSAGE_COLOR]
+        [--whisper-color WHISPER_COLOR] [--emote-color EMOTE_COLOR]
+        [--nickname-color NICKNAME_COLOR] [--warning-color WARNING_COLOR]
+        [--server-color SERVER_COLOR] [--client-color CLIENT_COLOR]
+        [--timestamp-color TIMESTAMP_COLOR]
         [--mod-nickname-color MOD_NICKNAME_COLOR]
-        [--admin-nickname-color ADMIN_NICKNAME_COLOR]
+        [--admin-nickname-color ADMIN_NICKNAME_COLOR] [--gen-config] [--version]
 
 Terminal client for connecting to hack.chat servers. Colors are provided by
 termcolor.
@@ -129,6 +129,8 @@ required arguments:
                         specify the nickname to use
 
 optional arguments:
+  -l CONFIG_FILE, --load-config CONFIG_FILE
+                        specify a config file to load
   -t TRIP_PASSWORD, --trip-password TRIP_PASSWORD
                         specify a tripcode password to use when joining
   -w WEBSOCKET_ADDRESS, --websocket-address WEBSOCKET_ADDRESS
@@ -159,6 +161,7 @@ optional arguments:
                         sets the moderator nickname color (default: cyan)
   --admin-nickname-color ADMIN_NICKNAME_COLOR
                         sets the admin nickname color (default: red)
+  --gen-config          generates a config file with provided arguments
   --version             displays the version and exits
 ```
 
@@ -178,22 +181,17 @@ The default color scheme can be overidden by using arguments such as `--message-
 <br />
 
 ## Configuration <a name="configuration"></a>
-hcclient does not save to or read from any configuration file. It might be troublesome to have to type long passwords and colors every time you wish to connect. You can create a shell script to act as a profile and call hcclient with your preferred arguments. For example:
+A configuration file can be generated with the provided arguments using `--gen-config` and loaded using `--load-config`. For example:
 
-*profile1.sh*
-```bash
-#!/bin/sh
-hcclient --trip-password mypassword \
-         --server-color red \
-         "$@"
+```
+hcclient -c mychannel -n mynick -t mypassword --no-notify --timestamp-color red --gen-config
+```
+The above command will create *config.json* in the working directory, which can then be loaded with:
+```
+hcclient -c mychannel -n mynick --load-config <path_to_config.json>
 ```
 
-The profile can then be used like:
-```
-sh profile1.sh -c mychannel -n mynick
-```
-
-Alternatively, use a shell alias.
+**Note:** &nbsp;`--gen-config` and `--load-config` do not affect `--channel` and `--nickname`.
 
 <br />
 
