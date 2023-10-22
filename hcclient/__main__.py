@@ -17,7 +17,6 @@ import colorama
 import datetime
 import termcolor
 import shutil
-import atexit
 import prompt_toolkit
 import notifypy
 
@@ -50,7 +49,7 @@ class Client:
         self.prompt_session = prompt_toolkit.PromptSession(reserve_space_for_menu=3)
 
         self.thread_ping = threading.Thread(target=self.ping_thread, daemon=True)
-        self.thread_input = threading.Thread(target=self.input_thread, daemon=True)
+        self.thread_recv = threading.Thread(target=self.recv_thread, daemon=True)
 
     # manage terminal contents
     def manage_term_contents(self):
@@ -64,7 +63,7 @@ class Client:
                     print("Warning!\nThe 'tput' command was not found in your path.\nThis means that the terminal's contents will not be saved.\nExit and re-run without --clear as a workaround.\nPress enter to continue and clear the terminal anyway.")
                     input()
 
-                except KeyboardInterrupt:
+                except (KeyboardInterrupt, EOFError):
                     sys.exit(0)
 
             os.system("cls" if os.name=="nt" else "clear")
@@ -72,11 +71,12 @@ class Client:
     # print a message to the terminal
     def print_msg(self, message):
         while self.input_lock:
-                None
+            time.sleep(0.01)
+
         print(message)
 
-    # main loop that receives and parses packets
-    def main_thread(self):
+    # ws.recv() loop that receives and parses packets
+    def recv_thread(self):
         while self.ws.connected:
             received = json.loads(self.ws.recv())
             packet_receive_time = datetime.datetime.now().strftime("%H:%M")
@@ -189,8 +189,8 @@ class Client:
             self.ws.send(json.dumps({"cmd": "ping"}))
             time.sleep(60)
 
-    # input thread that handles user input
-    def input_thread(self):
+    # input loop that draws the prompt and handles input
+    def input_loop(self):
         while self.ws.connected:
             self.input_lock = True
 
@@ -202,7 +202,7 @@ class Client:
                 try:
                     self.send_input(self.prompt_session.prompt("> ", completer=nick_completer, wrap_lines=False))
 
-                except KeyboardInterrupt:
+                except (KeyboardInterrupt, EOFError):
                     self.close(clean=True)
 
     # send input to the server and handle client commands
@@ -352,11 +352,10 @@ Server-specific commands should be displayed below:""")
             os.system("tput rmcup")
 
         if error and not clean:
-            print(error)
-            os._exit(1)
+            sys.exit(error)
 
         else:
-            os._exit(0)
+            sys.exit(0)
 
 
 # run the client
@@ -405,5 +404,6 @@ if __name__ == "__main__":
 
     client = Client(args)
     client.thread_ping.start()
-    client.thread_input.start()
-    client.main_thread()
+    client.thread_recv.start()
+    client.input_loop()
+
