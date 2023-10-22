@@ -370,7 +370,7 @@ def generate_config(config):
             print("Configuration written to config.json")
             sys.exit(0)
 
-    except FileExistsError:
+    except:
         sys.exit("Error!\n{}".format(sys.exc_info()[1]))
 
 
