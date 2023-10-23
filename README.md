@@ -108,17 +108,15 @@ docker/podman run --rm -it hcclient --help
 $ hcclient --help
 
 usage:  [-h] -c CHANNEL -n NICKNAME [-l CONFIG_FILE] [-t TRIP_PASSWORD]
-        [-w WEBSOCKET_ADDRESS] [--no-parse] [--clear] [--is-mod] [--no-icon]
-        [--no-notify] [--message-color MESSAGE_COLOR]
+        [-w WEBSOCKET_ADDRESS] [--no-parse] [--clear] [--is-mod] [--no-unicode]
+        [--no-notify] [--prompt-string PROMPT_STRING] [--message-color MESSAGE_COLOR]
         [--whisper-color WHISPER_COLOR] [--emote-color EMOTE_COLOR]
         [--nickname-color NICKNAME_COLOR] [--warning-color WARNING_COLOR]
         [--server-color SERVER_COLOR] [--client-color CLIENT_COLOR]
-        [--timestamp-color TIMESTAMP_COLOR]
-        [--mod-nickname-color MOD_NICKNAME_COLOR]
+        [--timestamp-color TIMESTAMP_COLOR] [--mod-nickname-color MOD_NICKNAME_COLOR]
         [--admin-nickname-color ADMIN_NICKNAME_COLOR] [--gen-config] [--version]
 
-Terminal client for connecting to hack.chat servers. Colors are provided by
-termcolor.
+Terminal client for connecting to hack.chat servers. Colors are provided by termcolor.
 
 options:
   -h, --help            show this help message and exit
@@ -140,8 +138,10 @@ optional arguments:
   --no-parse            log received packets without parsing
   --clear               enables clearing of the terminal
   --is-mod              enables moderator commands
-  --no-icon             disables moderator/admin icon
+  --no-unicode          disables moderator/admin icon and unicode characters in the UI
   --no-notify           disables desktop notifications
+  --prompt-string PROMPT_STRING
+                        sets the prompt string (default: '❯ ' or '> ' if --no-unicode)
   --message-color MESSAGE_COLOR
                         sets the message color (default: white)
   --whisper-color WHISPER_COLOR
