@@ -204,7 +204,6 @@ class Client:
                 self.input_lock = False
 
                 try:
-                    # received["nick"] = "⭐ {}".format(received["nick"]) if not self.args["no_unicode"] else received["nick"]
                     self.send_input(self.prompt_session.prompt(self.prompt_shape , completer=nick_completer, wrap_lines=False))
 
                 except (KeyboardInterrupt, EOFError):
