@@ -2,7 +2,7 @@
 #
 # Author:    AnnikaV9
 # License:   Unlicense
-# Version:   1.6.0-git
+# Version:   1.7.0-git
 
 # import required modules
 import json
@@ -436,7 +436,7 @@ if __name__ == "__main__":
     optional_group.add_argument("--mod-nickname-color", help="sets the moderator nickname color (default: cyan)")
     optional_group.add_argument("--admin-nickname-color", help="sets the admin nickname color (default: red)")
     optional_group.add_argument("--gen-config", help="generates a config file with provided arguments", action="store_true")
-    optional_group.add_argument("--version", help="displays the version and exits", action="version", version="hcclient 1.6.0-git")
+    optional_group.add_argument("--version", help="displays the version and exits", action="version", version="hcclient 1.7.0-git")
     optional_group.set_defaults(no_parse=False,
                                 clear=False,
                                 is_mod=False,
