@@ -37,8 +37,9 @@ hcclient is a configurable terminal client for connecting to [hack.chat](https:/
 - **Send/Receive raw packets:** &nbsp;Send json packets without parsing with `/raw`, display received packets as json with `--no-parse`.
 - **Suggestions:** &nbsp;Starting your message with `@` will bring up a menu with a list of online users. Cycle through them with arrow keys or continue typing to filter the suggestions even more. Outside of the menu, arrow keys cycle through message history.
 - **Patched stdout:** &nbsp;Type long messages as slow as you want, received messages won't overwrite your progress.
-- **Config generation:** &nbsp;Generate and load json configuration files with no editing required.
+- **Config generation:** &nbsp;Generate and load json configuration files with no editing required. Change configuration options from within the client with commands, modifying behaviour and colors without having to restart it.
 - **Desktop notifications:** &nbsp;Receive notifications whenever someone mentions you or sends you a whisper. (Not supported in container mode)
+- **Aliases:** &nbsp;Set aliases for messages and phrases you send often, because why wouldn't you?
 - **Moderator mode:** &nbsp;Enabled with `--is-mod`, gives you a bunch of `/` commands for moderator actions. Moderator commands are not documented in `/help`, check the source code for the list of available ones and their parameters.
 
 <br />
@@ -50,7 +51,7 @@ On other platforms:
 - Requires python >= 3.10 and pip. <br />
 - You'll have to install pip dependencies locally or in a virtual environment.<br />
 
-A [Docker](https://docs.docker.com/engine/)/[Podman](https://github.com/containers/podman) compatible image is provided. 
+A [Docker](https://docs.docker.com/engine/) / [Podman](https://github.com/containers/podman) compatible image is provided. 
 
 <br />
 
@@ -59,10 +60,10 @@ A [Docker](https://docs.docker.com/engine/)/[Podman](https://github.com/containe
 On x86_64 linux:
 ```
 # Download the latest binary
-wget -O hcclient https://github.com/AnnikaV9/hcclient/releases/download/v1.7.0/hcclient-1.7.0-linux-x86-64
+wget -O hcclient https://github.com/AnnikaV9/hcclient/releases/download/v1.7.1/hcclient-1.7.1-linux-x86-64
 
 # Or the statically linked binary if the above one doesn't work
-wget -O hcclient https://github.com/AnnikaV9/hcclient/releases/download/v1.7.0/hcclient-1.7.0-linux-x86-64-static
+wget -O hcclient https://github.com/AnnikaV9/hcclient/releases/download/v1.7.1/hcclient-1.7.1-linux-x86-64-static
 
 # Make the binary executable
 chmod +x hcclient
@@ -76,13 +77,13 @@ hcclient --help
 On other platforms:
 ```
 # Download the latest source release
-wget https://github.com/AnnikaV9/hcclient/archive/refs/tags/v1.7.0.tar.gz
+wget https://github.com/AnnikaV9/hcclient/archive/refs/tags/v1.7.1.tar.gz
 
 # Extract the archive
-tar xvf v1.7.0.tar.gz
+tar xvf v1.7.1.tar.gz
 
 # Change the working directory
-cd hcclient-1.7.0
+cd hcclient-1.7.1
 
 # Install the dependencies
 pip install -r requirements.txt
@@ -93,10 +94,10 @@ python hcclient --help
 As a container:
 ```
 # Download the latest image
-wget https://github.com/AnnikaV9/hcclient/releases/download/v1.7.0/hcclient-1.7.0-image.tar.xz
+wget https://github.com/AnnikaV9/hcclient/releases/download/v1.7.1/hcclient-1.7.1-image.tar.xz
 
 # Install the image
-docker/podman load -i hcclient-1.7.0-image.tar.xz
+docker/podman load -i hcclient-1.7.1-image.tar.xz
 
 # Run hcclient
 docker/podman run --rm -it hcclient --help
@@ -191,8 +192,23 @@ The above command will create *config.json* in the working directory, which can 
 ```
 hcclient -c mychannel -n mynick --load-config <path_to_config.json>
 ```
+hcclient searches for *config.json* in the following directories by default:
+- **Windows:** &nbsp;%APPDATA%/hcclient
+- **Other platforms:** &nbsp;$HOME/.config/hcclient
 
-**Note:** &nbsp;`--gen-config` and `--load-config` do not affect `--channel` and `--nickname`.
+Things to note:
+- The configuration file does not affect `channel` and `nickname`, which have to be specified as flags every time.
+- Command-line arguments **do not** overwrite the configuration file's options. If a configuration file is loaded, all flags except for `--channel` and `--nickname` are discarded.
+<br />
+
+You can also configure hcclient while it's running, without having to restart it. For example:
+```
+> /configset no_notify true
+```
+The changes will be applied live and lost once you exit the client, but you can save it to the configuration file with `/save`<br />
+Configuration options can be listed with `/configdump`
+
+**Note:** &nbsp; Values set by `/configset` and the configuration file are not checked. An invalid value will crash the client.
 
 <br />
 

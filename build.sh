@@ -2,7 +2,7 @@
 #
 # Requires ldd and binutils
 
-VERSION="1.7.0-git"
+VERSION="1.7.1-git"
 
 binaries() {
    for cmd in ldd objdump objcopy python3
