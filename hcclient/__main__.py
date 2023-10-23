@@ -47,10 +47,6 @@ class Client:
         self.input_lock = False
 
         self.prompt_session = prompt_toolkit.PromptSession(reserve_space_for_menu=3)
-        if not self.args["no_unicode"]: # this can surely be less disgusting and prompt_char could be an argumet(but mybe its meh tiny thing to add more args)
-            self.prompt_shape = "❯ " 
-        else:
-            self.prompt_shape = "> "
 
         self.thread_ping = threading.Thread(target=self.ping_thread, daemon=True)
         self.thread_recv = threading.Thread(target=self.recv_thread, daemon=True)
@@ -195,6 +191,8 @@ class Client:
 
     # input loop that draws the prompt and handles input
     def input_loop(self):
+        prompt_char = "> " if self.args["no_unicode"] else "❯ "
+
         while self.ws.connected:
             self.input_lock = True
 
@@ -204,7 +202,7 @@ class Client:
                 self.input_lock = False
 
                 try:
-                    self.send_input(self.prompt_session.prompt(self.prompt_shape , completer=nick_completer, wrap_lines=False))
+                    self.send_input(self.prompt_session.prompt(prompt_char , completer=nick_completer, wrap_lines=False))
 
                 except (KeyboardInterrupt, EOFError):
                     self.close(clean=True)
@@ -401,7 +399,7 @@ if __name__ == "__main__":
     optional_group.add_argument("--no-parse", help="log received packets without parsing", action="store_true")
     optional_group.add_argument("--clear", help="enables clearing of the terminal", action="store_true")
     optional_group.add_argument("--is-mod", help="enables moderator commands", action="store_true")
-    optional_group.add_argument("--no-unicode", help="disables moderator/admin icon and unicode character support", action="store_true")
+    optional_group.add_argument("--no-unicode", help="disables moderator/admin icon and unicode characters in the UI", action="store_true")
     optional_group.add_argument("--no-notify", help="disables desktop notifications", action="store_true")
     optional_group.add_argument("--message-color", help="sets the message color (default: white)")
     optional_group.add_argument("--whisper-color", help="sets the whisper color (default: green)")
