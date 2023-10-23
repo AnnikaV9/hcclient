@@ -462,7 +462,7 @@ Server-specific commands should be displayed below:""")
             sys.exit(0)
 
 
-# generate a config file
+# generate a config file in the current directory
 def generate_config(config):
     config = vars(config)
     for arg in ("gen_config", "config_file", "channel", "nickname"):
@@ -477,7 +477,7 @@ def generate_config(config):
         sys.exit("Error generating configuration!\n{}".format(sys.exc_info()[1]))
 
 
-# load a config file
+# load a config file from the specified path
 def load_config(filepath):
     try:
         with open(filepath, "r") as config_file:
@@ -502,7 +502,37 @@ def load_config(filepath):
         sys.exit("Error loading configuration!\n{}".format(sys.exc_info()[1]))
 
 
-# run the client
+# initialize the configuration options
+def initialize_config(args):
+    if args.gen_config:
+        args.aliases = {}
+        generate_config(args)
+        sys.exit(0)
+
+    if args.config_file:
+        config = load_config(args.config_file)
+        config["nickname"] = args.nickname
+        config["channel"] = args.channel
+        config["config_file"] = args.config_file
+
+    else:
+        def_config_file = os.path.join(os.getenv("APPDATA"), "hcclient", "config.json") if os.name == "nt" else os.path.join(os.getenv("HOME"), ".config", "hcclient", "config.json")
+
+        if os.path.isfile(def_config_file):
+            config = load_config(def_config_file)
+            config["nickname"] = args.nickname
+            config["channel"] = args.channel
+            config["config_file"] = def_config_file
+        
+        else:
+            config = vars(args)
+            config["aliases"] = {}
+            config.pop("gen_config")
+
+    return config
+
+
+# parse arguments and run the client
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Terminal client for connecting to hack.chat servers. Colors are provided by termcolor.")
     required_group = parser.add_argument_group("required arguments")
@@ -552,23 +582,7 @@ if __name__ == "__main__":
                                 config_file=None)
     args = parser.parse_args()
 
-    if args.gen_config:
-        args.aliases = {}
-        generate_config(args)
-        sys.exit(0)
-
-    if args.config_file:
-        config = load_config(args.config_file)
-        config["nickname"] = args.nickname
-        config["channel"] = args.channel
-        config["config_file"] = args.config_file
-
-    else:
-        config = vars(args)
-        config["aliases"] = {}
-        config.pop("gen_config")
-
-    client = Client(config)
+    client = Client(initialize_config(args))
     client.thread_ping.start()
     client.thread_recv.start()
     client.input_loop()
