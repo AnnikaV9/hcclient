@@ -282,7 +282,7 @@ class Client:
                     except KeyError:
                         self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
                                                           termcolor.colored("CLIENT", self.args["client_color"]),
-                                                          termcolor.colored("Error: Alias '{}' isn't defined".format(parsed_message[2]), self.args["client_color"])))
+                                                          termcolor.colored("Alias '{}' isn't defined".format(parsed_message[2]), self.args["client_color"])))
 
                 case "/configset":
                     message_args = parsed_message[2].split(" ")
@@ -296,7 +296,7 @@ class Client:
                         problem = "Invalid" if message_args[0] not in self.args else "Read-only"
                         self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
                                                           termcolor.colored("CLIENT", self.args["client_color"]),
-                                                          termcolor.colored("Error: {} configuration option '{}'".format(problem, message_args[0]), self.args["client_color"])))
+                                                          termcolor.colored("Error setting configuration: {} option '{}'".format(problem, message_args[0]), self.args["client_color"])))
 
                 case "/configdump":
                     self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
@@ -319,12 +319,12 @@ class Client:
                         except:
                             self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
                                                               termcolor.colored("CLIENT", self.args["client_color"]),
-                                                              termcolor.colored("Error: {}".format(sys.exc_info()[1]), self.args["client_color"])))
+                                                              termcolor.colored("Error saving configuration: {}".format(sys.exc_info()[1]), self.args["client_color"])))
 
                     else:
                         self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
                                                           termcolor.colored("CLIENT", self.args["client_color"]),
-                                                          termcolor.colored("Error: Unable to save configuration without a loaded config file, use --load-config", self.args["client_color"])))
+                                                          termcolor.colored("Unable to save configuration without a loaded config file, use --load-config", self.args["client_color"])))
 
                 case "/quit":
                     self.close()
