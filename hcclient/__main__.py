@@ -287,11 +287,12 @@ class Client:
                                                           termcolor.colored("Alias '{}' isn't defined".format(parsed_message[2]), self.args["client_color"])))
 
                 case "/configset":
-                    message_args = parsed_message[2].split(" ")
+                    message_args = parsed_message[2].lower().split(" ")
                     if message_args[0] in self.args and message_args[0] not in ("config_file", "channel", "nickname", "aliases"):
                         self.args[message_args[0]] = " ".join(message_args[1:])
-                        self.args[message_args[0]] = False if self.args[message_args[0]] == "False" or self.args[message_args[0]] == "false" else self.args[message_args[0]]
-                        self.args[message_args[0]] = True if self.args[message_args[0]] == "True" or self.args[message_args[0]] == "true" else self.args[message_args[0]]
+                        self.args[message_args[0]] = False if self.args[message_args[0]] == "false" else self.args[message_args[0]]
+                        self.args[message_args[0]] = True if self.args[message_args[0]] == "true" else self.args[message_args[0]]
+                        self.args[message_args[0]] = None if self.args[message_args[0]] in ("none", "null", "default") else self.args[message_args[0]]
                         self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
                                                           termcolor.colored("CLIENT", self.args["client_color"]),
                                                           termcolor.colored("Set configuration value '{}' to '{}'".format(message_args[0], self.args[message_args[0]]), self.args["client_color"])))
