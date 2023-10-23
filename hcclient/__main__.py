@@ -196,14 +196,14 @@ class Client:
 
     # input loop that draws the prompt and handles input
     def input_loop(self):
-        if self.args["prompt_string"]:
-            prompt_string = self.args["prompt_string"]
-        
-        else:
-            prompt_string = "> " if self.args["no_unicode"] else "❯ "
-
         while self.ws.connected:
             self.input_lock = True
+
+            if self.args["prompt_string"]:
+                prompt_string = self.args["prompt_string"]
+        
+            else:
+                prompt_string = "> " if self.args["no_unicode"] else "❯ "
 
             nick_completer = prompt_toolkit.completion.WordCompleter(self.online_users_prepended, match_middle=True, ignore_case=True, sentence=True)
 
@@ -265,7 +265,7 @@ class Client:
                     else:
                         self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
                                                           termcolor.colored("CLIENT", self.args["client_color"]),
-                                                          termcolor.colored("Clearing is disabled, enable with --clear", self.args["client_color"])))
+                                                          termcolor.colored("Clearing is disabled, enable with the --clear flag or run `/configset clear true`", self.args["client_color"])))
 
                 case "/set":
                     message_args = parsed_message[2].split(" ")
@@ -290,6 +290,8 @@ class Client:
                     message_args = parsed_message[2].split(" ")
                     if message_args[0] in self.args and message_args[0] not in ("config_file", "channel", "nickname", "aliases"):
                         self.args[message_args[0]] = " ".join(message_args[1:])
+                        self.args[message_args[0]] = False if self.args[message_args[0]] == "False" or self.args[message_args[0]] == "false" else self.args[message_args[0]]
+                        self.args[message_args[0]] = True if self.args[message_args[0]] == "True" or self.args[message_args[0]] == "true" else self.args[message_args[0]]
                         self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
                                                           termcolor.colored("CLIENT", self.args["client_color"]),
                                                           termcolor.colored("Set configuration value '{}' to '{}'".format(message_args[0], self.args[message_args[0]]), self.args["client_color"])))
@@ -303,8 +305,8 @@ class Client:
                 case "/configdump":
                     self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
                                                       termcolor.colored("CLIENT", self.args["client_color"]),
-                                                      termcolor.colored(json.dumps(self.args, indent=2), self.args["client_color"])))
-    
+                                                      termcolor.colored("Running config:\n" + "\n".join("{}: {}".format(option, value) for option, value in self.args.items()), self.args["client_color"])))
+
                 case "/save":
                     if self.args["config_file"]:
                         config = copy.deepcopy(self.args)
