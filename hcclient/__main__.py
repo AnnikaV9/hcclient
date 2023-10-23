@@ -209,7 +209,7 @@ class Client:
                     self.send_input(self.prompt_session.prompt(prompt_char , completer=nick_completer, wrap_lines=False))
 
                 except (KeyboardInterrupt, EOFError):
-                    self.close(clean=True)
+                    self.close()
 
     # send input to the server and handle client commands
     def send_input(self, message):
@@ -351,13 +351,13 @@ Server-specific commands should be displayed below:""")
                     self.ws.send(json.dumps({"cmd": "chat", "text": message}))
 
     # close the client and print an error if there is one
-    def close(self, clean=False, error=False): 
+    def close(self, error=False): 
         colorama.deinit()
 
         if self.term_content_saved:
             os.system("tput rmcup")
 
-        if error and not clean:
+        if error:
             print(error)
             sys.exit(1)
 
