@@ -227,8 +227,10 @@ class Client:
             return
 
         if len(message) > 0:
+            split_message = message.split(" ")
             for alias in self.args["aliases"]:
-                message = message.replace("${}".format(alias), self.args["aliases"][alias])
+                split_message[:] = [part if part != f"${alias}" else self.args["aliases"][alias] for part in split_message]
+            message = " ".join(split_message)
 
             parsed_message = message.partition(" ")
             match parsed_message[0]:
