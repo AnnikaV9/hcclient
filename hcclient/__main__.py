@@ -27,7 +27,6 @@ class Client:
     # initialize the client
     def __init__(self, args):
         colorama.init()
-        sys.excepthook = self.close
 
         self.args = args
         self.nick = self.args["nickname"]
@@ -185,7 +184,8 @@ class Client:
                                                           termcolor.colored(received["text"], self.args["warning_color"])))
 
             except:
-                self.close(clean=False, error=sys.exc_info())
+                self.print_msg("recv_thread() died fatally! Restart the client to reconnect.")
+                self.close(error=sys.exc_info())
 
     # ping thread acting as a heartbeat
     def ping_thread(self):
@@ -351,14 +351,15 @@ Server-specific commands should be displayed below:""")
                     self.ws.send(json.dumps({"cmd": "chat", "text": message}))
 
     # close the client and print an error if there is one
-    def close(self, clean=False, *error):
+    def close(self, clean=False, error=False): 
         colorama.deinit()
 
         if self.term_content_saved:
             os.system("tput rmcup")
 
         if error and not clean:
-            sys.exit(error)
+            print(error)
+            sys.exit(1)
 
         else:
             sys.exit(0)
