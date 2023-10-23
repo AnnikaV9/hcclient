@@ -195,7 +195,11 @@ class Client:
 
     # input loop that draws the prompt and handles input
     def input_loop(self):
-        prompt_char = "> " if self.args["no_unicode"] else "❯ "
+        if self.args["prompt_string"]:
+            prompt_string = self.args["prompt_string"]
+        
+        else:
+            prompt_string = "> " if self.args["no_unicode"] else "❯ "
 
         while self.ws.connected:
             self.input_lock = True
@@ -206,7 +210,7 @@ class Client:
                 self.input_lock = False
 
                 try:
-                    self.send_input(self.prompt_session.prompt(prompt_char , completer=nick_completer, wrap_lines=False))
+                    self.send_input(self.prompt_session.prompt(prompt_string , completer=nick_completer, wrap_lines=False))
 
                 except (KeyboardInterrupt, EOFError):
                     self.close()
@@ -381,10 +385,24 @@ def generate_config(config):
 
 
 # load a config file
-def load_config(config_file):
+def load_config(filepath):
     try:
-        with open(config_file, "r") as config_file:
+        with open(filepath, "r") as config_file:
             config = json.load(config_file)
+
+            missing_args = []
+            for key in ("trip_password", "websocket_address", "no_parse",
+                       "clear", "is_mod", "no_unicode", "no_notify",
+                       "prompt_string", "message_color", "whisper_color",
+                       "emote_color", "nickname_color", "warning_color",
+                       "server_color", "client_color", "timestamp_color",
+                       "mod_nickname_color", "admin_nickname_color"):
+                if key not in config:
+                    missing_args.append(key)
+
+            if len(missing_args) > 0:
+                raise ValueError("{} is missing the following argument(s): {}".format(filepath, ", ".join(missing_args)))
+
             return config
 
     except:
@@ -406,6 +424,7 @@ if __name__ == "__main__":
     optional_group.add_argument("--is-mod", help="enables moderator commands", action="store_true")
     optional_group.add_argument("--no-unicode", help="disables moderator/admin icon and unicode characters in the UI", action="store_true")
     optional_group.add_argument("--no-notify", help="disables desktop notifications", action="store_true")
+    optional_group.add_argument("--prompt-string", help="sets the prompt string (default: '❯ ' or '> ' if --no-unicode)")
     optional_group.add_argument("--message-color", help="sets the message color (default: white)")
     optional_group.add_argument("--whisper-color", help="sets the whisper color (default: green)")
     optional_group.add_argument("--emote-color", help="sets the emote color (default: green)")
@@ -423,6 +442,7 @@ if __name__ == "__main__":
                                 is_mod=False,
                                 no_unicode=False,
                                 no_notify=False,
+                                prompt_string=None,
                                 message_color="white",
                                 whisper_color="green",
                                 emote_color="green",
@@ -436,7 +456,7 @@ if __name__ == "__main__":
                                 trip_password="",
                                 websocket_address="wss://hack.chat/chat-ws",
                                 gen_config=False,
-                                config_file=False)
+                                config_file=None)
     args = parser.parse_args()
 
     if args.gen_config:
