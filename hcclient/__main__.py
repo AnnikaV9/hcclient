@@ -47,6 +47,10 @@ class Client:
         self.input_lock = False
 
         self.prompt_session = prompt_toolkit.PromptSession(reserve_space_for_menu=3)
+        if not self.args["no_unicode"]: # this can surely be less disgusting and prompt_char could be an argumet(but mybe its meh tiny thing to add more args)
+            self.prompt_shape = "❯ " 
+        else:
+            self.prompt_shape = "> "
 
         self.thread_ping = threading.Thread(target=self.ping_thread, daemon=True)
         self.thread_recv = threading.Thread(target=self.recv_thread, daemon=True)
@@ -108,11 +112,11 @@ class Client:
 
                     if received["uType"] == "mod":
                         color_to_use = self.args["mod_nickname_color"]
-                        received["nick"] = "⭐ {}".format(received["nick"]) if not self.args["no_icon"] else received["nick"]
+                        received["nick"] = "⭐ {}".format(received["nick"]) if not self.args["no_unicode"] else received["nick"]
 
                     elif received["uType"] == "admin":
                         color_to_use = self.args["admin_nickname_color"]
-                        received["nick"] = "⭐ {}".format(received["nick"]) if not self.args["no_icon"] else received ["nick"]
+                        received["nick"] = "⭐ {}".format(received["nick"]) if not self.args["no_unicode"] else received ["nick"]
 
                     else:
                         color_to_use = self.args["nickname_color"]
@@ -200,7 +204,8 @@ class Client:
                 self.input_lock = False
 
                 try:
-                    self.send_input(self.prompt_session.prompt("> ", completer=nick_completer, wrap_lines=False))
+                    # received["nick"] = "⭐ {}".format(received["nick"]) if not self.args["no_unicode"] else received["nick"]
+                    self.send_input(self.prompt_session.prompt(self.prompt_shape , completer=nick_completer, wrap_lines=False))
 
                 except (KeyboardInterrupt, EOFError):
                     self.close(clean=True)
@@ -397,7 +402,7 @@ if __name__ == "__main__":
     optional_group.add_argument("--no-parse", help="log received packets without parsing", action="store_true")
     optional_group.add_argument("--clear", help="enables clearing of the terminal", action="store_true")
     optional_group.add_argument("--is-mod", help="enables moderator commands", action="store_true")
-    optional_group.add_argument("--no-icon", help="disables moderator/admin icon", action="store_true")
+    optional_group.add_argument("--no-unicode", help="disables moderator/admin icon and unicode character support", action="store_true")
     optional_group.add_argument("--no-notify", help="disables desktop notifications", action="store_true")
     optional_group.add_argument("--message-color", help="sets the message color (default: white)")
     optional_group.add_argument("--whisper-color", help="sets the whisper color (default: green)")
@@ -414,7 +419,7 @@ if __name__ == "__main__":
     optional_group.set_defaults(no_parse=False,
                                 clear=False,
                                 is_mod=False,
-                                no_icon=False,
+                                no_unicode=False,
                                 no_notify=False,
                                 message_color="white",
                                 whisper_color="green",
