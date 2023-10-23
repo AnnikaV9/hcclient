@@ -401,7 +401,7 @@ def load_config(filepath):
                     missing_args.append(key)
 
             if len(missing_args) > 0:
-                raise ValueError("{} is missing the following argument(s): {}".format(filepath, ", ".join(missing_args)))
+                raise ValueError("{} is missing the following value(s): {}".format(filepath, ", ".join(missing_args)))
 
             return config
 
