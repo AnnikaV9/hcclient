@@ -12,6 +12,7 @@ import sys
 import re
 import os
 import time
+import copy
 import argparse
 import colorama
 import datetime
@@ -226,6 +227,9 @@ class Client:
             return
 
         if len(message) > 0:
+            for alias in self.args["aliases"]:
+                message = message.replace("${}".format(alias), self.args["aliases"][alias])
+
             parsed_message = message.partition(" ")
             match parsed_message[0]:
                 case "/raw":
@@ -260,6 +264,70 @@ class Client:
                         self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
                                                           termcolor.colored("CLIENT", self.args["client_color"]),
                                                           termcolor.colored("Clearing is disabled, enable with --clear", self.args["client_color"])))
+
+                case "/set":
+                    message_args = parsed_message[2].split(" ")
+                    self.args["aliases"][message_args[0]] = " ".join(message_args[1:])
+                    self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
+                                                      termcolor.colored("CLIENT", self.args["client_color"]),
+                                                      termcolor.colored("Set alias '{}' = '{}'".format(message_args[0], self.args["aliases"][message_args[0]]), self.args["client_color"])))
+
+                case "/unset":
+                    try:
+                        self.args["aliases"].pop(parsed_message[2])
+                        self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
+                                                          termcolor.colored("CLIENT", self.args["client_color"]),
+                                                          termcolor.colored("Unset alias '{}'".format(parsed_message[2]), self.args["client_color"])))
+
+                    except KeyError:
+                        self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
+                                                          termcolor.colored("CLIENT", self.args["client_color"]),
+                                                          termcolor.colored("Error: Alias '{}' isn't defined".format(parsed_message[2]), self.args["client_color"])))
+
+                case "/configset":
+                    message_args = parsed_message[2].split(" ")
+                    if message_args[0] in self.args and message_args[0] not in ("config_file", "channel", "nickname", "aliases"):
+                        self.args[message_args[0]] = " ".join(message_args[1:])
+                        self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
+                                                          termcolor.colored("CLIENT", self.args["client_color"]),
+                                                          termcolor.colored("Set configuration value '{}' to '{}'".format(message_args[0], self.args[message_args[0]]), self.args["client_color"])))
+
+                    else:
+                        problem = "Invalid" if message_args[0] not in self.args else "Read-only"
+                        self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
+                                                          termcolor.colored("CLIENT", self.args["client_color"]),
+                                                          termcolor.colored("Error: {} configuration option '{}'".format(problem, message_args[0]), self.args["client_color"])))
+
+                case "/configdump":
+                    self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
+                                                      termcolor.colored("CLIENT", self.args["client_color"]),
+                                                      termcolor.colored(json.dumps(self.args, indent=2), self.args["client_color"])))
+    
+                case "/save":
+                    if self.args["config_file"]:
+                        config = copy.deepcopy(self.args)
+                        for arg in ("config_file", "channel", "nickname"):
+                            config.pop(arg)
+
+                        try:
+                            with open(self.args["config_file"], "w") as config_file:
+                                json.dump(config, config_file, indent=2)
+                                self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
+                                                                  termcolor.colored("CLIENT", self.args["client_color"]),
+                                                                  termcolor.colored("Configuration saved to {}".format(self.args["config_file"]), self.args["client_color"])))
+
+                        except:
+                            self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
+                                                              termcolor.colored("CLIENT", self.args["client_color"]),
+                                                              termcolor.colored("Error: {}".format(sys.exc_info()[1]), self.args["client_color"])))
+
+                    else:
+                        self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
+                                                          termcolor.colored("CLIENT", self.args["client_color"]),
+                                                          termcolor.colored("Error: Unable to save configuration without a loaded config file, use --load-config", self.args["client_color"])))
+
+                case "/quit":
+                    self.close()
 
                 case "/ban":
                     if self.args["is_mod"]:
@@ -341,9 +409,34 @@ class Client:
 
 Client-specific commands:
 /raw <json>
+  Sends json directly to the server
+  without parsing.
 /list
+  Lists the users in the channel.
 /clear
+  Clears the terminal.
 /nick <newnick>
+  Changes your nickname.
+/set <alias> <value>
+  Sets an alias. $alias will be
+  replaced with the value in your
+  messages.
+/unset <alias>
+  Unsets an alias.
+/configset <option> <value>
+  Sets a configuration option to a
+  value. Changed values will be in
+  effect immediately. Values are not
+  checked, an invalid value will
+  crash the client. Use carefully.
+/configdump
+  Prints the current configuration.
+/save
+  Saves the current configuration
+  to the loaded configuration file.
+  Will also save aliases.
+/quit
+  Exits the client.
 
 Server-specific commands should be displayed below:""")
                         self.ws.send(json.dumps({"cmd": "help"}))
@@ -396,12 +489,12 @@ def load_config(filepath):
                        "prompt_string", "message_color", "whisper_color",
                        "emote_color", "nickname_color", "warning_color",
                        "server_color", "client_color", "timestamp_color",
-                       "mod_nickname_color", "admin_nickname_color"):
+                       "mod_nickname_color", "admin_nickname_color", "aliases"):
                 if key not in config:
                     missing_args.append(key)
 
             if len(missing_args) > 0:
-                raise ValueError("{} is missing the following value(s): {}".format(filepath, ", ".join(missing_args)))
+                raise ValueError("{} is missing the following option(s): {}".format(filepath, ", ".join(missing_args)))
 
             return config
 
@@ -460,6 +553,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if args.gen_config:
+        args.aliases = {}
         generate_config(args)
         sys.exit(0)
 
@@ -467,9 +561,12 @@ if __name__ == "__main__":
         config = load_config(args.config_file)
         config["nickname"] = args.nickname
         config["channel"] = args.channel
+        config["config_file"] = args.config_file
 
     else:
         config = vars(args)
+        config["aliases"] = {}
+        config.pop("gen_config")
 
     client = Client(config)
     client.thread_ping.start()
