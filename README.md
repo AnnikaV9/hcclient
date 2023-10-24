@@ -47,16 +47,21 @@ hcclient is a configurable terminal client for connecting to [hack.chat](https:/
 ## Prerequisites <a name="prerequisites"></a>
 For x86_64 linux, statically and dynamically linked binaries are provided with the interpreter and dependencies bundled in.
 
-On other platforms:
-- Requires python >= 3.10 and pip. <br />
-- You'll have to install pip dependencies locally or in a virtual environment.<br />
+On other platforms, python >= 3.10 and pip are required. <br />
 
 A [Docker](https://docs.docker.com/engine/) / [Podman](https://github.com/containers/podman) compatible image is provided. 
 
 <br />
 
 ## Installation <a name="installation"></a>
+On all platforms:
+```
+# Install the pip package
+pip install hcclient
 
+# Run hcclient
+hcclient --help
+```
 On x86_64 linux:
 ```
 # Download the latest binary
@@ -73,23 +78,6 @@ mv hcclient ~/.local/bin/
 
 # Run hcclient
 hcclient --help
-```
-On other platforms:
-```
-# Download the latest source release
-wget https://github.com/AnnikaV9/hcclient/archive/refs/tags/v1.7.4.tar.gz
-
-# Extract the archive
-tar xvf v1.7.4.tar.gz
-
-# Change the working directory
-cd hcclient-1.7.4
-
-# Install the dependencies
-pip install -r requirements.txt
-
-# Run hcclient
-python hcclient --help
 ```
 As a container:
 ```
