@@ -26,4 +26,4 @@ termcolor = "2.3.0"
 websocket-client = "1.5.3"
 
 [tool.poetry.scripts]
-hcclient = "hcclient:__main__:main"
+hcclient = "hcclient.__main__:main"
