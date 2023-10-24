@@ -2,7 +2,7 @@
 #
 # Requires ldd and binutils
 
-VERSION="1.7.3-git"
+VERSION="1.7.4-git"
 
 binaries() {
    for cmd in ldd objdump objcopy python3
@@ -18,9 +18,9 @@ binaries() {
    source .venv/bin/activate &&
 
    python3 -m pip install -r requirements.txt &&
-   python3 -m pip install pyinstaller staticx build hatchling &&
+   python3 -m pip install pyinstaller staticx poetry &&
 
-   python3 -m build &&
+   python3 -m poetry build &&
 
    pyinstaller --onefile \
                --clean \
