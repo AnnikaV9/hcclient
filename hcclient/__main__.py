@@ -45,9 +45,9 @@ class Client:
         }))
 
         self.input_lock = False
-
         self.prompt_session = prompt_toolkit.PromptSession(reserve_space_for_menu=3)
 
+        self.ping_event = threading.Event()
         self.thread_ping = threading.Thread(target=self.ping_thread, daemon=True)
         self.thread_recv = threading.Thread(target=self.recv_thread, daemon=True)
 
@@ -185,23 +185,28 @@ class Client:
                                                           termcolor.colored(received["text"], self.args["warning_color"])))
 
             except:
-                self.print_msg("recv_thread() died fatally! Restart the client to reconnect.")
-                self.close(error=sys.exc_info())
+                if self.reconnecting:
+                    self.close()
+
+                else:
+                    self.print_msg("recv_thread() died fatally! Run /reconnect")
+                    self.ping_event.set()
+                    self.close(error=sys.exc_info())
 
     # ping thread acting as a heartbeat
     def ping_thread(self):
-        while self.ws.connected:
+        while self.ws.connected and not self.ping_event.is_set():
             self.ws.send(json.dumps({"cmd": "ping"}))
-            time.sleep(60)
+            self.ping_event.wait(60)
 
     # input loop that draws the prompt and handles input
     def input_loop(self):
-        while self.ws.connected:
+        while True:
             self.input_lock = True
 
             if self.args["prompt_string"]:
                 prompt_string = self.args["prompt_string"]
-        
+
             else:
                 prompt_string = "> " if self.args["no_unicode"] else "❯ "
 
@@ -215,6 +220,9 @@ class Client:
 
                 except (KeyboardInterrupt, EOFError):
                     self.close()
+
+                except:
+                    self.close(error=sys.exc_info())
 
     # send input to the server and handle client commands
     def send_input(self, message):
@@ -266,6 +274,33 @@ class Client:
                         self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
                                                           termcolor.colored("CLIENT", self.args["client_color"]),
                                                           termcolor.colored("Clearing is disabled, enable with the --clear flag or run `/configset clear true`", self.args["client_color"])))
+
+                case "/reconnect":
+                    self.reconnecting = True
+
+                    self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
+                                                      termcolor.colored("CLIENT", self.args["client_color"]),
+                                                      termcolor.colored("Reconnecting...", self.args["client_color"])))
+
+                    self.ws.close()
+                    self.ping_event.set()
+                    self.thread_ping.join()
+                    self.thread_recv.join()
+
+                    self.ws = websocket.create_connection(self.args["websocket_address"])
+                    self.ws.send(json.dumps({
+                        "cmd": "join",
+                        "channel": self.args["channel"],
+                        "nick": "{}#{}".format(self.nick, self.args["trip_password"])
+                    }))
+
+                    self.ping_event.clear()
+                    self.thread_ping = threading.Thread(target=self.ping_thread, daemon=True)
+                    self.thread_recv = threading.Thread(target=self.recv_thread, daemon=True)
+                    self.thread_ping.start()
+                    self.thread_recv.start()
+
+                    self.reconnecting = False
 
                 case "/set":
                     message_args = parsed_message[2].split(" ")
@@ -417,11 +452,14 @@ Client-specific commands:
   Sends json directly to the server
   without parsing.
 /list
-  Lists the users in the channel.
+  Lists users in the channel.
 /clear
   Clears the terminal.
 /nick <newnick>
   Changes your nickname.
+/reconnect
+  Disconnects forcefully and
+  reconnects to the server.
 /set <alias> <value>
   Sets an alias. $alias will be
   replaced with the value in your
@@ -452,7 +490,7 @@ Server-specific commands should be displayed below:""")
                 case _:
                     self.ws.send(json.dumps({"cmd": "chat", "text": message}))
 
-    # close the client and print an error if there is one
+    # close the client or thread and print an error if there is one
     def close(self, error=False): 
         colorama.deinit()
 
