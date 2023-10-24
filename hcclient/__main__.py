@@ -576,9 +576,8 @@ def initialize_config(args):
 
     return config
 
-
 # parse arguments and run the client
-if __name__ == "__main__":
+def main():
     parser = argparse.ArgumentParser(description="Terminal client for connecting to hack.chat servers. Colors are provided by termcolor.")
     required_group = parser.add_argument_group("required arguments")
     optional_group = parser.add_argument_group("optional arguments")
@@ -631,3 +630,7 @@ if __name__ == "__main__":
     client.thread_ping.start()
     client.thread_recv.start()
     client.input_loop()
+
+
+if __name__ == "__main__":
+    main()
