@@ -2,7 +2,7 @@
 #
 # Author:    AnnikaV9
 # License:   Unlicense
-# Version:   1.7.3
+# Version:   1.7.3-git
 
 # import required modules
 import json
