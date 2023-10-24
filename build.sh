@@ -4,7 +4,7 @@
 
 VERSION="1.7.4-git"
 
-binaries() {
+executable() {
    for cmd in ldd objdump objcopy python3
    do
      if ! command -v $cmd &> /dev/null
@@ -18,9 +18,7 @@ binaries() {
    source .venv/bin/activate &&
 
    python3 -m pip install -r requirements.txt &&
-   python3 -m pip install pyinstaller staticx poetry &&
-
-   python3 -m poetry build &&
+   python3 -m pip install pyinstaller staticx &&
 
    pyinstaller --onefile \
                --clean \
@@ -28,6 +26,20 @@ binaries() {
                hcclient/__main__.py &&
 
    staticx --strip dist/hcclient-$VERSION dist/hcclient-$VERSION-static
+}
+
+wheel() {
+   if ! command -v python3 &> /dev/null
+   then
+     echo "command 'python3' not found"
+     exit 1
+   fi
+
+   python3 -m venv .venv &&
+   source .venv/bin/activate &&
+
+   python3 -m pip install poetry &&
+   poetry build
 }
 
 container() {
@@ -60,8 +72,9 @@ container() {
 }
 
 case "$1" in
-  binaries) mkdir dist && binaries ;;
-  container) mkdir dist && container ;;
-  all) mkdir dist && binaries && container ;;
-  *) echo "commands: binaries, container, all"; exit 1  ;;
+   executable) mkdir dist && executable ;;
+   wheel) mkdir dist && wheel ;;
+   container) mkdir dist && container ;;
+   all) mkdir dist && executable && wheel && container ;;
+   *) echo "valid commands: executable, wheel, container, all"; exit 1  ;;
 esac
