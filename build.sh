@@ -18,7 +18,9 @@ binaries() {
    source .venv/bin/activate &&
 
    python3 -m pip install -r requirements.txt &&
-   python3 -m pip install pyinstaller staticx &&
+   python3 -m pip install pyinstaller staticx build hatchling &&
+
+   python3 -m build &&
 
    pyinstaller --onefile \
                --clean \
