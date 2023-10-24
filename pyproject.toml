@@ -10,9 +10,8 @@ authors = [
 ]
 description = "A terminal client for connecting to hack.chat"
 readme = "README.md"
-license = "Unlicense"
+license = {text = "Unlicense"}
 requires-python = ">=3.10"
-dynamic = ["dependencies"]
 dependences = [
     "colorama ~= 0.4.6",
     "jeepney ~= 0.8.0",
