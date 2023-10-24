@@ -92,8 +92,9 @@ class Client:
                             if self.nick in self.online_users:
                                 self.online_users.remove(self.nick)
                             self.online_users.append(nick)
-                        self.online_users_prepended = ["@{}".format(user) for user in self.online_users]
-                        self.online_users_prepended.sort()
+                        
+                        for user in self.online_users:
+                            self.online_users_prepended.append("@{}".format(user))
 
                         self.channel = received["users"][0]["channel"]
 
@@ -155,7 +156,6 @@ class Client:
                     case "onlineAdd":
                         self.online_users.append(received["nick"])
                         self.online_users_prepended.append("@{}".format(received["nick"]))
-                        self.online_users_prepended.sort()
 
                         self.print_msg("{}|{}| {}".format(termcolor.colored(packet_receive_time, self.args["timestamp_color"]),
                                                           termcolor.colored("SERVER", self.args["server_color"]),
