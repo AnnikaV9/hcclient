@@ -43,6 +43,7 @@ class Client:
             "channel": self.args["channel"],
             "nick": "{}#{}".format(self.nick, self.args["trip_password"])
         }))
+        self.reconnecting = False
 
         self.input_lock = False
         self.prompt_session = prompt_toolkit.PromptSession(reserve_space_for_menu=3)
@@ -219,10 +220,10 @@ class Client:
                     self.send_input(self.prompt_session.prompt(prompt_string , completer=nick_completer, wrap_lines=False))
 
                 except (KeyboardInterrupt, EOFError):
-                    self.close()
+                    self.close(thread=False)
 
                 except:
-                    self.close(error=sys.exc_info())
+                    self.close(error=sys.exc_info(), thread=False)
 
     # send input to the server and handle client commands
     def send_input(self, message):
@@ -491,10 +492,11 @@ Server-specific commands should be displayed below:""")
                     self.ws.send(json.dumps({"cmd": "chat", "text": message}))
 
     # close the client or thread and print an error if there is one
-    def close(self, error=False): 
-        colorama.deinit()
+    def close(self, error=False, thread=True): 
+        if not thread:
+            colorama.deinit()
 
-        if self.term_content_saved:
+        if self.term_content_saved and not thread:
             os.system("tput rmcup")
 
         if error:
