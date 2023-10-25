@@ -230,18 +230,18 @@ class Client:
 
     # input loop that draws the prompt and handles input
     def input_loop(self):
-        while True:
-            self.input_lock = True
+        with prompt_toolkit.patch_stdout.patch_stdout(raw=True):
+            while True:
+                self.input_lock = True
 
-            if self.args["prompt_string"]:
-                prompt_string = self.args["prompt_string"]
+                if self.args["prompt_string"]:
+                    prompt_string = self.args["prompt_string"]
 
-            else:
-                prompt_string = "> " if self.args["no_unicode"] else "❯ "
+                else:
+                    prompt_string = "> " if self.args["no_unicode"] else "❯ "
 
-            nick_completer = prompt_toolkit.completion.WordCompleter(self.online_users_prepended, match_middle=True, ignore_case=True, sentence=True)
+                nick_completer = prompt_toolkit.completion.WordCompleter(self.online_users_prepended, match_middle=True, ignore_case=True, sentence=True)
 
-            with prompt_toolkit.patch_stdout.patch_stdout(raw=True):
                 self.input_lock = False
 
                 try:
