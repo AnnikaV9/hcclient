@@ -567,7 +567,7 @@ Server-specific commands should be displayed below:""", bypass_lock=True)
 # generate a config file in the current directory
 def generate_config(config):
     config = vars(config)
-    for arg in ("gen_config", "config_file", "channel", "nickname"):
+    for arg in ("gen_config", "config_file", "no_config", "channel", "nickname"):
             config.pop(arg)
 
     try:
@@ -611,6 +611,9 @@ def initialize_config(args):
         generate_config(args)
         sys.exit(0)
 
+    if args.no_config:
+        args.config_file = None
+
     if args.config_file:
         config = load_config(args.config_file)
         config["nickname"] = args.nickname
@@ -620,7 +623,7 @@ def initialize_config(args):
     else:
         def_config_file = os.path.join(os.getenv("APPDATA"), "hcclient", "config.json") if os.name == "nt" else os.path.join(os.getenv("HOME"), ".config", "hcclient", "config.json")
 
-        if os.path.isfile(def_config_file):
+        if os.path.isfile(def_config_file) and not args.no_config:
             config = load_config(def_config_file)
             config["nickname"] = args.nickname
             config["channel"] = args.channel
@@ -630,6 +633,7 @@ def initialize_config(args):
             config = vars(args)
             config["aliases"] = {}
             config.pop("gen_config")
+            config.pop("no_config")
 
     return config
 
@@ -640,9 +644,11 @@ def main():
     optional_group = parser.add_argument_group("optional arguments")
     required_group.add_argument("-c", "--channel", help="specify the channel to join", required=True)
     required_group.add_argument("-n", "--nickname", help="specify the nickname to use", required=True)
-    optional_group.add_argument("-l", "--load-config", help="specify a config file to load", dest="config_file")
     optional_group.add_argument("-t", "--trip-password", help="specify a tripcode password to use when joining")
     optional_group.add_argument("-w", "--websocket-address", help="specify the websocket address to connect to (default: wss://hack-chat/chat-ws)")
+    optional_group.add_argument("-l", "--load-config", help="specify a config file to load", dest="config_file")
+    optional_group.add_argument("--no-config", help="disables loading of the default config file", action="store_true")
+    optional_group.add_argument("--gen-config", help="generates a config file with provided arguments", action="store_true")
     optional_group.add_argument("--no-parse", help="log received packets without parsing", action="store_true")
     optional_group.add_argument("--clear", help="enables clearing of the terminal", action="store_true")
     optional_group.add_argument("--is-mod", help="enables moderator commands", action="store_true")
@@ -659,9 +665,11 @@ def main():
     optional_group.add_argument("--timestamp-color", help="sets the timestamp color (default: white)")
     optional_group.add_argument("--mod-nickname-color", help="sets the moderator nickname color (default: cyan)")
     optional_group.add_argument("--admin-nickname-color", help="sets the admin nickname color (default: red)")
-    optional_group.add_argument("--gen-config", help="generates a config file with provided arguments", action="store_true")
     optional_group.add_argument("--version", help="displays the version and exits", action="version", version="hcclient 1.7.6-git")
-    optional_group.set_defaults(no_parse=False,
+    optional_group.set_defaults(gen_config=False,
+                                config_file=None,
+                                no_config=False,
+                                no_parse=False,
                                 clear=False,
                                 is_mod=False,
                                 no_unicode=False,
@@ -678,9 +686,7 @@ def main():
                                 mod_nickname_color="cyan",
                                 admin_nickname_color="red",
                                 trip_password="",
-                                websocket_address="wss://hack.chat/chat-ws",
-                                gen_config=False,
-                                config_file=None)
+                                websocket_address="wss://hack.chat/chat-ws",)
     args = parser.parse_args()
 
     client = Client(initialize_config(args))
