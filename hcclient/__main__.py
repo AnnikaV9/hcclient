@@ -42,6 +42,8 @@ class Client:
         self.initial_connection()
 
         self.input_lock = False
+        #self.auto_whisper_protect = False
+        self.whisper_lock = False
         self.prompt_session = prompt_toolkit.PromptSession(reserve_space_for_menu=3)
 
         self.ping_event = threading.Event()
@@ -191,6 +193,10 @@ class Client:
                             self.print_msg("{}|{}| {}".format(termcolor.colored(packet_receive_time, self.args["timestamp_color"]),
                                                               termcolor.colored(tripcode, self.args["whisper_color"]),
                                                               termcolor.colored(received["text"], self.args["whisper_color"])))
+
+                            #if not received["text"].startswith("You whispered to"):
+                            #    self.auto_whisper_protect = True
+
                         else:
                             self.print_msg("{}|{}| {}".format(termcolor.colored(packet_receive_time, self.args["timestamp_color"]),
                                                               termcolor.colored("SERVER", self.args["server_color"]),
@@ -368,6 +374,15 @@ class Client:
                                                           termcolor.colored("CLIENT", self.args["client_color"]),
                                                           termcolor.colored("Clearing is disabled, enable with the --clear flag or run `/configset clear true`", self.args["client_color"])),
                                                           bypass_lock=True)
+
+                case "/whisperlock":
+                    self.whisper_lock = not self.whisper_lock
+                    #if not self.whisper_lock:
+                    #    self.auto_whisper_protect = False
+                    self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
+                                                      termcolor.colored("CLIENT", self.args["client_color"]),
+                                                      termcolor.colored("Toggled whisper lock to {}".format(self.whisper_lock), self.args["client_color"])),
+                                                      bypass_lock=True)
 
                 case "/ignore":
                     if parsed_message[2] in self.online_users:
@@ -613,6 +628,10 @@ Client-based commands:
   Prints a user's details.
 /clear
   Clears the terminal.
+/whisperlock
+  Toggles whisper lock, which will
+  prevent sending any messages
+  other than whispers.
 /nick <newnick>
   Changes your nickname.
 /ignore <nick>
@@ -675,6 +694,25 @@ Client-based commands:
                         self.send(json.dumps({"cmd": "help", "command": parsed_message[2]}))
 
                 case _:
+                    #if self.auto_whisper_protect and not self.whisper_lock:
+                    #    if not message.startswith("/") or message.split(" ")[0] == "/me":
+                    #        self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
+                    #                                          termcolor.colored("CLIENT", self.args["client_color"]),
+                    #                                          termcolor.colored("A possible whisper was blocked from being accidentally sent as a message. Use the up arrow to retrieve the message and resend", self.args["client_color"])),
+                    #                                          bypass_lock=True)
+                    #        self.auto_whisper_protect = False
+                    #        return
+
+                    #    if message.split(" ")[0] in ("/whisper", "/w", "/reply", "/r"):
+                    #        self.auto_whisper_protect = False
+                    if self.whisper_lock:
+                        if not message.split(" ")[0] in ("/whisper", "/w", "/reply", "/r") or message.startswith(" "):
+                            self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
+                                                              termcolor.colored("CLIENT", self.args["client_color"]),
+                                                              termcolor.colored("Whisper lock active, toggle it off to send messages", self.args["client_color"])),
+                                                              bypass_lock=True)
+                            return
+
                     self.send(json.dumps({"cmd": "chat", "text": message}))
 
     # close the client or thread and print an error if there is one
