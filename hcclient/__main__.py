@@ -33,6 +33,7 @@ class Client:
         self.nick = self.args["nickname"]
         self.online_users = []
         self.online_users_prepended = []
+        self.online_users_details = {}
 
         self.term_content_saved = False
         self.manage_term_contents()
@@ -118,6 +119,9 @@ class Client:
                         
                         for user in self.online_users:
                             self.online_users_prepended.append("@{}".format(user))
+                        
+                        for user_details in received["users"]:
+                            self.online_users_details[user_details["nick"]] = {"Trip": user_details["trip"], "Type": user_details["uType"], "Hash": user_details["hash"]}
 
                         self.channel = received["users"][0]["channel"]
 
@@ -179,6 +183,7 @@ class Client:
                     case "onlineAdd":
                         self.online_users.append(received["nick"])
                         self.online_users_prepended.append("@{}".format(received["nick"]))
+                        self.online_users_details[received["nick"]] = {"Trip": received["trip"], "Type": received["uType"], "Hash": received["hash"]}
 
                         self.print_msg("{}|{}| {}".format(termcolor.colored(packet_receive_time, self.args["timestamp_color"]),
                                                           termcolor.colored("SERVER", self.args["server_color"]),
@@ -187,6 +192,7 @@ class Client:
                     case "onlineRemove":
                         self.online_users.remove(received["nick"])
                         self.online_users_prepended.remove("@{}".format(received["nick"]))
+                        self.online_users_details.remove(received["nick"])
 
                         self.print_msg("{}|{}| {}".format(termcolor.colored(packet_receive_time, self.args["timestamp_color"]),
                                                           termcolor.colored("SERVER", self.args["server_color"]),
@@ -293,8 +299,21 @@ class Client:
                                                       termcolor.colored("Channel: {} - Users: {}".format(self.channel, ", ".join(self.online_users)), self.args["client_color"])),
                                                       bypass_lock=True)
 
+                case "/profile":
+                    if parsed_message[2] in self.online_users:
+                        self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
+                                                          termcolor.colored("CLIENT", self.args["client_color"]),
+                                                          termcolor.colored("{}'s profile:\n".format(parsed_message[2]) + "\n".join("{}: {}".format(option, value) for option, value in self.online_users_details[parsed_message[2]].items()), self.args["client_color"])),
+                                                          bypass_lock=True)
+                    
+                    else:
+                        self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
+                                                          termcolor.colored("CLIENT", self.args["client_color"]),
+                                                          termcolor.colored("No such user: '{}'".format(parsed_message[2]), self.args["client_color"])),
+                                                          bypass_lock=True)
+
                 case "/nick":
-                    if re.match("^[A-Za-z0-9_]*$", parsed_message[2]) and len(parsed_message[2]) < 25:
+                    if re.match("^[A-Za-z0-9_]*$", parsed_message[2]) and 0 < len(parsed_message[2]) < 25:
                         if self.ws.connected:
                             self.send(json.dumps({"cmd": "changenick", "nick": parsed_message[2]}))
 
@@ -304,7 +323,7 @@ class Client:
                     else:
                         self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
                                                           termcolor.colored("CLIENT", self.args["client_color"]),
-                                                          termcolor.colored("Nickname should a maximum of 24 characters and consist of letters, numbers and underscores.", self.args["client_color"])),
+                                                          termcolor.colored("Nickname should a maximum of 24 characters and consist of only letters, numbers and underscores.", self.args["client_color"])),
                                                           bypass_lock=True)
 
                 case "/clear":
@@ -353,11 +372,18 @@ class Client:
 
                 case "/set":
                     message_args = parsed_message[2].split(" ")
-                    self.args["aliases"][message_args[0]] = " ".join(message_args[1:])
-                    self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
-                                                      termcolor.colored("CLIENT", self.args["client_color"]),
-                                                      termcolor.colored("Set alias '{}' = '{}'".format(message_args[0], self.args["aliases"][message_args[0]]), self.args["client_color"])),
-                                                      bypass_lock=True)
+                    if len(message_args) < 2:
+                        self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
+                                                          termcolor.colored("CLIENT", self.args["client_color"]),
+                                                          termcolor.colored("Alias/Value cannot be empty", self.args["client_color"])),
+                                                          bypass_lock=True)
+
+                    else:
+                        self.args["aliases"][message_args[0]] = " ".join(message_args[1:])
+                        self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
+                                                          termcolor.colored("CLIENT", self.args["client_color"]),
+                                                          termcolor.colored("Set alias '{}' = '{}'".format(message_args[0], self.args["aliases"][message_args[0]]), self.args["client_color"])),
+                                                          bypass_lock=True)
 
                 case "/unset":
                     try:
@@ -511,6 +537,8 @@ Client-specific commands:
   without parsing.
 /list
   Lists users in the channel.
+/profile <nick>
+  Prints a user's details.
 /clear
   Clears the terminal.
 /nick <newnick>
