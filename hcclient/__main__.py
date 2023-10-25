@@ -2,7 +2,7 @@
 #
 # Author:    AnnikaV9
 # License:   Unlicense
-# Version:   1.7.6-git
+# Version:   1.8.0-git
 
 # import required modules
 import json
@@ -797,7 +797,7 @@ def main():
     optional_group.add_argument("--timestamp-color", help="sets the timestamp color (default: white)")
     optional_group.add_argument("--mod-nickname-color", help="sets the moderator nickname color (default: cyan)")
     optional_group.add_argument("--admin-nickname-color", help="sets the admin nickname color (default: red)")
-    optional_group.add_argument("--version", help="displays the version and exits", action="version", version="hcclient 1.7.6-git")
+    optional_group.add_argument("--version", help="displays the version and exits", action="version", version="hcclient 1.8.0-git")
     optional_group.set_defaults(gen_config=False,
                                 config_file=None,
                                 no_config=False,
