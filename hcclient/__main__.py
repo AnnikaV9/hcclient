@@ -459,7 +459,7 @@ class Client:
 
                 case "/unban":
                     if self.args["is_mod"]:
-                        [self.send(json.dumps({"cmd": "unban", "nick": user})) for user in parsed_message[2].split(" ")]
+                        [self.send(json.dumps({"cmd": "unban", "hash": uhash})) for uhash in parsed_message[2].split(" ")]
 
                 case "/unbanall":
                     if self.args["is_mod"]:
@@ -476,7 +476,14 @@ class Client:
                 case "/moveuser":
                     if self.args["is_mod"]:
                         message_args = parsed_message[2].split(" ")
-                        self.send(json.dumps({"cmd": "moveuser", "nick": message_args[0], "channel": message_args[1]}))
+                        if len(message_args) > 1:
+                            self.send(json.dumps({"cmd": "moveuser", "nick": message_args[0], "channel": message_args[1]}))
+                        
+                        else:
+                            self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
+                                                              termcolor.colored("CLIENT", self.args["client_color"]),
+                                                              termcolor.colored("User/Channel cannot be empty", self.args["client_color"])),
+                                                              bypass_lock=True)
 
                 case "/kick":
                     if self.args["is_mod"]:
@@ -517,7 +524,14 @@ class Client:
                 case "/forcecolor":
                     if self.args["is_mod"]:
                         message_args = parsed_message[2].split(" ")
-                        self.send(json.dumps({"cmd": "forcecolor", "nick": message_args[0], "color": message_args[1]}))
+                        if len(message_args) > 1:
+                            self.send(json.dumps({"cmd": "forcecolor", "nick": message_args[0], "color": message_args[1]}))
+
+                        else:
+                            self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
+                                                              termcolor.colored("CLIENT", self.args["client_color"]),
+                                                              termcolor.colored("User/Color cannot be empty", self.args["client_color"])),
+                                                              bypass_lock=True)
 
                 case "/anticmd":
                     if self.args["is_mod"]:
@@ -525,13 +539,14 @@ class Client:
 
                 case "/uwuify":
                     if self.args["is_mod"]:
-                        self.send(json.dumps({"cmd": "uwuify", "nick": parsed_message[2]}))
+                        [self.send(json.dumps({"cmd": "uwuify", "nick": user})) for user in parsed_message[2].split(" ")]
 
                 case "/help":
                     if parsed_message[2] == "":
-                        self.print_msg("""Any '\\n' will be converted into a linebreak.
+                        help_text = """Help:
+Any '\\n' will be converted into a linebreak.
 
-Client-specific commands:
+Client-based commands:
 /raw <json>
   Sends json directly to the server
   without parsing.
@@ -565,9 +580,32 @@ Client-specific commands:
   to the loaded configuration file.
   Will also save aliases.
 /quit
-  Exits the client.
+  Exits the client."""
+                        mod_help_text = """Client-based mod commands:
+/ban <nick> <nick2> <nick3>...
+/unban <hash> <hash2> <hash3>...
+/unbanall
+/dumb <nick> <nick2> <nick3>...
+/speak <nick> <nick2> <nick3>...
+/moveuser <nick> <channel>
+/kick <nick> <nick2> <nick3>...
+/kickasone <nick> <nick2> <nick3>...
+/overflow <nick> <nick2> <nick3>...
+/authtrip <trip> <trip2> <trip3>...
+/deauthtrip <trip> <trip2> <trip3>...
+/enablecaptcha
+/disablecaptcha
+/lockroom
+/unlockroom
+/forcecolor <nick> <color>
+/anticmd
+/uwuify <nick> <nick2> <nick3>..."""
+                        display = help_text + "\n\n" + mod_help_text if self.args["is_mod"] else help_text
+                        self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
+                                                          termcolor.colored("CLIENT", self.args["client_color"]),
+                                                          display),
+                                                          bypass_lock=True)
 
-Server-specific commands should be displayed below:""", bypass_lock=True)
                         self.send(json.dumps({"cmd": "help"}))
 
                     else:
