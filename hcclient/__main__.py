@@ -37,13 +37,7 @@ class Client:
         self.term_content_saved = False
         self.manage_term_contents()
 
-        self.ws = websocket.create_connection(self.args["websocket_address"])
-        self.ws.send(json.dumps({
-            "cmd": "join",
-            "channel": self.args["channel"],
-            "nick": "{}#{}".format(self.nick, self.args["trip_password"])
-        }))
-        self.reconnecting = False
+        self.initial_connection()
 
         self.input_lock = False
         self.prompt_session = prompt_toolkit.PromptSession(reserve_space_for_menu=3)
@@ -51,6 +45,25 @@ class Client:
         self.ping_event = threading.Event()
         self.thread_ping = threading.Thread(target=self.ping_thread, daemon=True)
         self.thread_recv = threading.Thread(target=self.recv_thread, daemon=True)
+
+    # first connection to the server, exit if failed
+    def initial_connection(self):
+        try:
+            self.ws = websocket.create_connection(self.args["websocket_address"])
+            self.ws.send(json.dumps({
+                "cmd": "join",
+                "channel": self.args["channel"],
+                "nick": "{}#{}".format(self.nick, self.args["trip_password"])
+            }))
+            self.reconnecting = False
+        
+        except:
+            self.input_lock = True
+            self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
+                                              termcolor.colored("CLIENT", self.args["client_color"]),
+                                              termcolor.colored("Error connecting to server: {}".format(sys.exc_info()[1]), self.args["client_color"])),
+                                              bypass_lock=True)
+            self.close()
 
     # manage terminal contents
     def manage_term_contents(self):
@@ -70,11 +83,21 @@ class Client:
             os.system("cls" if os.name=="nt" else "clear")
 
     # print a message to the terminal
-    def print_msg(self, message):
-        while self.input_lock:
+    def print_msg(self, message, bypass_lock=False):
+        while self.input_lock and not bypass_lock:
             time.sleep(0.01)
 
         print(message)
+    
+    def send(self, packet):
+        if self.ws.connected:
+            self.ws.send(packet)
+        
+        else:
+            self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
+                                              termcolor.colored("CLIENT", self.args["client_color"]),
+                                              termcolor.colored("Can't send packet, you're not connected. Run /reconnect", self.args["client_color"])),
+                                              bypass_lock=True)
 
     # ws.recv() loop that receives and parses packets
     def recv_thread(self):
@@ -190,14 +213,19 @@ class Client:
                     self.close()
 
                 else:
-                    self.print_msg("recv_thread() died fatally! Run /reconnect")
+                    self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
+                                                      termcolor.colored("CLIENT", self.args["client_color"]),
+                                                      termcolor.colored("Disconnected from server: {}".format(sys.exc_info()[1]), self.args["client_color"])))
+                    self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
+                                                      termcolor.colored("CLIENT", self.args["client_color"]),
+                                                      termcolor.colored("Try running /reconnect", self.args["client_color"])))
                     self.ping_event.set()
-                    self.close(error=sys.exc_info())
+                    self.close(thread=True)
 
     # ping thread acting as a heartbeat
     def ping_thread(self):
         while self.ws.connected and not self.ping_event.is_set():
-            self.ws.send(json.dumps({"cmd": "ping"}))
+            self.send(json.dumps({"cmd": "ping"}))
             self.ping_event.wait(60)
 
     # input loop that draws the prompt and handles input
@@ -227,6 +255,7 @@ class Client:
 
     # send input to the server and handle client commands
     def send_input(self, message):
+        self.input_lock = True
         print("\033[A{}\033[A".format(" " * shutil.get_terminal_size().columns))
 
         try:
@@ -246,26 +275,33 @@ class Client:
                 case "/raw":
                     try:
                         json_to_send = json.loads(parsed_message[2])
-                        self.ws.send(json.dumps(json_to_send))
+                        self.send(json.dumps(json_to_send))
 
                     except:
                         self.print_msg("{}|{}| Error sending json: {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
                                                                               termcolor.colored("CLIENT", self.args["client_color"]),
-                                                                              termcolor.colored("{}".format(sys.exc_info()[1]), self.args["client_color"])))
+                                                                              termcolor.colored("{}".format(sys.exc_info()[1]), self.args["client_color"])),
+                                                                              bypass_lock=True)
 
                 case "/list":
                     self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
                                                       termcolor.colored("CLIENT", self.args["client_color"]),
-                                                      termcolor.colored("Channel: {} - Users: {}".format(self.channel, ", ".join(self.online_users)), self.args["client_color"])))
+                                                      termcolor.colored("Channel: {} - Users: {}".format(self.channel, ", ".join(self.online_users)), self.args["client_color"])),
+                                                      bypass_lock=True)
 
                 case "/nick":
                     if re.match("^[A-Za-z0-9_]*$", parsed_message[2]) and len(parsed_message[2]) < 25:
-                        self.ws.send(json.dumps({"cmd": "changenick", "nick": parsed_message[2]}))
+                        if self.ws.connected:
+                            self.send(json.dumps({"cmd": "changenick", "nick": parsed_message[2]}))
+
                         self.nick = parsed_message[2]
+                        self.args["nickname"] = parsed_message[2]
 
                     else:
-                        # We send it anyway, the server will handle it and return a warning
-                        self.ws.send(json.dumps({"cmd": "changenick", "nick": parsed_message[2]}))
+                        self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
+                                                          termcolor.colored("CLIENT", self.args["client_color"]),
+                                                          termcolor.colored("Nickname should a maximum of 24 characters and consist of letters, numbers and underscores.", self.args["client_color"])),
+                                                          bypass_lock=True)
 
                 case "/clear":
                     if self.args["clear"]:
@@ -274,53 +310,64 @@ class Client:
                     else:
                         self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
                                                           termcolor.colored("CLIENT", self.args["client_color"]),
-                                                          termcolor.colored("Clearing is disabled, enable with the --clear flag or run `/configset clear true`", self.args["client_color"])))
+                                                          termcolor.colored("Clearing is disabled, enable with the --clear flag or run `/configset clear true`", self.args["client_color"])),
+                                                          bypass_lock=True)
 
                 case "/reconnect":
                     self.reconnecting = True
 
                     self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
                                                       termcolor.colored("CLIENT", self.args["client_color"]),
-                                                      termcolor.colored("Reconnecting...", self.args["client_color"])))
+                                                      termcolor.colored("Reconnecting...", self.args["client_color"])),
+                                                      bypass_lock=True)
 
                     self.ws.close()
                     self.ping_event.set()
                     self.thread_ping.join()
                     self.thread_recv.join()
 
-                    self.ws = websocket.create_connection(self.args["websocket_address"])
-                    self.ws.send(json.dumps({
-                        "cmd": "join",
-                        "channel": self.args["channel"],
-                        "nick": "{}#{}".format(self.nick, self.args["trip_password"])
-                    }))
+                    try:
+                        self.ws = websocket.create_connection(self.args["websocket_address"])
+                        self.ws.send(json.dumps({
+                            "cmd": "join",
+                            "channel": self.args["channel"],
+                            "nick": "{}#{}".format(self.nick, self.args["trip_password"])
+                        }))
+                        self.reconnecting = False
 
-                    self.ping_event.clear()
-                    self.thread_ping = threading.Thread(target=self.ping_thread, daemon=True)
-                    self.thread_recv = threading.Thread(target=self.recv_thread, daemon=True)
-                    self.thread_ping.start()
-                    self.thread_recv.start()
+                        self.ping_event.clear()
+                        self.thread_ping = threading.Thread(target=self.ping_thread, daemon=True)
+                        self.thread_recv = threading.Thread(target=self.recv_thread, daemon=True)
+                        self.thread_ping.start()
+                        self.thread_recv.start()
 
-                    self.reconnecting = False
+                    except:
+                        self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
+                                                          termcolor.colored("CLIENT", self.args["client_color"]),
+                                                          termcolor.colored("Reconnect failed: {}".format(sys.exc_info()[1]), self.args["client_color"])),
+                                                          bypass_lock=True)
 
                 case "/set":
                     message_args = parsed_message[2].split(" ")
                     self.args["aliases"][message_args[0]] = " ".join(message_args[1:])
                     self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
                                                       termcolor.colored("CLIENT", self.args["client_color"]),
-                                                      termcolor.colored("Set alias '{}' = '{}'".format(message_args[0], self.args["aliases"][message_args[0]]), self.args["client_color"])))
+                                                      termcolor.colored("Set alias '{}' = '{}'".format(message_args[0], self.args["aliases"][message_args[0]]), self.args["client_color"])),
+                                                      bypass_lock=True)
 
                 case "/unset":
                     try:
                         self.args["aliases"].pop(parsed_message[2])
                         self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
                                                           termcolor.colored("CLIENT", self.args["client_color"]),
-                                                          termcolor.colored("Unset alias '{}'".format(parsed_message[2]), self.args["client_color"])))
+                                                          termcolor.colored("Unset alias '{}'".format(parsed_message[2]), self.args["client_color"])),
+                                                          bypass_lock=True)
 
                     except KeyError:
                         self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
                                                           termcolor.colored("CLIENT", self.args["client_color"]),
-                                                          termcolor.colored("Alias '{}' isn't defined".format(parsed_message[2]), self.args["client_color"])))
+                                                          termcolor.colored("Alias '{}' isn't defined".format(parsed_message[2]), self.args["client_color"])),
+                                                          bypass_lock=True)
 
                 case "/configset":
                     message_args = parsed_message[2].lower().split(" ")
@@ -331,18 +378,21 @@ class Client:
                         self.args[message_args[0]] = None if self.args[message_args[0]] in ("none", "null", "default") else self.args[message_args[0]]
                         self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
                                                           termcolor.colored("CLIENT", self.args["client_color"]),
-                                                          termcolor.colored("Set configuration value '{}' to '{}'".format(message_args[0], self.args[message_args[0]]), self.args["client_color"])))
+                                                          termcolor.colored("Set configuration value '{}' to '{}'".format(message_args[0], self.args[message_args[0]]), self.args["client_color"])),
+                                                          bypass_lock=True)
 
                     else:
                         problem = "Invalid" if message_args[0] not in self.args else "Read-only"
                         self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
                                                           termcolor.colored("CLIENT", self.args["client_color"]),
-                                                          termcolor.colored("Error setting configuration: {} option '{}'".format(problem, message_args[0]), self.args["client_color"])))
+                                                          termcolor.colored("Error setting configuration: {} option '{}'".format(problem, message_args[0]), self.args["client_color"])),
+                                                          bypass_lock=True)
 
                 case "/configdump":
                     self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
                                                       termcolor.colored("CLIENT", self.args["client_color"]),
-                                                      termcolor.colored("Running config:\n" + "\n".join("{}: {}".format(option, value) for option, value in self.args.items()), self.args["client_color"])))
+                                                      termcolor.colored("Running config:\n" + "\n".join("{}: {}".format(option, value) for option, value in self.args.items()), self.args["client_color"])),
+                                                      bypass_lock=True)
 
                 case "/save":
                     if self.args["config_file"]:
@@ -355,94 +405,97 @@ class Client:
                                 json.dump(config, config_file, indent=2)
                                 self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
                                                                   termcolor.colored("CLIENT", self.args["client_color"]),
-                                                                  termcolor.colored("Configuration saved to {}".format(self.args["config_file"]), self.args["client_color"])))
+                                                                  termcolor.colored("Configuration saved to {}".format(self.args["config_file"]), self.args["client_color"])),
+                                                                  bypass_lock=True)
 
                         except:
                             self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
                                                               termcolor.colored("CLIENT", self.args["client_color"]),
-                                                              termcolor.colored("Error saving configuration: {}".format(sys.exc_info()[1]), self.args["client_color"])))
+                                                              termcolor.colored("Error saving configuration: {}".format(sys.exc_info()[1]), self.args["client_color"])),
+                                                              bypass_lock=True)
 
                     else:
                         self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
                                                           termcolor.colored("CLIENT", self.args["client_color"]),
-                                                          termcolor.colored("Unable to save configuration without a loaded config file, use --load-config", self.args["client_color"])))
+                                                          termcolor.colored("Unable to save configuration without a loaded config file, use --load-config", self.args["client_color"])),
+                                                          bypass_lock=True)
 
                 case "/quit":
                     self.close()
 
                 case "/ban":
                     if self.args["is_mod"]:
-                        [self.ws.send(json.dumps({"cmd": "ban", "nick": user})) for user in parsed_message[2].split(" ")]
+                        [self.send(json.dumps({"cmd": "ban", "nick": user})) for user in parsed_message[2].split(" ")]
 
                 case "/unban":
                     if self.args["is_mod"]:
-                        [self.ws.send(json.dumps({"cmd": "unban", "nick": user})) for user in parsed_message[2].split(" ")]
+                        [self.send(json.dumps({"cmd": "unban", "nick": user})) for user in parsed_message[2].split(" ")]
 
                 case "/unbanall":
                     if self.args["is_mod"]:
-                        self.ws.send(json.dumps({"cmd": "unbanall"}))
+                        self.send(json.dumps({"cmd": "unbanall"}))
 
                 case "/dumb":
                     if self.args["is_mod"]:
-                        [self.ws.send(json.dumps({"cmd": "dumb", "nick": user})) for user in parsed_message[2].split(" ")]
+                        [self.send(json.dumps({"cmd": "dumb", "nick": user})) for user in parsed_message[2].split(" ")]
 
                 case "/speak":
                     if self.args["is_mod"]:
-                        [self.ws.send(json.dumps({"cmd": "speak", "nick": user})) for user in parsed_message[2].split(" ")]
+                        [self.send(json.dumps({"cmd": "speak", "nick": user})) for user in parsed_message[2].split(" ")]
 
                 case "/moveuser":
                     if self.args["is_mod"]:
                         message_args = parsed_message[2].split(" ")
-                        self.ws.send(json.dumps({"cmd": "moveuser", "nick": message_args[0], "channel": message_args[1]}))
+                        self.send(json.dumps({"cmd": "moveuser", "nick": message_args[0], "channel": message_args[1]}))
 
                 case "/kick":
                     if self.args["is_mod"]:
-                        [self.ws.send(json.dumps({"cmd": "kick", "nick": user})) for user in parsed_message[2].split(" ")]
+                        [self.send(json.dumps({"cmd": "kick", "nick": user})) for user in parsed_message[2].split(" ")]
 
                 case "/kickasone":
                     if self.args["is_mod"]:
-                        self.ws.send(json.dumps({"cmd": "kick", "nick": parsed_message[2].split(" ")})) # supply a list so everyone gets banished to the same room
+                        self.send(json.dumps({"cmd": "kick", "nick": parsed_message[2].split(" ")})) # supply a list so everyone gets banished to the same room
 
                 case "/overflow":
                     if self.args["is_mod"]:
-                        [self.ws.send(json.dumps({"cmd": "overflow", "nick": user})) for user in parsed_message[2].split(" ")]
+                        [self.send(json.dumps({"cmd": "overflow", "nick": user})) for user in parsed_message[2].split(" ")]
 
                 case "/authtrip":
                     if self.args["is_mod"]:
-                        [self.ws.send(json.dumps({"cmd": "authtrip", "trip": trip})) for trip in parsed_message[2].split(" ")]
+                        [self.send(json.dumps({"cmd": "authtrip", "trip": trip})) for trip in parsed_message[2].split(" ")]
 
                 case "/deauthtrip":
                     if self.args["is_mod"]:
-                        [self.ws.send(json.dumps({"cmd": "deauthtrip", "trip": trip})) for trip in parsed_message[2].split(" ")]
+                        [self.send(json.dumps({"cmd": "deauthtrip", "trip": trip})) for trip in parsed_message[2].split(" ")]
 
                 case "/enablecaptcha":
                     if self.args["is_mod"]:
-                        self.ws.send(json.dumps({"cmd": "enablecaptcha"}))
+                        self.send(json.dumps({"cmd": "enablecaptcha"}))
 
                 case "/disablecaptcha":
                     if self.args["is_mod"]:
-                        self.ws.send(json.dumps({"cmd": "disablecaptcha"}))
+                        self.send(json.dumps({"cmd": "disablecaptcha"}))
 
                 case "/lockroom":
                     if self.args["is_mod"]:
-                        self.ws.send(json.dumps({"cmd": "lockroom"}))
+                        self.send(json.dumps({"cmd": "lockroom"}))
 
                 case "/unlockroom":
                     if self.args["is_mod"]:
-                        self.ws.send(json.dumps({"cmd": "unlockroom"}))
+                        self.send(json.dumps({"cmd": "unlockroom"}))
 
                 case "/forcecolor":
                     if self.args["is_mod"]:
                         message_args = parsed_message[2].split(" ")
-                        self.ws.send(json.dumps({"cmd": "forcecolor", "nick": message_args[0], "color": message_args[1]}))
+                        self.send(json.dumps({"cmd": "forcecolor", "nick": message_args[0], "color": message_args[1]}))
 
                 case "/anticmd":
                     if self.args["is_mod"]:
-                        self.ws.send(json.dumps({"cmd": "anticmd"}))
+                        self.send(json.dumps({"cmd": "anticmd"}))
 
                 case "/uwuify":
                     if self.args["is_mod"]:
-                        self.ws.send(json.dumps({"cmd": "uwuify", "nick": parsed_message[2]}))
+                        self.send(json.dumps({"cmd": "uwuify", "nick": parsed_message[2]}))
 
                 case "/help":
                     if parsed_message[2] == "":
@@ -482,14 +535,14 @@ Client-specific commands:
 /quit
   Exits the client.
 
-Server-specific commands should be displayed below:""")
-                        self.ws.send(json.dumps({"cmd": "help"}))
+Server-specific commands should be displayed below:""", bypass_lock=True)
+                        self.send(json.dumps({"cmd": "help"}))
 
                     else:
-                        self.ws.send(json.dumps({"cmd": "help", "command": parsed_message[2]}))
+                        self.send(json.dumps({"cmd": "help", "command": parsed_message[2]}))
 
                 case _:
-                    self.ws.send(json.dumps({"cmd": "chat", "text": message}))
+                    self.send(json.dumps({"cmd": "chat", "text": message}))
 
     # close the client or thread and print an error if there is one
     def close(self, error=False, thread=True): 
