@@ -246,7 +246,7 @@ class Client:
                         if received["text"] == "Nickname taken":
                             self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
                                                               termcolor.colored("CLIENT", self.args["client_color"]),
-                                                              termcolor.colored("Try Running /nick <newnick> and /reconnect", self.args["client_color"])))
+                                                              termcolor.colored("Try running /nick <newnick> and /reconnect", self.args["client_color"])))
 
             except:
                 if self.reconnecting:
