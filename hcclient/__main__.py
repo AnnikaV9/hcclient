@@ -34,6 +34,7 @@ class Client:
         self.online_users = []
         self.online_users_prepended = []
         self.online_users_details = {}
+        self.online_ignored_users = []
 
         self.term_content_saved = False
         self.manage_term_contents()
@@ -57,7 +58,7 @@ class Client:
                 "nick": "{}#{}".format(self.nick, self.args["trip_password"])
             }))
             self.reconnecting = False
-        
+
         except:
             self.input_lock = True
             self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
@@ -89,11 +90,11 @@ class Client:
             time.sleep(0.01)
 
         print(message)
-    
+
     def send(self, packet):
         if self.ws.connected:
             self.ws.send(packet)
-        
+
         else:
             self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
                                               termcolor.colored("CLIENT", self.args["client_color"]),
@@ -116,20 +117,32 @@ class Client:
                             if self.nick in self.online_users:
                                 self.online_users.remove(self.nick)
                             self.online_users.append(nick)
-                        
+
                         for user in self.online_users:
                             self.online_users_prepended.append("@{}".format(user))
-                        
+
                         for user_details in received["users"]:
                             self.online_users_details[user_details["nick"]] = {"Trip": user_details["trip"], "Type": user_details["uType"], "Hash": user_details["hash"]}
+
+                        for ignored in self.args["ignored_users"]:
+                            for user in self.online_users:
+                                if self.online_users_details[user]["Trip"] == ignored["trip"]:
+                                    self.online_ignored_users.append(user)
+                                    break
+                                if self.online_users_details[user]["Hash"] == ignored["hash"]:
+                                    self.online_ignored_users.append(user)
+                                    break
 
                         self.channel = received["users"][0]["channel"]
 
                         self.print_msg("{}|{}| {}".format(termcolor.colored(packet_receive_time, self.args["timestamp_color"]),
-                                                          termcolor.colored("SERVER", self.args["server_color"]),                
+                                                          termcolor.colored("SERVER", self.args["server_color"]),
                                                           termcolor.colored("Channel: {} - Users: {}".format(self.channel, ", ".join(self.online_users)), self.args["server_color"])))
 
                     case "chat":
+                        if received["nick"] in self.online_ignored_users:
+                            continue
+
                         if len(received.get("trip", "")) < 6:
                             tripcode = "NOTRIP"
 
@@ -160,6 +173,9 @@ class Client:
 
                     case "info":
                         if received.get("type") is not None and received.get("type") == "whisper":
+                            if received["from"] in self.online_ignored_users:
+                                continue
+
                             if len(received.get("trip", "")) < 6:
                                 tripcode = "NOTRIP"
 
@@ -185,6 +201,14 @@ class Client:
                         self.online_users_prepended.append("@{}".format(received["nick"]))
                         self.online_users_details[received["nick"]] = {"Trip": received["trip"], "Type": received["uType"], "Hash": received["hash"]}
 
+                        for ignored in self.args["ignored_users"]:
+                            if self.online_users_details[received["nick"]]["Trip"] == ignored["trip"]:
+                                self.online_ignored_users.append(received["nick"])
+                                break
+                            if self.online_users_details[received["nick"]]["Hash"] == ignored["hash"]:
+                                self.online_ignored_users.append(received["nick"])
+                                break
+
                         self.print_msg("{}|{}| {}".format(termcolor.colored(packet_receive_time, self.args["timestamp_color"]),
                                                           termcolor.colored("SERVER", self.args["server_color"]),
                                                           termcolor.colored(received["nick"] + " joined", self.args["server_color"])))
@@ -192,13 +216,19 @@ class Client:
                     case "onlineRemove":
                         self.online_users.remove(received["nick"])
                         self.online_users_prepended.remove("@{}".format(received["nick"]))
-                        self.online_users_details.remove(received["nick"])
+                        del self.online_users_details[received["nick"]]
+
+                        if received["nick"] in self.online_ignored_users:
+                            self.online_ignored_users.remove(received["nick"])
 
                         self.print_msg("{}|{}| {}".format(termcolor.colored(packet_receive_time, self.args["timestamp_color"]),
                                                           termcolor.colored("SERVER", self.args["server_color"]),
                                                           termcolor.colored(received["nick"] + " left", self.args["server_color"])))
 
                     case "emote":
+                        if received["nick"] in self.online_ignored_users:
+                            continue
+
                         if len(received.get("trip", "")) < 6:
                             tripcode = "NOTRIP"
 
@@ -301,11 +331,14 @@ class Client:
 
                 case "/profile":
                     if parsed_message[2] in self.online_users:
+                        ignored = "Yes" if parsed_message[2] in self.online_ignored_users else "No"
+                        profile = "{}'s profile:\n".format(parsed_message[2]) + "\n".join("{}: {}".format(option, value) for option, value in self.online_users_details[parsed_message[2]].items()) + "\nIgnored: {}".format(ignored)
+
                         self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
                                                           termcolor.colored("CLIENT", self.args["client_color"]),
-                                                          termcolor.colored("{}'s profile:\n".format(parsed_message[2]) + "\n".join("{}: {}".format(option, value) for option, value in self.online_users_details[parsed_message[2]].items()), self.args["client_color"])),
+                                                          termcolor.colored(profile, self.args["client_color"])),
                                                           bypass_lock=True)
-                    
+
                     else:
                         self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
                                                           termcolor.colored("CLIENT", self.args["client_color"]),
@@ -335,6 +368,30 @@ class Client:
                                                           termcolor.colored("CLIENT", self.args["client_color"]),
                                                           termcolor.colored("Clearing is disabled, enable with the --clear flag or run `/configset clear true`", self.args["client_color"])),
                                                           bypass_lock=True)
+
+                case "/ignore":
+                    if parsed_message[2] in self.online_users:
+                        self.online_ignored_users.append(parsed_message[2])
+                        trip_to_ignore = self.online_users_details[parsed_message[2]]["Trip"] if self.online_users_details[parsed_message[2]]["Trip"] != "" else None
+                        self.args["ignored_users"].append({"trip": trip_to_ignore, "hash": self.online_users_details[parsed_message[2]]["Hash"]})
+                        self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
+                                                          termcolor.colored("CLIENT", self.args["client_color"]),
+                                                          termcolor.colored("Ignoring trip '{}' and hash '{}', run /save to persist".format(trip_to_ignore, self.online_users_details[parsed_message[2]]["Hash"]), self.args["client_color"])),
+                                                          bypass_lock=True)
+
+                    else:
+                        self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
+                                                          termcolor.colored("CLIENT", self.args["client_color"]),
+                                                          termcolor.colored("No such user: '{}'".format(parsed_message[2]), self.args["client_color"])),
+                                                          bypass_lock=True)
+
+                case "/unignoreall":
+                    self.online_ignored_users = []
+                    self.args["ignored_users"] = []
+                    self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
+                                                      termcolor.colored("CLIENT", self.args["client_color"]),
+                                                      termcolor.colored("Unignored all trips/hashes, run /save to persist", self.args["client_color"])),
+                                                      bypass_lock=True)
 
                 case "/reconnect":
                     self.reconnecting = True
@@ -401,7 +458,7 @@ class Client:
 
                 case "/configset":
                     message_args = parsed_message[2].lower().split(" ")
-                    if message_args[0] in self.args and message_args[0] not in ("config_file", "channel", "nickname", "aliases"):
+                    if message_args[0] in self.args and message_args[0] not in ("config_file", "channel", "nickname", "aliases", "ignored_users"):
                         self.args[message_args[0]] = " ".join(message_args[1:])
                         self.args[message_args[0]] = False if self.args[message_args[0]] == "false" else self.args[message_args[0]]
                         self.args[message_args[0]] = True if self.args[message_args[0]] == "true" else self.args[message_args[0]]
@@ -478,7 +535,7 @@ class Client:
                         message_args = parsed_message[2].split(" ")
                         if len(message_args) > 1:
                             self.send(json.dumps({"cmd": "moveuser", "nick": message_args[0], "channel": message_args[1]}))
-                        
+
                         else:
                             self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
                                                               termcolor.colored("CLIENT", self.args["client_color"]),
@@ -558,6 +615,11 @@ Client-based commands:
   Clears the terminal.
 /nick <newnick>
   Changes your nickname.
+/ignore <nick>
+  Adds a user's trip and hash to
+  the ignore list.
+/unignoreall
+  Clears the ignore list.
 /reconnect
   Disconnects forcefully and
   reconnects to the server.
@@ -578,7 +640,8 @@ Client-based commands:
 /save
   Saves the current configuration
   to the loaded configuration file.
-  Will also save aliases.
+  Will save aliases and ignored
+  trips/hashes.
 /quit
   Exits the client."""
                         mod_help_text = """Client-based mod commands:
@@ -615,7 +678,7 @@ Client-based commands:
                     self.send(json.dumps({"cmd": "chat", "text": message}))
 
     # close the client or thread and print an error if there is one
-    def close(self, error=False, thread=True): 
+    def close(self, error=False, thread=True):
         if not thread:
             colorama.deinit()
 
@@ -657,7 +720,8 @@ def load_config(filepath):
                        "prompt_string", "message_color", "whisper_color",
                        "emote_color", "nickname_color", "warning_color",
                        "server_color", "client_color", "timestamp_color",
-                       "mod_nickname_color", "admin_nickname_color", "aliases"):
+                       "mod_nickname_color", "admin_nickname_color",
+                       "ignored_users", "aliases"):
                 if key not in config:
                     missing_args.append(key)
 
@@ -674,6 +738,7 @@ def load_config(filepath):
 def initialize_config(args):
     if args.gen_config:
         args.aliases = {}
+        args.ignored_users = []
         generate_config(args)
         sys.exit(0)
 
@@ -694,10 +759,11 @@ def initialize_config(args):
             config["nickname"] = args.nickname
             config["channel"] = args.channel
             config["config_file"] = def_config_file
-        
+
         else:
             config = vars(args)
             config["aliases"] = {}
+            config["ignored_users"] = []
             config.pop("gen_config")
             config.pop("no_config")
 
