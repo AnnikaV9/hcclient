@@ -207,6 +207,10 @@ class Client:
                         self.print_msg("{}|{}| {}".format(termcolor.colored(packet_receive_time, self.args["timestamp_color"]),
                                                           termcolor.colored("!WARN!", self.args["warning_color"]),
                                                           termcolor.colored(received["text"], self.args["warning_color"])))
+                        if received["text"] == "Nickname taken":
+                            self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
+                                                              termcolor.colored("CLIENT", self.args["client_color"]),
+                                                              termcolor.colored("Try Running /nick <newnick> and /reconnect", self.args["client_color"])))
 
             except:
                 if self.reconnecting:
