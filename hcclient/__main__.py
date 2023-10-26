@@ -39,35 +39,33 @@ class Client:
         self.term_content_saved = False
         self.manage_term_contents()
 
-        self.initial_connection()
+        self.ws = websocket.WebSocket()
+        self.reconnecting = False
 
         self.input_lock = False
         #self.auto_whisper_protect = False
         self.whisper_lock = False
-        self.prompt_session = prompt_toolkit.PromptSession(reserve_space_for_menu=3)
+        self.prompt_session = prompt_toolkit.PromptSession(reserve_space_for_menu=4)
 
         self.ping_event = threading.Event()
         self.thread_ping = threading.Thread(target=self.ping_thread, daemon=True)
         self.thread_recv = threading.Thread(target=self.recv_thread, daemon=True)
 
-    # first connection to the server, exit if failed
-    def initial_connection(self):
-        try:
-            self.ws = websocket.create_connection(self.args["websocket_address"])
-            self.ws.send(json.dumps({
-                "cmd": "join",
-                "channel": self.args["channel"],
-                "nick": "{}#{}".format(self.nick, self.args["trip_password"])
-            }))
-            self.reconnecting = False
-
-        except:
-            self.input_lock = True
+    # connect to the websocket server and join the channel
+    def connect_to_server(self):
+        if not self.reconnecting:
             self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
                                               termcolor.colored("CLIENT", self.args["client_color"]),
-                                              termcolor.colored("Error connecting to server: {}".format(sys.exc_info()[1]), self.args["client_color"])),
+                                              termcolor.colored("Connecting to {} ...".format(self.args["websocket_address"]), self.args["client_color"])),
                                               bypass_lock=True)
-            self.close()
+
+        self.ws.connect(self.args["websocket_address"])
+        self.ws.send(json.dumps({
+            "cmd": "join",
+            "channel": self.args["channel"],
+            "nick": "{}#{}".format(self.nick, self.args["trip_password"])
+        }))
+        self.reconnecting = False
 
     # manage terminal contents
     def manage_term_contents(self):
@@ -105,8 +103,11 @@ class Client:
 
     # ws.recv() loop that receives and parses packets
     def recv_thread(self):
-        while self.ws.connected:
-            try:
+        try:
+            if not self.ws.connected:
+                self.connect_to_server()
+
+            while self.ws.connected:
                 received = json.loads(self.ws.recv())
                 packet_receive_time = datetime.datetime.now().strftime("%H:%M")
 
@@ -248,19 +249,19 @@ class Client:
                                                               termcolor.colored("CLIENT", self.args["client_color"]),
                                                               termcolor.colored("Try running /nick <newnick> and /reconnect", self.args["client_color"])))
 
-            except:
-                if self.reconnecting:
-                    self.close()
+        except:
+            if self.reconnecting:
+                self.close(thread=True)
 
-                else:
-                    self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
-                                                      termcolor.colored("CLIENT", self.args["client_color"]),
-                                                      termcolor.colored("Disconnected from server: {}".format(sys.exc_info()[1]), self.args["client_color"])))
-                    self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
-                                                      termcolor.colored("CLIENT", self.args["client_color"]),
-                                                      termcolor.colored("Try running /reconnect", self.args["client_color"])))
-                    self.ping_event.set()
-                    self.close(thread=True)
+            else:
+                self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
+                                                  termcolor.colored("CLIENT", self.args["client_color"]),
+                                                  termcolor.colored("Disconnected from server: {}".format(sys.exc_info()[1]), self.args["client_color"])))
+                self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
+                                                  termcolor.colored("CLIENT", self.args["client_color"]),
+                                                  termcolor.colored("Try running /reconnect", self.args["client_color"])))
+                self.ping_event.set()
+                self.close(thread=True)
 
     # ping thread acting as a heartbeat
     def ping_thread(self):
@@ -422,13 +423,7 @@ class Client:
                     self.thread_recv.join()
 
                     try:
-                        self.ws = websocket.create_connection(self.args["websocket_address"])
-                        self.ws.send(json.dumps({
-                            "cmd": "join",
-                            "channel": self.args["channel"],
-                            "nick": "{}#{}".format(self.nick, self.args["trip_password"])
-                        }))
-                        self.reconnecting = False
+                        self.connect_to_server()
 
                         self.ping_event.clear()
                         self.thread_ping = threading.Thread(target=self.ping_thread, daemon=True)
