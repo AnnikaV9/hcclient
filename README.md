@@ -193,7 +193,8 @@ hcclient searches for *config.json* in the following directories by default:
 
 Things to note:
 - The configuration file does not affect `channel` and `nickname`, which have to be specified as flags every time.
-- Command-line arguments **do not** overwrite the configuration file's options. If a configuration file is loaded, all flags except for `--channel` and `--nickname` are discarded.
+- Command-line arguments **do not** overwrite the configuration file's options. If a configuration file is loaded, all flags except for `--channel` and `--nickname` are discarded. Run with `--no-config` if you want to override the default configuration file.
+
 <br />
 
 You can also configure hcclient while it's running, without having to restart it. For example:
