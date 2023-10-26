@@ -4,6 +4,14 @@
 
 VERSION="1.8.1-git"
 
+prepare() {
+   if [[ "$RELEASE_VERSION" ]]
+   then
+     VERSION=${VERSION%-git}
+     sed -i 's/-git//g' hcclient/__main__.py
+   fi
+}
+
 executable() {
    for cmd in ldd objdump objcopy python3
    do
@@ -72,9 +80,9 @@ container() {
 }
 
 case "$1" in
-   executable) mkdir dist && executable ;;
-   wheel) mkdir dist && wheel ;;
-   container) mkdir dist && container ;;
-   all) mkdir dist && executable && wheel && container ;;
+   executable) mkdir dist && prepare && executable ;;
+   wheel) mkdir dist && prepare && wheel ;;
+   container) mkdir dist && prepare && container ;;
+   all) mkdir dist && prepare && executable && wheel && container ;;
    *) echo "valid commands: executable, wheel, container, all"; exit 1  ;;
 esac
