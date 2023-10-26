@@ -78,7 +78,7 @@ class Client:
 
             else:
                 try:
-                    print("Warning!\nThe 'tput' command was not found in your path.\nThis means that the terminal's contents will not be saved.\nExit and re-run without --clear as a workaround.\nPress enter to continue and clear the terminal anyway.")
+                    print("Warning! The 'tput' command was not found in your path.\nThis means that the terminal's contents will not be saved.\nExit and re-run without --clear as a workaround.\nPress enter to continue and clear the terminal anyway.")
                     input()
 
                 except (KeyboardInterrupt, EOFError):
@@ -100,7 +100,7 @@ class Client:
         else:
             self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
                                               termcolor.colored("CLIENT", self.args["client_color"]),
-                                              termcolor.colored("Can't send packet, you're not connected. Run /reconnect", self.args["client_color"])),
+                                              termcolor.colored("Can't send packet, not connected to server. Run /reconnect", self.args["client_color"])),
                                               bypass_lock=True)
 
     # ws.recv() loop that receives and parses packets
@@ -242,6 +242,7 @@ class Client:
                         self.print_msg("{}|{}| {}".format(termcolor.colored(packet_receive_time, self.args["timestamp_color"]),
                                                           termcolor.colored("!WARN!", self.args["warning_color"]),
                                                           termcolor.colored(received["text"], self.args["warning_color"])))
+
                         if received["text"] == "Nickname taken":
                             self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
                                                               termcolor.colored("CLIENT", self.args["client_color"]),
@@ -492,7 +493,7 @@ class Client:
                 case "/configdump":
                     self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
                                                       termcolor.colored("CLIENT", self.args["client_color"]),
-                                                      termcolor.colored("Running config:\n" + "\n".join("{}: {}".format(option, value) for option, value in self.args.items()), self.args["client_color"])),
+                                                      termcolor.colored("Active configuration:\n" + "\n".join("{}: {}".format(option, value) for option, value in self.args.items()), self.args["client_color"])),
                                                       bypass_lock=True)
 
                 case "/save":
@@ -662,7 +663,7 @@ Client-based commands:
   trips/hashes.
 /quit
   Exits the client."""
-                        mod_help_text = """Client-based mod commands:
+                        mod_help_text = """\n\nClient-based mod commands:
 /ban <nick> <nick2> <nick3>...
 /unban <hash> <hash2> <hash3>...
 /unbanall
@@ -681,7 +682,8 @@ Client-based commands:
 /forcecolor <nick> <color>
 /anticmd
 /uwuify <nick> <nick2> <nick3>..."""
-                        display = help_text + "\n\n" + mod_help_text if self.args["is_mod"] else help_text
+                        server_help_text = "\n\nServer-based commands should be displayed below:"
+                        display = help_text + mod_help_text + server_help_text if self.args["is_mod"] else help_text + server_help_text
                         self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
                                                           termcolor.colored("CLIENT", self.args["client_color"]),
                                                           display),
@@ -742,7 +744,7 @@ def generate_config(config):
             print("Configuration written to config.json")
 
     except:
-        sys.exit("Error generating configuration!\n{}".format(sys.exc_info()[1]))
+        sys.exit("Error generating configuration! {}".format(sys.exc_info()[1]))
 
 
 # load a config file from the specified path
@@ -768,7 +770,7 @@ def load_config(filepath):
             return config
 
     except:
-        sys.exit("Error loading configuration!\n{}".format(sys.exc_info()[1]))
+        sys.exit("Error loading configuration! {}".format(sys.exc_info()[1]))
 
 
 # initialize the configuration options

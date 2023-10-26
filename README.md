@@ -25,21 +25,22 @@ A terminal client for connecting to <a href="https://hack.chat">hack.chat</a>
 ## Introduction <a name="introduction"></a>
 *"hack.chat is a minimal, distraction-free, accountless, logless, disappearing chat service which is easily deployable as your own service."* - [hack.chat](https://github.com/hack-chat/main)
 
-hcclient is a configurable terminal client for connecting to [hack.chat](https://hack.chat).
+hcclient is a cross-platform terminal client for connecting to [hack.chat](https://hack.chat).
 
 **Note:** &nbsp;As this client is written to be compatible with the official live instance running at https://hack.chat, compatibility with your own self-hosted instance or other alternate instances is not guaranteed.
 
 <br />
 
 ## Features <a name="features"></a>
-- **Cross-platform:** &nbsp;No platform specific modules used, should work fine on most systems.
 - **Color theming:** &nbsp;Configured with command line flags, colors provided by termcolor.
-- **Send/Receive raw packets:** &nbsp;Send json packets without parsing with `/raw`, display received packets as json with `--no-parse`.
 - **Suggestions:** &nbsp;Starting your message with `@` will bring up a menu with a list of online users. Cycle through them with arrow keys or continue typing to filter the suggestions even more. Outside of the menu, arrow keys cycle through message history.
 - **Patched stdout:** &nbsp;Type long messages as slow as you want, received messages won't overwrite your progress.
 - **Config generation:** &nbsp;Generate and load json configuration files with no editing required. Change configuration options from within the client with commands, modifying behaviour and colors without having to restart it.
 - **Desktop notifications:** &nbsp;Receive notifications whenever someone mentions you or sends you a whisper. (Not supported in container mode)
 - **Aliases:** &nbsp;Set aliases for messages and phrases you send often, because why wouldn't you?
+- **Whisper locking:** &nbsp;Lock the client with a command to send only whispers, preventing accidental information leaks.
+- **Ignore list:** &nbsp;Message blocking using tripcodes and connection hashes.
+- **Send/Receive raw packets:** &nbsp;Send json packets without parsing with `/raw`, display received packets as json with `--no-parse`.
 - **Moderator mode:** &nbsp;Enabled with `--is-mod`, gives you a bunch of `/` commands for moderator actions. Moderator commands are not documented in `/help`, check the source code for the list of available ones and their parameters.
 
 <br />
@@ -96,16 +97,19 @@ docker/podman run --rm -it hcclient --help
 ```
 $ hcclient --help
 
-usage:  [-h] -c CHANNEL -n NICKNAME [-l CONFIG_FILE] [-t TRIP_PASSWORD]
-        [-w WEBSOCKET_ADDRESS] [--no-parse] [--clear] [--is-mod] [--no-unicode]
-        [--no-notify] [--prompt-string PROMPT_STRING] [--message-color MESSAGE_COLOR]
-        [--whisper-color WHISPER_COLOR] [--emote-color EMOTE_COLOR]
-        [--nickname-color NICKNAME_COLOR] [--warning-color WARNING_COLOR]
-        [--server-color SERVER_COLOR] [--client-color CLIENT_COLOR]
-        [--timestamp-color TIMESTAMP_COLOR] [--mod-nickname-color MOD_NICKNAME_COLOR]
-        [--admin-nickname-color ADMIN_NICKNAME_COLOR] [--gen-config] [--version]
+usage: hcclient [-h] -c CHANNEL -n NICKNAME [-t TRIP_PASSWORD]
+                [-w WEBSOCKET_ADDRESS] [-l CONFIG_FILE] [--no-config] [--gen-config]
+                [--no-parse] [--clear] [--is-mod] [--no-unicode] [--no-notify]
+                [--prompt-string PROMPT_STRING] [--message-color MESSAGE_COLOR]
+                [--whisper-color WHISPER_COLOR] [--emote-color EMOTE_COLOR]
+                [--nickname-color NICKNAME_COLOR] [--warning-color WARNING_COLOR]
+                [--server-color SERVER_COLOR] [--client-color CLIENT_COLOR]
+                [--timestamp-color TIMESTAMP_COLOR]
+                [--mod-nickname-color MOD_NICKNAME_COLOR]
+                [--admin-nickname-color ADMIN_NICKNAME_COLOR] [--version]
 
-Terminal client for connecting to hack.chat servers. Colors are provided by termcolor.
+Terminal client for connecting to hack.chat servers. Colors are provided by
+termcolor.
 
 options:
   -h, --help            show this help message and exit
@@ -117,20 +121,24 @@ required arguments:
                         specify the nickname to use
 
 optional arguments:
-  -l CONFIG_FILE, --load-config CONFIG_FILE
-                        specify a config file to load
   -t TRIP_PASSWORD, --trip-password TRIP_PASSWORD
                         specify a tripcode password to use when joining
   -w WEBSOCKET_ADDRESS, --websocket-address WEBSOCKET_ADDRESS
                         specify the websocket address to connect to (default:
                         wss://hack-chat/chat-ws)
+  -l CONFIG_FILE, --load-config CONFIG_FILE
+                        specify a config file to load
+  --no-config           disables loading of the default config file
+  --gen-config          generates a config file with provided arguments
   --no-parse            log received packets without parsing
   --clear               enables clearing of the terminal
   --is-mod              enables moderator commands
-  --no-unicode          disables moderator/admin icon and unicode characters in the UI
+  --no-unicode          disables moderator/admin icon and unicode characters
+                        in the UI
   --no-notify           disables desktop notifications
   --prompt-string PROMPT_STRING
-                        sets the prompt string (default: '❯ ' or '> ' if --no-unicode)
+                        sets the prompt string (default: '❯ ' or '> ' if
+                        --no-unicode)
   --message-color MESSAGE_COLOR
                         sets the message color (default: white)
   --whisper-color WHISPER_COLOR
@@ -151,7 +159,6 @@ optional arguments:
                         sets the moderator nickname color (default: cyan)
   --admin-nickname-color ADMIN_NICKNAME_COLOR
                         sets the admin nickname color (default: red)
-  --gen-config          generates a config file with provided arguments
   --version             displays the version and exits
 ```
 
