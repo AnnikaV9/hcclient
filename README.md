@@ -41,7 +41,7 @@ hcclient is a cross-platform terminal client for connecting to [hack.chat](https
 - **Whisper locking:** &nbsp;Lock the client with a command to send only whispers, preventing accidental information leaks.
 - **Ignore list:** &nbsp;Message blocking using tripcodes and connection hashes.
 - **Send/Receive raw packets:** &nbsp;Send json packets without parsing with `/raw`, display received packets as json with `--no-parse`.
-- **Moderator mode:** &nbsp;Enabled with `--is-mod`, gives you a bunch of `/` commands for moderator actions. Moderator commands are not documented in `/help`, check the source code for the list of available ones and their parameters.
+- **Moderator mode:** &nbsp;Enabled with `--is-mod`, gives you a bunch of `/` commands for moderator actions.
 
 <br />
 
@@ -66,10 +66,10 @@ hcclient --help
 On x86_64 linux:
 ```
 # Download the latest binary
-wget -O hcclient https://github.com/AnnikaV9/hcclient/releases/download/v1.8.0/hcclient-1.8.0-linux-x86-64
+wget -O hcclient https://github.com/AnnikaV9/hcclient/releases/download/v1.8.1/hcclient-1.8.1-linux-x86-64
 
 # Or the statically linked binary if the above one doesn't work
-wget -O hcclient https://github.com/AnnikaV9/hcclient/releases/download/v1.8.0/hcclient-1.8.0-linux-x86-64-static
+wget -O hcclient https://github.com/AnnikaV9/hcclient/releases/download/v1.8.1/hcclient-1.8.1-linux-x86-64-static
 
 # Make the binary executable
 chmod +x hcclient
@@ -83,10 +83,10 @@ hcclient --help
 As a container:
 ```
 # Download the latest image
-wget https://github.com/AnnikaV9/hcclient/releases/download/v1.8.0/hcclient-1.8.0-image.tar.xz
+wget https://github.com/AnnikaV9/hcclient/releases/download/v1.8.1/hcclient-1.8.1-image.tar.xz
 
 # Install the image
-docker/podman load -i hcclient-1.8.0-image.tar.xz
+docker/podman load -i hcclient-1.8.1-image.tar.xz
 
 # Run hcclient
 docker/podman run --rm -it hcclient --help

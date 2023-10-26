@@ -2,7 +2,7 @@
 #
 # Requires ldd and binutils
 
-VERSION="1.8.0-git"
+VERSION="1.8.1-git"
 
 executable() {
    for cmd in ldd objdump objcopy python3
