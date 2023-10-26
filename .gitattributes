@@ -1,7 +1,12 @@
 
-*                text=auto
-*.sh             text eol=lf
+*.sh             text eol=lf diff=bash
 *.py             text diff=python
+*.toml           text
+*.txt            text
+*.yml            text
 *.gitattributes  text
 *.gitignore      text
 *.md             text diff=markdown
+*.dockerignore   text
+Dockerfile       text
+LICENSE          text
