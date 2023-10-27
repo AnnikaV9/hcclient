@@ -117,8 +117,6 @@ class Client:
                 match received["cmd"]:
                     case "onlineSet":
                         for nick in received["nicks"]:
-                            if self.nick in self.online_users:
-                                self.online_users.remove(self.nick)
                             self.online_users.append(nick)
                             self.online_users_prepended.append("@{}".format(nick))
 
@@ -250,6 +248,11 @@ class Client:
                                                               termcolor.colored("Try running /nick <newnick> and /reconnect", self.args["client_color"])))
 
         except:
+            self.online_users = []
+            self.online_users_details = {}
+            self.online_ignored_users = []
+            self.online_users_prepended = []
+
             if self.reconnecting:
                 self.close(thread=True)
 
