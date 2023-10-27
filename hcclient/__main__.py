@@ -32,9 +32,28 @@ class Client:
         self.args = args
         self.nick = self.args["nickname"]
         self.online_users = []
-        self.online_users_prepended = []
         self.online_users_details = {}
         self.online_ignored_users = []
+
+        self.client_command_list = [
+            "/raw", "/list", "/profile", "/nick", "/clear",
+            "/whisperlock", "/ignore", "/unignoreall", "/reconnect",
+            "/set", "/unset", "/configset", "/configdump", "/save", "/quit"
+        ]
+        self.server_command_list = [
+            "/whisper", "/reply", "/me", "/stats",
+        ]
+        self.mod_command_list = [
+            "/ban", "/unban", "/unbanall", "/dumb", "/speak", "/moveuser",
+            "/kick", "/kickasone", "/overflow", "/authtrip", "/deauthtrip",
+            "/enablecaptcha", "/disablecaptcha", "/lockroom", "/unlockroom"
+        ]
+
+        self.auto_complete_list = []
+        self.auto_complete_list.extend(self.client_command_list)
+        self.auto_complete_list.extend(self.server_command_list)
+        if self.args["is_mod"]:
+            self.auto_complete_list.extend(self.mod_command_list)
 
         self.term_content_saved = False
         self.manage_term_contents()
@@ -76,8 +95,7 @@ class Client:
 
             else:
                 try:
-                    print("Warning! The 'tput' command was not found in your path.\nThis means that the terminal's contents will not be saved.\nExit and re-run without --clear as a workaround.\nPress enter to continue and clear the terminal anyway.")
-                    input()
+                    input("Warning! The 'tput' command was not found in your path.\nThis means that the terminal's contents will not be saved.\nExit and re-run without --clear as a workaround.\nPress enter to continue and clear the terminal anyway.")
 
                 except (KeyboardInterrupt, EOFError):
                     sys.exit(0)
@@ -118,7 +136,7 @@ class Client:
                     case "onlineSet":
                         for nick in received["nicks"]:
                             self.online_users.append(nick)
-                            self.online_users_prepended.append("@{}".format(nick))
+                            self.auto_complete_list.append("@{}".format(nick))
 
                         for user_details in received["users"]:
                             self.online_users_details[user_details["nick"]] = {"Trip": user_details["trip"], "Type": user_details["uType"], "Hash": user_details["hash"]}
@@ -198,7 +216,7 @@ class Client:
 
                     case "onlineAdd":
                         self.online_users.append(received["nick"])
-                        self.online_users_prepended.append("@{}".format(received["nick"]))
+                        self.auto_complete_list.append("@{}".format(received["nick"]))
                         self.online_users_details[received["nick"]] = {"Trip": received["trip"], "Type": received["uType"], "Hash": received["hash"]}
 
                         if self.online_users_details[received["nick"]]["Trip"] in self.args["ignored"]["trips"]:
@@ -213,7 +231,7 @@ class Client:
 
                     case "onlineRemove":
                         self.online_users.remove(received["nick"])
-                        self.online_users_prepended.remove("@{}".format(received["nick"]))
+                        self.auto_complete_list.remove("@{}".format(received["nick"]))
                         del self.online_users_details[received["nick"]]
 
                         if received["nick"] in self.online_ignored_users:
@@ -251,7 +269,12 @@ class Client:
             self.online_users = []
             self.online_users_details = {}
             self.online_ignored_users = []
-            self.online_users_prepended = []
+
+            self.auto_complete_list.clear()
+            self.auto_complete_list.extend(self.client_command_list)
+            self.auto_complete_list.extend(self.server_command_list)
+            if self.args["is_mod"]:
+                self.auto_complete_list.extend(self.mod_command_list)
 
             if self.reconnecting:
                 self.close(thread=True)
@@ -284,7 +307,7 @@ class Client:
                 else:
                     prompt_string = "> " if self.args["no_unicode"] else "❯ "
 
-                nick_completer = prompt_toolkit.completion.WordCompleter(self.online_users_prepended, match_middle=True, ignore_case=True, sentence=True)
+                nick_completer = prompt_toolkit.completion.WordCompleter(self.auto_complete_list, match_middle=True, ignore_case=True, sentence=True)
 
                 self.input_lock = False
 
