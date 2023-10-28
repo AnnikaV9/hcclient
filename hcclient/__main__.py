@@ -56,6 +56,8 @@ class Client:
         self.term_content_saved = False
         self.manage_term_contents()
 
+        self.def_config_dir = os.path.join(os.getenv("APPDATA"), "hcclient") if os.name == "nt" else os.path.join(os.getenv("HOME"), ".config", "hcclient")
+
         self.ws = websocket.WebSocket(sslopt={"cert_reqs": ssl.CERT_NONE})
         self.reconnecting = False
 
@@ -197,7 +199,10 @@ class Client:
                             notification = notifypy.Notify()
                             notification.title = "hcclient"
                             notification.message = "[{}] {}".format(received["nick"], received["text"])
-                            notification.send()
+                            if os.path.isfile(os.path.join(self.def_config_dir, "tone.wav")):
+                                notification.audio = os.path.join(self.def_config_dir, "tone.wav")
+
+                            notification.send(block=False)
 
                         self.print_msg("{}|{}| [{}] {}".format(termcolor.colored(packet_receive_time, self.args["timestamp_color"]),
                                                                termcolor.colored(tripcode, color_to_use),
@@ -219,7 +224,10 @@ class Client:
                                 notification = notifypy.Notify()
                                 notification.title = "hcclient"
                                 notification.message = "{}".format(received["text"])
-                                notification.send()
+                                if os.path.isfile(os.path.join(self.def_config_dir, "tone.wav")):
+                                    notification.audio = os.path.join(self.def_config_dir, "tone.wav")
+
+                                notification.send(block=False)
 
                             self.print_msg("{}|{}| {}".format(termcolor.colored(packet_receive_time, self.args["timestamp_color"]),
                                                               termcolor.colored(tripcode, self.args["whisper_color"]),
