@@ -204,19 +204,24 @@ white
 A configuration file can be generated with the provided arguments using `--gen-config` and loaded using `--load-config`. For example:
 
 ```
-hcclient -t mypassword --no-notify --timestamp-color red --gen-config
+hcclient --gen-config
 ```
-The above command will create *config.json* in the working directory, which can then be loaded with:
+The above command will create *config.json* with default options in the working directory, which can then be loaded with:
 ```
 hcclient -c mychannel -n mynick --load-config <path_to_config.json>
 ```
+Override defaults when generating the configuration file by specifying options:
+```
+hcclient --nickname_color dark_grey --no-notify --socks-proxy 127.0.0.1:9050 --gen-config
+```
+
 hcclient searches for *config.json* in the following directories by default:
 - **Windows:** &nbsp;%APPDATA%/hcclient
 - **Other platforms:** &nbsp;$HOME/.config/hcclient
 
 Things to note:
 - The configuration file does not affect `channel` and `nickname`, which have to be specified as flags every time.
-- Command-line arguments **do not** overwrite the configuration file's options. If a configuration file is loaded, all flags except for `--channel` and `--nickname` are discarded. Run with `--no-config` if you want to override the default configuration file.
+- Command-line arguments **do not** override the configuration file's options. If a configuration file is loaded, all flags except for `--channel` and `--nickname` are discarded. Run with `--no-config` if you want to override the default configuration file.
 
 <br />
 
