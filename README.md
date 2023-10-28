@@ -41,6 +41,7 @@ hcclient is a cross-platform terminal client for connecting to [hack.chat](https
 - **Whisper lock:** &nbsp;Lock the client with a command to send only whispers, preventing accidental information leaks.
 - **Ignore list:** &nbsp;Message blocking using tripcodes and connection hashes.
 - **Send/Receive raw packets:** &nbsp;Send json packets without parsing with `/raw`, display received packets as json with `--no-parse`.
+- **Proxy support:** &nbsp;Connect through SOCKS5 proxies, tested to work with tor.
 - **Moderator mode:** &nbsp;Enabled with `--is-mod`, gives you a bunch of `/` commands for moderator actions.
 
 <br />
@@ -66,10 +67,10 @@ hcclient --help
 On x86_64 linux:
 ```
 # Download the latest binary
-wget -O hcclient https://github.com/AnnikaV9/hcclient/releases/download/v1.8.3/hcclient-1.8.3-linux-x86-64
+wget -O hcclient https://github.com/AnnikaV9/hcclient/releases/download/v1.9.0/hcclient-1.9.0-linux-x86-64
 
 # Or the statically linked binary if the above one doesn't work
-wget -O hcclient https://github.com/AnnikaV9/hcclient/releases/download/v1.8.3/hcclient-1.8.3-linux-x86-64-static
+wget -O hcclient https://github.com/AnnikaV9/hcclient/releases/download/v1.9.0/hcclient-1.9.0-linux-x86-64-static
 
 # Make the binary executable
 chmod +x hcclient
@@ -83,10 +84,10 @@ hcclient --help
 As a container:
 ```
 # Download the latest image
-wget https://github.com/AnnikaV9/hcclient/releases/download/v1.8.3/hcclient-1.8.3-image.tar.xz
+wget https://github.com/AnnikaV9/hcclient/releases/download/v1.9.0/hcclient-1.9.0-image.tar.xz
 
 # Install the image
-docker/podman load -i hcclient-1.8.3-image.tar.xz
+docker/podman load -i hcclient-1.9.0-image.tar.xz
 
 # Run hcclient
 docker/podman run --rm -it hcclient --help
@@ -97,19 +98,22 @@ docker/podman run --rm -it hcclient --help
 ```
 $ hcclient --help
 
-usage: hcclient [-h] -c CHANNEL -n NICKNAME [-t TRIP_PASSWORD]
-                [-w WEBSOCKET_ADDRESS] [-l CONFIG_FILE] [--no-config] [--gen-config]
-                [--no-parse] [--clear] [--is-mod] [--no-unicode] [--no-notify]
-                [--prompt-string PROMPT_STRING] [--message-color MESSAGE_COLOR]
+usage: hcclient [-h] [-c CHANNEL] [-n NICKNAME] [-t TRIP_PASSWORD]
+                [-w WEBSOCKET_ADDRESS] [-l CONFIG_FILE] [--no-config]
+                [--gen-config] [--no-parse] [--clear] [--is-mod]
+                [--no-unicode] [--no-notify] [--prompt-string PROMPT_STRING]
+                [--colors] [--message-color MESSAGE_COLOR]
                 [--whisper-color WHISPER_COLOR] [--emote-color EMOTE_COLOR]
-                [--nickname-color NICKNAME_COLOR] [--warning-color WARNING_COLOR]
+                [--nickname-color NICKNAME_COLOR]
+                [--warning-color WARNING_COLOR]
                 [--server-color SERVER_COLOR] [--client-color CLIENT_COLOR]
                 [--timestamp-color TIMESTAMP_COLOR]
                 [--mod-nickname-color MOD_NICKNAME_COLOR]
-                [--admin-nickname-color ADMIN_NICKNAME_COLOR] [--version]
+                [--admin-nickname-color ADMIN_NICKNAME_COLOR]
+                [--socks-proxy SOCKS_PROXY] [--version]
 
-Terminal client for connecting to hack.chat servers. Colors are provided by
-termcolor.
+Terminal client for connecting to hack.chat servers. Use --colors to see a
+list of valid colors
 
 options:
   -h, --help            show this help message and exit
@@ -124,8 +128,8 @@ optional arguments:
   -t TRIP_PASSWORD, --trip-password TRIP_PASSWORD
                         specify a tripcode password to use when joining
   -w WEBSOCKET_ADDRESS, --websocket-address WEBSOCKET_ADDRESS
-                        specify the websocket address to connect to (default:
-                        wss://hack-chat/chat-ws)
+                        specify the websocket address to connect to
+                        (default: wss://hack-chat/chat-ws)
   -l CONFIG_FILE, --load-config CONFIG_FILE
                         specify a config file to load
   --no-config           disables loading of the default config file
@@ -139,6 +143,7 @@ optional arguments:
   --prompt-string PROMPT_STRING
                         sets the prompt string (default: '❯ ' or '> ' if
                         --no-unicode)
+  --colors              displays a list of valid colors and exits
   --message-color MESSAGE_COLOR
                         sets the message color (default: white)
   --whisper-color WHISPER_COLOR
@@ -159,21 +164,39 @@ optional arguments:
                         sets the moderator nickname color (default: cyan)
   --admin-nickname-color ADMIN_NICKNAME_COLOR
                         sets the admin nickname color (default: red)
+  --socks-proxy SOCKS_PROXY
+                        specify a socks5 proxy to use (format: HOST:PORT)
+                        (default: None)
   --version             displays the version and exits
 ```
 
 <br />
 
 ## Colors <a name="colors"></a>
-The default color scheme can be overidden by using arguments such as `--message-color` or `--timestamp-color`. More options can be viewed with `--help`. Colors are provided by [termcolor](https://pypi.org/project/termcolor/). Valid colors are:
-- grey
-- red
-- green
-- yellow
-- blue
-- magenta
-- cyan
-- white
+The default color scheme can be overidden by using arguments such as `--message-color` or `--timestamp-color`. More options can be viewed with `--help`.
+
+```
+$ hcclient --colors
+
+Valid colors:
+black
+grey
+red
+green
+yellow
+blue
+magenta
+cyan
+light_grey
+dark_grey
+light_red
+light_green
+light_yellow
+light_blue
+light_magenta
+light_cyan
+white
+```
 
 <br />
 
@@ -181,7 +204,7 @@ The default color scheme can be overidden by using arguments such as `--message-
 A configuration file can be generated with the provided arguments using `--gen-config` and loaded using `--load-config`. For example:
 
 ```
-hcclient -c mychannel -n mynick -t mypassword --no-notify --timestamp-color red --gen-config
+hcclient -t mypassword --no-notify --timestamp-color red --gen-config
 ```
 The above command will create *config.json* in the working directory, which can then be loaded with:
 ```
