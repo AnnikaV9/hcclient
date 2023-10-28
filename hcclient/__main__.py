@@ -36,13 +36,13 @@ class Client:
         self.online_ignored_users = []
 
         self.client_command_list = [
-            "/raw", "/list", "/nick", "/clear",
-            "/whisperlock", "/unignoreall", "/reconnect",
+            "/raw", "/list", "/nick", "/clear", "/profile",
+            "/whisperlock", "/ignore", "/unignoreall", "/reconnect",
             "/set", "/unset", "/configset", "/configdump", "/save", "/quit"
-        ] # omit /profile and /ignore from this list as they are handled separately
+        ]
         self.server_command_list = [
-            "/reply", "/me", "/stats",
-        ] # omit /whisper from this list as it is handled separately
+            "/whisper", "/reply", "/me", "/stats",
+        ]
         self.mod_command_list = [
             "/ban", "/unban", "/unbanall", "/dumb", "/speak", "/moveuser",
             "/kick", "/kickasone", "/overflow", "/authtrip", "/deauthtrip",
