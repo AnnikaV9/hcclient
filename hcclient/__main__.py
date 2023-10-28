@@ -36,13 +36,13 @@ class Client:
         self.online_ignored_users = []
 
         self.client_command_list = [
-            "/raw", "/list", "/profile", "/nick", "/clear",
-            "/whisperlock", "/ignore", "/unignoreall", "/reconnect",
+            "/raw", "/list", "/nick", "/clear",
+            "/whisperlock", "/unignoreall", "/reconnect",
             "/set", "/unset", "/configset", "/configdump", "/save", "/quit"
-        ]
+        ] # omit /profile and /ignore from this list as they are handled separately
         self.server_command_list = [
-            "/whisper", "/reply", "/me", "/stats",
-        ]
+            "/reply", "/me", "/stats",
+        ] # omit /whisper from this list as it is handled separately
         self.mod_command_list = [
             "/ban", "/unban", "/unbanall", "/dumb", "/speak", "/moveuser",
             "/kick", "/kickasone", "/overflow", "/authtrip", "/deauthtrip",
@@ -50,10 +50,7 @@ class Client:
         ]
 
         self.auto_complete_list = []
-        self.auto_complete_list.extend(self.client_command_list)
-        self.auto_complete_list.extend(self.server_command_list)
-        if self.args["is_mod"]:
-            self.auto_complete_list.extend(self.mod_command_list)
+        self.manage_complete_list()
 
         self.term_content_saved = False
         self.manage_term_contents()
@@ -109,6 +106,7 @@ class Client:
 
         print(message)
 
+    # send a packet to the server if connected
     def send(self, packet):
         if self.ws.connected:
             self.ws.send(packet)
@@ -118,6 +116,19 @@ class Client:
                                               termcolor.colored("CLIENT", self.args["client_color"]),
                                               termcolor.colored("Can't send packet, not connected to server. Run /reconnect", self.args["client_color"])),
                                               bypass_lock=True)
+
+    # Re-populate the auto-complete list
+    def manage_complete_list(self):
+        self.auto_complete_list.clear()
+
+        self.auto_complete_list.extend(self.client_command_list)
+        self.auto_complete_list.extend(self.server_command_list)
+        if self.args["is_mod"]:
+            self.auto_complete_list.extend(self.mod_command_list)
+
+        for prefix in ("", "/whisper ", "/profile ", "/ignore "):
+            for user in self.online_users:
+                self.auto_complete_list.append("{}@{}".format(prefix, user))
 
     # ws.recv() loop that receives and parses packets
     def recv_thread(self):
@@ -136,7 +147,6 @@ class Client:
                     case "onlineSet":
                         for nick in received["nicks"]:
                             self.online_users.append(nick)
-                            self.auto_complete_list.append("@{}".format(nick))
 
                         for user_details in received["users"]:
                             self.online_users_details[user_details["nick"]] = {"Trip": user_details["trip"], "Type": user_details["uType"], "Hash": user_details["hash"]}
@@ -146,6 +156,8 @@ class Client:
 
                             if self.online_users_details[user_details["nick"]]["Hash"] in self.args["ignored"]["hashes"]:
                                 self.online_ignored_users.append(user_details["nick"])
+
+                        self.manage_complete_list()
 
                         self.channel = received["users"][0]["channel"]
 
@@ -216,8 +228,9 @@ class Client:
 
                     case "onlineAdd":
                         self.online_users.append(received["nick"])
-                        self.auto_complete_list.append("@{}".format(received["nick"]))
                         self.online_users_details[received["nick"]] = {"Trip": received["trip"], "Type": received["uType"], "Hash": received["hash"]}
+
+                        self.manage_complete_list()
 
                         if self.online_users_details[received["nick"]]["Trip"] in self.args["ignored"]["trips"]:
                             self.online_ignored_users.append(received["nick"])
@@ -231,8 +244,9 @@ class Client:
 
                     case "onlineRemove":
                         self.online_users.remove(received["nick"])
-                        self.auto_complete_list.remove("@{}".format(received["nick"]))
-                        del self.online_users_details[received["nick"]]
+                        self.online_users_details.pop(received["nick"])
+
+                        self.manage_complete_list()
 
                         if received["nick"] in self.online_ignored_users:
                             self.online_ignored_users.remove(received["nick"])
@@ -260,7 +274,7 @@ class Client:
                                                           termcolor.colored("!WARN!", self.args["warning_color"]),
                                                           termcolor.colored(received["text"], self.args["warning_color"])))
 
-                        if received["text"] == "Nickname taken":
+                        if received["text"].startswith("Nickname"):
                             self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
                                                               termcolor.colored("CLIENT", self.args["client_color"]),
                                                               termcolor.colored("Try running /nick <newnick> and /reconnect", self.args["client_color"])))
@@ -270,9 +284,8 @@ class Client:
             self.online_users_details = {}
             self.online_ignored_users = []
 
-            self.auto_complete_list.clear()
-            self.auto_complete_list.extend(self.client_command_list)
-            self.auto_complete_list.extend(self.server_command_list)
+            self.manage_complete_list()
+
             if self.args["is_mod"]:
                 self.auto_complete_list.extend(self.mod_command_list)
 
@@ -357,19 +370,21 @@ class Client:
                                                       bypass_lock=True)
 
                 case "/profile":
-                    if parsed_message[2] in self.online_users:
-                        ignored = "Yes" if parsed_message[2] in self.online_ignored_users else "No"
-                        profile = "{}'s profile:\n".format(parsed_message[2]) + "\n".join("{}: {}".format(option, value) for option, value in self.online_users_details[parsed_message[2]].items()) + "\nIgnored: {}".format(ignored)
+                    target = parsed_message[2].replace("@", "")
+                    if target in self.online_users:
+                        ignored = "Yes" if target in self.online_ignored_users else "No"
+                        profile = "{}'s profile:\n".format(target) + "\n".join("{}: {}".format(option, value) for option, value in self.online_users_details[target].items()) + "\nIgnored: {}".format(ignored)
 
                         self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
                                                           termcolor.colored("CLIENT", self.args["client_color"]),
                                                           termcolor.colored(profile, self.args["client_color"])),
                                                           bypass_lock=True)
 
+
                     else:
                         self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
                                                           termcolor.colored("CLIENT", self.args["client_color"]),
-                                                          termcolor.colored("No such user: '{}'".format(parsed_message[2]), self.args["client_color"])),
+                                                          termcolor.colored("No such user: '{}'".format(target), self.args["client_color"])),
                                                           bypass_lock=True)
 
                 case "/nick":
@@ -383,7 +398,7 @@ class Client:
                     else:
                         self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
                                                           termcolor.colored("CLIENT", self.args["client_color"]),
-                                                          termcolor.colored("Nickname should a maximum of 24 characters and consist of only letters, numbers and underscores.", self.args["client_color"])),
+                                                          termcolor.colored("Nickname must consist of up to 24 letters, numbers, and underscores", self.args["client_color"])),
                                                           bypass_lock=True)
 
                 case "/clear":
