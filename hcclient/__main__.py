@@ -70,12 +70,18 @@ class Client:
     # connect to the websocket server and join the channel
     def connect_to_server(self):
         if not self.reconnecting:
+            connect_status = "Connecting to {} ...".format(self.args["websocket_address"]) if not self.args["socks_proxy"] else "Connecting to {} via socks proxy {} ...".format(self.args["websocket_address"], self.args["socks_proxy"])
             self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
                                               termcolor.colored("CLIENT", self.args["client_color"]),
-                                              termcolor.colored("Connecting to {} ...".format(self.args["websocket_address"]), self.args["client_color"])),
+                                              termcolor.colored(connect_status, self.args["client_color"])),
                                               bypass_lock=True)
 
-        self.ws.connect(self.args["websocket_address"])
+        if self.args["socks_proxy"]:
+            self.ws.connect(self.args["websocket_address"], http_proxy_host=self.args["socks_proxy"].split(":")[0], http_proxy_port=self.args["socks_proxy"].split(":")[1], proxy_type="socks5")
+
+        else:
+            self.ws.connect(self.args["websocket_address"])
+
         self.ws.send(json.dumps({
             "cmd": "join",
             "channel": self.args["channel"],
@@ -771,7 +777,7 @@ Client-based commands:
 # generate a config file in the current directory
 def generate_config(config):
     config = vars(config)
-    for arg in ("gen_config", "config_file", "no_config", "channel", "nickname"):
+    for arg in ("gen_config", "config_file", "no_config", "channel", "nickname", "colors"):
             config.pop(arg)
 
     try:
@@ -796,7 +802,7 @@ def load_config(filepath):
                        "emote_color", "nickname_color", "warning_color",
                        "server_color", "client_color", "timestamp_color",
                        "mod_nickname_color", "admin_nickname_color",
-                       "ignored", "aliases"):
+                       "ignored", "aliases", "socks_proxy"):
                 if key not in config:
                     missing_args.append(key)
 
@@ -810,12 +816,17 @@ def load_config(filepath):
 
 
 # initialize the configuration options
-def initialize_config(args):
+def initialize_config(args, parser):
     if args.gen_config:
         args.aliases = {}
         args.ignored = {"trips": [], "hashes": []}
         generate_config(args)
         sys.exit(0)
+
+    if not args.channel or not args.nickname:
+        parser.print_usage()
+        print("hcclient: error: the following arguments are required: -c/--channel, -n/--nickname")
+        sys.exit(1)
 
     if args.no_config:
         args.config_file = None
@@ -841,16 +852,17 @@ def initialize_config(args):
             config["ignored"] = {"trips": [], "hashes": []}
             config.pop("gen_config")
             config.pop("no_config")
+            config.pop("colors")
 
     return config
 
 # parse arguments and run the client
 def main():
-    parser = argparse.ArgumentParser(description="Terminal client for connecting to hack.chat servers. Colors are provided by termcolor.")
+    parser = argparse.ArgumentParser(description="Terminal client for connecting to hack.chat servers. Use --colors to see a list of valid colors")
     required_group = parser.add_argument_group("required arguments")
     optional_group = parser.add_argument_group("optional arguments")
-    required_group.add_argument("-c", "--channel", help="specify the channel to join", required=True)
-    required_group.add_argument("-n", "--nickname", help="specify the nickname to use", required=True)
+    required_group.add_argument("-c", "--channel", help="specify the channel to join")
+    required_group.add_argument("-n", "--nickname", help="specify the nickname to use")
     optional_group.add_argument("-t", "--trip-password", help="specify a tripcode password to use when joining")
     optional_group.add_argument("-w", "--websocket-address", help="specify the websocket address to connect to (default: wss://hack-chat/chat-ws)")
     optional_group.add_argument("-l", "--load-config", help="specify a config file to load", dest="config_file")
@@ -862,6 +874,7 @@ def main():
     optional_group.add_argument("--no-unicode", help="disables moderator/admin icon and unicode characters in the UI", action="store_true")
     optional_group.add_argument("--no-notify", help="disables desktop notifications", action="store_true")
     optional_group.add_argument("--prompt-string", help="sets the prompt string (default: '❯ ' or '> ' if --no-unicode)")
+    optional_group.add_argument("--colors", help="displays a list of valid colors and exits", action="store_true")
     optional_group.add_argument("--message-color", help="sets the message color (default: white)")
     optional_group.add_argument("--whisper-color", help="sets the whisper color (default: green)")
     optional_group.add_argument("--emote-color", help="sets the emote color (default: green)")
@@ -872,6 +885,7 @@ def main():
     optional_group.add_argument("--timestamp-color", help="sets the timestamp color (default: white)")
     optional_group.add_argument("--mod-nickname-color", help="sets the moderator nickname color (default: cyan)")
     optional_group.add_argument("--admin-nickname-color", help="sets the admin nickname color (default: red)")
+    optional_group.add_argument("--socks-proxy", help="specify a socks5 proxy to use (format: HOST:PORT) (default: None)")
     optional_group.add_argument("--version", help="displays the version and exits", action="version", version="hcclient 1.8.3-git")
     optional_group.set_defaults(gen_config=False,
                                 config_file=None,
@@ -882,6 +896,7 @@ def main():
                                 no_unicode=False,
                                 no_notify=False,
                                 prompt_string=None,
+                                colors=False,
                                 message_color="white",
                                 whisper_color="green",
                                 emote_color="green",
@@ -893,10 +908,15 @@ def main():
                                 mod_nickname_color="cyan",
                                 admin_nickname_color="red",
                                 trip_password="",
-                                websocket_address="wss://hack.chat/chat-ws",)
+                                websocket_address="wss://hack.chat/chat-ws",
+                                socks_proxy=None)
     args = parser.parse_args()
 
-    client = Client(initialize_config(args))
+    if args.colors:
+        print("Valid colors: \n{}".format("\n".join(termcolor.COLORS)))
+        sys.exit(0)
+
+    client = Client(initialize_config(args, parser))
     client.thread_ping.start()
     client.thread_recv.start()
     client.input_loop()
