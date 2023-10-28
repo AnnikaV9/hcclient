@@ -24,6 +24,8 @@ notify-py = "0.3.42"
 prompt-toolkit = "3.0.39"
 termcolor = "2.3.0"
 websocket-client = "1.5.3"
+wsaccel = "0.6.6"
+python-socks = "2.4.3"
 
 [tool.poetry.scripts]
 hcclient = "hcclient.__main__:main"
