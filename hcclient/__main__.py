@@ -7,6 +7,7 @@
 # import required modules
 import json
 import threading
+import ssl
 import websocket
 import sys
 import re
@@ -55,7 +56,7 @@ class Client:
         self.term_content_saved = False
         self.manage_term_contents()
 
-        self.ws = websocket.WebSocket()
+        self.ws = websocket.WebSocket(sslopt={"cert_reqs": ssl.CERT_NONE})
         self.reconnecting = False
 
         self.input_lock = False
@@ -70,14 +71,14 @@ class Client:
     # connect to the websocket server and join the channel
     def connect_to_server(self):
         if not self.reconnecting:
-            connect_status = "Connecting to {} ...".format(self.args["websocket_address"]) if not self.args["socks_proxy"] else "Connecting to {} via socks proxy {} ...".format(self.args["websocket_address"], self.args["socks_proxy"])
+            connect_status = "Connecting to {} ...".format(self.args["websocket_address"]) if not self.args["proxy"] else "Connecting to {} through proxy {} ...".format(self.args["websocket_address"], self.args["proxy"])
             self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
                                               termcolor.colored("CLIENT", self.args["client_color"]),
                                               termcolor.colored(connect_status, self.args["client_color"])),
                                               bypass_lock=True)
 
-        if self.args["socks_proxy"]:
-            self.ws.connect(self.args["websocket_address"], http_proxy_host=self.args["socks_proxy"].split(":")[0], http_proxy_port=self.args["socks_proxy"].split(":")[1], proxy_type="socks5")
+        if self.args["proxy"]:
+            self.ws.connect(self.args["websocket_address"], http_proxy_host=self.args["proxy"].split(":")[1], http_proxy_port=self.args["proxy"].split(":")[2], proxy_type=self.args["proxy"].split(":")[0].lower())
 
         else:
             self.ws.connect(self.args["websocket_address"])
@@ -802,7 +803,7 @@ def load_config(filepath):
                        "emote_color", "nickname_color", "warning_color",
                        "server_color", "client_color", "timestamp_color",
                        "mod_nickname_color", "admin_nickname_color",
-                       "ignored", "aliases", "socks_proxy"):
+                       "ignored", "aliases", "proxy"):
                 if key not in config:
                     missing_args.append(key)
 
@@ -885,7 +886,7 @@ def main():
     optional_group.add_argument("--timestamp-color", help="sets the timestamp color (default: white)")
     optional_group.add_argument("--mod-nickname-color", help="sets the moderator nickname color (default: cyan)")
     optional_group.add_argument("--admin-nickname-color", help="sets the admin nickname color (default: red)")
-    optional_group.add_argument("--socks-proxy", help="specify a socks5 proxy to use (format: HOST:PORT) (default: None)")
+    optional_group.add_argument("--proxy", help="specify a proxy to use (format: TYPE:HOST:PORT) (default: None)")
     optional_group.add_argument("--version", help="displays the version and exits", action="version", version="hcclient 1.9.0-git")
     optional_group.set_defaults(gen_config=False,
                                 config_file=None,
@@ -909,7 +910,7 @@ def main():
                                 admin_nickname_color="red",
                                 trip_password="",
                                 websocket_address="wss://hack.chat/chat-ws",
-                                socks_proxy=None)
+                                proxy=None)
     args = parser.parse_args()
 
     if args.colors:
