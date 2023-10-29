@@ -865,19 +865,21 @@ def initialize_config(args, parser):
         config["config_file"] = args.config_file
 
     else:
-        def_config_dir = os.path.join(os.getenv("APPDATA"), "hcclient") if os.name == "nt" else os.path.join(os.getenv("HOME"), ".config", "hcclient")
-        file_options = ("config.yml", "config.json")
         loaded_config = False
 
-        for config_file in file_options:
-            if os.path.isfile(os.path.join(def_config_dir, config_file)):
-                def_config_file = os.path.join(def_config_dir, config_file)
-                config = load_config(def_config_file)
-                config["nickname"] = args.nickname
-                config["channel"] = args.channel
-                config["config_file"] = def_config_file
-                loaded_config = True
-                break
+        if not args.no_config:
+            def_config_dir = os.path.join(os.getenv("APPDATA"), "hcclient") if os.name == "nt" else os.path.join(os.getenv("HOME"), ".config", "hcclient")
+            file_options = ("config.yml", "config.json")
+
+            for config_file in file_options:
+                if os.path.isfile(os.path.join(def_config_dir, config_file)):
+                    def_config_file = os.path.join(def_config_dir, config_file)
+                    config = load_config(def_config_file)
+                    config["nickname"] = args.nickname
+                    config["channel"] = args.channel
+                    config["config_file"] = def_config_file
+                    loaded_config = True
+                    break
 
         if not loaded_config:
             config = vars(args)
