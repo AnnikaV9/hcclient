@@ -21,7 +21,7 @@ import termcolor
 import shutil
 import prompt_toolkit
 import notifypy
-import ruamel.yaml
+import yaml
 
 # define the client class
 class Client:
@@ -560,8 +560,7 @@ class Client:
                                     json.dump(config, config_file, indent=2)
 
                                 else:
-                                    yaml = ruamel.yaml.YAML()
-                                    yaml.dump(config, config_file)
+                                    yaml.dump(config, config_file, sort_keys=False, default_flow_style=False)
 
                                 self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
                                                                   termcolor.colored("CLIENT", self.args["client_color"]),
@@ -799,8 +798,7 @@ def generate_config(config):
     try:
         if not os.path.isfile("config.yml"):
             with open("config.yml", "x") as config_file:
-                yaml = ruamel.yaml.YAML()
-                yaml.dump(config, config_file)
+                yaml.dump(config, config_file, sort_keys=False, default_flow_style=False)
                 print("Configuration written to config.yml")
 
         else:
@@ -820,8 +818,7 @@ def load_config(filepath):
                 config = json.load(config_file)
 
             else:
-                yaml = ruamel.yaml.YAML()
-                config = yaml.load(config_file)
+                config = yaml.safe_load(config_file)
 
             missing_args = []
             for key in ("trip_password", "websocket_address", "no_parse",

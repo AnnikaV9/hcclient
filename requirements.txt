@@ -4,7 +4,7 @@ loguru==0.6.0
 notify-py==0.3.42
 prompt-toolkit==3.0.39
 python-socks==2.4.3
-ruamel.yaml==0.18.2
+PyYAML==6.0.1
 termcolor==2.3.0
 wcwidth==0.2.8
 websocket-client==1.5.3
