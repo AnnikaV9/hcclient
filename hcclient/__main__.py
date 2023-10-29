@@ -38,7 +38,7 @@ class Client:
 
         self.client_command_list = [
             "/raw", "/list", "/nick", "/clear", "/profile",
-            "/whisperlock", "/ignore", "/unignoreall", "/reconnect",
+            "/wlock", "/ignore", "/unignoreall", "/reconnect",
             "/set", "/unset", "/configset", "/configdump", "/save", "/quit"
         ]
         self.server_command_list = [
@@ -426,7 +426,7 @@ class Client:
                                                           termcolor.colored("Clearing is disabled, enable with the --clear flag or run `/configset clear true`", self.args["client_color"])),
                                                           bypass_lock=True)
 
-                case "/whisperlock":
+                case "/wlock":
                     self.whisper_lock = not self.whisper_lock
                     #if not self.whisper_lock:
                     #    self.auto_whisper_protect = False
@@ -686,7 +686,7 @@ Client-based commands:
   Prints a user's details.
 /clear
   Clears the terminal.
-/whisperlock
+/wlock
   Toggles whisper lock, which will
   prevent sending any messages
   other than whispers.
