@@ -220,7 +220,7 @@ class Client:
                             else:
                                 tripcode = received.get("trip", "")
 
-                            if f"@{self.nick}" not in received["text"] and not self.args["no_notify"]:
+                            if received["from"] in self.online_users and not self.args["no_notify"]:
                                 notification = notifypy.Notify()
                                 notification.title = "hcclient"
                                 notification.message = "{}".format(received["text"])
