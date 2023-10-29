@@ -436,25 +436,26 @@ class Client:
                                                       bypass_lock=True)
 
                 case "/ignore":
-                    if parsed_message[2] in self.online_users:
-                        self.online_ignored_users.append(parsed_message[2])
-                        trip_to_ignore = self.online_users_details[parsed_message[2]]["Trip"] if self.online_users_details[parsed_message[2]]["Trip"] != "" else None
+                    target = parsed_message[2].replace("@", "")
+                    if target in self.online_users:
+                        self.online_ignored_users.append(target)
+                        trip_to_ignore = self.online_users_details[target]["Trip"] if self.online_users_details[target]["Trip"] != "" else None
 
                         if trip_to_ignore not in self.args["ignored"]["trips"] and trip_to_ignore is not None:
                             self.args["ignored"]["trips"].append(trip_to_ignore)
 
-                        if self.online_users_details[parsed_message[2]]["Hash"] not in self.args["ignored"]["hashes"]:
-                            self.args["ignored"]["hashes"].append(self.online_users_details[parsed_message[2]]["Hash"])
+                        if self.online_users_details[target]["Hash"] not in self.args["ignored"]["hashes"]:
+                            self.args["ignored"]["hashes"].append(self.online_users_details[target]["Hash"])
 
                         self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
                                                           termcolor.colored("CLIENT", self.args["client_color"]),
-                                                          termcolor.colored("Ignoring trip '{}' and hash '{}', run /save to persist".format(trip_to_ignore, self.online_users_details[parsed_message[2]]["Hash"]), self.args["client_color"])),
+                                                          termcolor.colored("Ignoring trip '{}' and hash '{}', run /save to persist".format(trip_to_ignore, self.online_users_details[target]["Hash"]), self.args["client_color"])),
                                                           bypass_lock=True)
 
                     else:
                         self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
                                                           termcolor.colored("CLIENT", self.args["client_color"]),
-                                                          termcolor.colored("No such user: '{}'".format(parsed_message[2]), self.args["client_color"])),
+                                                          termcolor.colored("No such user: '{}'".format(target), self.args["client_color"])),
                                                           bypass_lock=True)
 
                 case "/unignoreall":
