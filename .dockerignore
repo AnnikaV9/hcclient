@@ -8,3 +8,4 @@ build
 hcclient*.spec
 export.sh
 config.json
+config.yml

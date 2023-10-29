@@ -21,7 +21,7 @@ import termcolor
 import shutil
 import prompt_toolkit
 import notifypy
-
+import ruamel.yaml
 
 # define the client class
 class Client:
@@ -329,7 +329,7 @@ class Client:
             while True:
                 self.input_lock = True
 
-                if self.args["prompt_string"]:
+                if self.args["prompt_string"] and self.args["prompt_string"] != "default":
                     prompt_string = self.args["prompt_string"]
 
                 else:
@@ -529,7 +529,7 @@ class Client:
                         self.args[message_args[0]] = " ".join(message_args[1:])
                         self.args[message_args[0]] = False if self.args[message_args[0]] == "false" else self.args[message_args[0]]
                         self.args[message_args[0]] = True if self.args[message_args[0]] == "true" else self.args[message_args[0]]
-                        self.args[message_args[0]] = None if self.args[message_args[0]] in ("none", "null", "default") else self.args[message_args[0]]
+                        self.args[message_args[0]] = None if self.args[message_args[0]] in ("none", "null") else self.args[message_args[0]]
                         self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
                                                           termcolor.colored("CLIENT", self.args["client_color"]),
                                                           termcolor.colored("Set configuration value '{}' to '{}'".format(message_args[0], self.args[message_args[0]]), self.args["client_color"])),
@@ -556,7 +556,13 @@ class Client:
 
                         try:
                             with open(self.args["config_file"], "w") as config_file:
-                                json.dump(config, config_file, indent=2)
+                                if self.args["config_file"].endswith(".json"):
+                                    json.dump(config, config_file, indent=2)
+
+                                else:
+                                    yaml = ruamel.yaml.YAML()
+                                    yaml.dump(config, config_file)
+
                                 self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
                                                                   termcolor.colored("CLIENT", self.args["client_color"]),
                                                                   termcolor.colored("Configuration saved to {}".format(self.args["config_file"]), self.args["client_color"])),
@@ -791,9 +797,16 @@ def generate_config(config):
             config.pop(arg)
 
     try:
-        with open("config.json", "x") as config_file:
-            json.dump(config, config_file, indent=2)
-            print("Configuration written to config.json")
+        if not os.path.isfile("config.yml"):
+            with open("config.yml", "x") as config_file:
+                yaml = ruamel.yaml.YAML()
+                yaml.dump(config, config_file)
+                print("Configuration written to config.yml")
+
+        else:
+            with open("config.json", "x") as config_file:
+                json.dump(config, config_file, indent=2)
+                print("Configuration written to config.json")
 
     except:
         sys.exit("Error generating configuration! {}".format(sys.exc_info()[1]))
@@ -803,7 +816,12 @@ def generate_config(config):
 def load_config(filepath):
     try:
         with open(filepath, "r") as config_file:
-            config = json.load(config_file)
+            if filepath.endswith(".json"):
+                config = json.load(config_file)
+
+            else:
+                yaml = ruamel.yaml.YAML()
+                config = yaml.load(config_file)
 
             missing_args = []
             for key in ("trip_password", "websocket_address", "no_parse",
@@ -828,8 +846,10 @@ def load_config(filepath):
 # initialize the configuration options
 def initialize_config(args, parser):
     if args.gen_config:
-        args.aliases = {}
-        args.ignored = {"trips": [], "hashes": []}
+        args.aliases = {"example": "example"}
+        args.ignored = {"trips": ["example"], "hashes": ["example"]}
+        if not args.prompt_string:
+            args.prompt_string = "default"
         generate_config(args)
         sys.exit(0)
 
@@ -848,15 +868,21 @@ def initialize_config(args, parser):
         config["config_file"] = args.config_file
 
     else:
-        def_config_file = os.path.join(os.getenv("APPDATA"), "hcclient", "config.json") if os.name == "nt" else os.path.join(os.getenv("HOME"), ".config", "hcclient", "config.json")
+        def_config_dir = os.path.join(os.getenv("APPDATA"), "hcclient") if os.name == "nt" else os.path.join(os.getenv("HOME"), ".config", "hcclient")
+        file_options = ("config.yml", "config.json")
+        loaded_config = False
 
-        if os.path.isfile(def_config_file) and not args.no_config:
-            config = load_config(def_config_file)
-            config["nickname"] = args.nickname
-            config["channel"] = args.channel
-            config["config_file"] = def_config_file
+        for config_file in file_options:
+            if os.path.isfile(os.path.join(def_config_dir, config_file)):
+                def_config_file = os.path.join(def_config_dir, config_file)
+                config = load_config(def_config_file)
+                config["nickname"] = args.nickname
+                config["channel"] = args.channel
+                config["config_file"] = def_config_file
+                loaded_config = True
+                break
 
-        else:
+        if not loaded_config:
             config = vars(args)
             config["aliases"] = {}
             config["ignored"] = {"trips": [], "hashes": []}
@@ -919,7 +945,7 @@ def main():
                                 admin_nickname_color="red",
                                 trip_password="",
                                 websocket_address="wss://hack.chat/chat-ws",
-                                proxy=None)
+                                proxy=False)
     args = parser.parse_args()
 
     if args.colors:
