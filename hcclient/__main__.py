@@ -12,7 +12,6 @@ import websocket
 import sys
 import re
 import os
-import time
 import copy
 import argparse
 import colorama
@@ -61,11 +60,11 @@ class Client:
         self.ws = websocket.WebSocket(sslopt={"cert_reqs": ssl.CERT_NONE})
         self.reconnecting = False
 
-        self.input_lock = False
         #self.auto_whisper_protect = False
         self.whisper_lock = False
         self.prompt_session = prompt_toolkit.PromptSession(reserve_space_for_menu=4)
 
+        self.input_lock = threading.Event()
         self.ping_event = threading.Event()
         self.thread_ping = threading.Thread(target=self.ping_thread, daemon=True)
         self.thread_recv = threading.Thread(target=self.recv_thread, daemon=True)
@@ -110,8 +109,8 @@ class Client:
 
     # print a message to the terminal
     def print_msg(self, message, bypass_lock=False):
-        while self.input_lock and not bypass_lock:
-            time.sleep(0.01)
+        if not bypass_lock and not self.input_lock.is_set():
+            self.input_lock.wait()
 
         print(message)
 
@@ -327,7 +326,7 @@ class Client:
     def input_loop(self):
         with prompt_toolkit.patch_stdout.patch_stdout(raw=True):
             while True:
-                self.input_lock = True
+                self.input_lock.clear()
 
                 if self.args["prompt_string"] and self.args["prompt_string"] != "default":
                     prompt_string = self.args["prompt_string"]
@@ -337,10 +336,11 @@ class Client:
 
                 nick_completer = prompt_toolkit.completion.WordCompleter(self.auto_complete_list, match_middle=True, ignore_case=True, sentence=True)
 
-                self.input_lock = False
+                self.unlock_after = threading.Timer(0.3, self.input_lock.set)
+                self.unlock_after.start()
 
                 try:
-                    self.send_input(self.prompt_session.prompt(prompt_string , completer=nick_completer, wrap_lines=False))
+                    self.send_input(self.prompt_session.prompt(prompt_string , completer=nick_completer, wrap_lines=False, complete_in_thread=True))
 
                 except (KeyboardInterrupt, EOFError):
                     self.close(thread=False)
@@ -350,7 +350,10 @@ class Client:
 
     # send input to the server and handle client commands
     def send_input(self, message):
-        self.input_lock = True
+        if self.unlock_after.is_alive():
+            self.unlock_after.cancel()
+
+        self.input_lock.clear()
         print("\033[A{}\033[A".format(" " * shutil.get_terminal_size().columns))
 
         try:
