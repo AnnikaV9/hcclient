@@ -360,6 +360,7 @@ class Client:
 
         lines = message.split("\n")
         no_lines = len(lines)
+        lines[0] = " " * self.prompt_length + lines[0]
         for line in lines:
             if len(line) > shutil.get_terminal_size().columns:
                 no_lines += 1
