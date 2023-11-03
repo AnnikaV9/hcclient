@@ -325,6 +325,7 @@ class Client:
 
     # input loop that draws the prompt and handles input
     def input_loop(self):
+        exit_attempted = False
         with prompt_toolkit.patch_stdout.patch_stdout(raw=True):
             while True:
                 self.input_lock.clear()
@@ -335,6 +336,12 @@ class Client:
                 else:
                     prompt_string = "> " if self.args["no_unicode"] else "❯ "
 
+                if exit_attempted:
+                    prompt_string = "(ctrl+c again to exit, enter to cancel) " + prompt_string
+
+                else:
+                    buffer = ""
+
                 self.prompt_length = len(prompt_string)
 
                 nick_completer = prompt_toolkit.completion.WordCompleter(self.auto_complete_list, match_middle=True, ignore_case=True, sentence=True)
@@ -343,9 +350,32 @@ class Client:
                 self.unlock_after.start()
 
                 try:
-                    self.send_input(self.prompt_session.prompt(prompt_string, completer=nick_completer, complete_in_thread=True, multiline=True, key_bindings=self.bindings, prompt_continuation=(" " * self.prompt_length)))
+                    self.send_input(self.prompt_session.prompt(prompt_string, default=buffer, completer=nick_completer, complete_in_thread=True, multiline=True, key_bindings=self.bindings, prompt_continuation=(" " * self.prompt_length)))
+                    exit_attempted = False
 
-                except (KeyboardInterrupt, EOFError):
+                except KeyboardInterrupt:
+                    if not exit_attempted:
+                        if self.unlock_after.is_alive():
+                            self.unlock_after.cancel()
+                        self.input_lock.clear()
+
+                        buffer = self.prompt_session.default_buffer.document.text
+                        lines = buffer.split("\n")
+                        no_lines = len(lines)
+                        true_term_size = shutil.get_terminal_size().columns - self.prompt_length
+                        for line in lines:
+                            if len(line) > true_term_size:
+                                no_lines += round(len(line) / true_term_size - 0.5)
+
+                        for _ in range(no_lines):
+                            print("\033[A{}\033[A".format(" " * shutil.get_terminal_size().columns))
+
+                        exit_attempted = True
+
+                    else:
+                        self.close(thread=False)
+
+                except EOFError:
                     self.close(thread=False)
 
                 except:
@@ -355,15 +385,14 @@ class Client:
     def send_input(self, message):
         if self.unlock_after.is_alive():
             self.unlock_after.cancel()
-
         self.input_lock.clear()
 
         lines = message.split("\n")
         no_lines = len(lines)
-        lines[0] = " " * self.prompt_length + lines[0]
+        true_term_size = shutil.get_terminal_size().columns - self.prompt_length
         for line in lines:
-            if len(line) > shutil.get_terminal_size().columns:
-                no_lines += 1
+            if len(line) > true_term_size:
+                no_lines += round(len(line) / true_term_size - 0.5)
 
         for _ in range(no_lines):
             print("\033[A{}\033[A".format(" " * shutil.get_terminal_size().columns))
