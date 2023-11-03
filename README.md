@@ -35,7 +35,7 @@ hcclient is a cross-platform terminal client for connecting to [hack.chat](https
 ## Features <a name="features"></a>
 - **Color theming:** &nbsp;Configured with command line flags, colors provided by termcolor.
 - **Suggestions:** &nbsp;Starting your message with `@` or `/` will bring up a menu with a list of online users or commands. Cycle through them with arrow keys or continue typing to filter the suggestions even more. Outside of the menu, arrow keys cycle through message history.
-- **Config generation:** &nbsp;Generate and load YAML/JSON configuration files with no editing required. Change configuration options from within the client with commands, modifying behaviour and colors without having to restart.
+- **Configuration:** &nbsp;Generate and load YAML/JSON configuration files with no editing required. Change configuration options from within the client with commands, modifying behaviour and colors without having to restart.
 - **Desktop notifications:** &nbsp;Receive notifications whenever someone mentions you or sends you a whisper. (Not supported in container mode)
 - **Aliases:** &nbsp;Set aliases for messages and phrases you send often, because why wouldn't you?
 - **Whisper lock:** &nbsp;Lock the client with a command to send only whispers, preventing accidental information leaks.
@@ -67,10 +67,10 @@ hcclient --help
 On x86_64 linux:
 ```
 # Download the latest binary
-wget -O hcclient https://github.com/AnnikaV9/hcclient/releases/download/v1.10.5/hcclient-1.10.5-linux-x86-64
+wget -O hcclient https://github.com/AnnikaV9/hcclient/releases/download/v1.10.6/hcclient-1.10.6-linux-x86-64
 
 # Or the statically linked binary if the above one doesn't work
-wget -O hcclient https://github.com/AnnikaV9/hcclient/releases/download/v1.10.5/hcclient-1.10.5-linux-x86-64-static
+wget -O hcclient https://github.com/AnnikaV9/hcclient/releases/download/v1.10.6/hcclient-1.10.6-linux-x86-64-static
 
 # Make the binary executable
 chmod +x hcclient
@@ -84,10 +84,10 @@ hcclient --help
 As a container:
 ```
 # Download the latest image
-wget https://github.com/AnnikaV9/hcclient/releases/download/v1.10.5/hcclient-1.10.5-image.tar.xz
+wget https://github.com/AnnikaV9/hcclient/releases/download/v1.10.6/hcclient-1.10.6-image.tar.xz
 
 # Install the image
-docker/podman load -i hcclient-1.10.5-image.tar.xz
+docker/podman load -i hcclient-1.10.6-image.tar.xz
 
 # Run hcclient
 docker/podman run --rm -it hcclient --help
