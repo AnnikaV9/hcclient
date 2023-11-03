@@ -26,8 +26,9 @@ import yaml
 class Client:
 
     # initialize the client
-    def __init__(self, args):
+    def __init__(self, args, bindings):
         colorama.init()
+        self.bindings = bindings
 
         self.args = args
         self.nick = self.args["nickname"]
@@ -334,13 +335,15 @@ class Client:
                 else:
                     prompt_string = "> " if self.args["no_unicode"] else "❯ "
 
+                self.prompt_length = len(prompt_string)
+
                 nick_completer = prompt_toolkit.completion.WordCompleter(self.auto_complete_list, match_middle=True, ignore_case=True, sentence=True)
 
                 self.unlock_after = threading.Timer(0.3, self.input_lock.set)
                 self.unlock_after.start()
 
                 try:
-                    self.send_input(self.prompt_session.prompt(prompt_string , completer=nick_completer, wrap_lines=False, complete_in_thread=True))
+                    self.send_input(self.prompt_session.prompt(prompt_string, completer=nick_completer, complete_in_thread=True, multiline=True, key_bindings=self.bindings, prompt_continuation=(" " * self.prompt_length)))
 
                 except (KeyboardInterrupt, EOFError):
                     self.close(thread=False)
@@ -354,13 +357,15 @@ class Client:
             self.unlock_after.cancel()
 
         self.input_lock.clear()
-        print("\033[A{}\033[A".format(" " * shutil.get_terminal_size().columns))
 
-        try:
-            message = message.replace("\\n", "\n")
+        lines = message.split("\n")
+        no_lines = len(lines)
+        for line in lines:
+            if len(line) > shutil.get_terminal_size().columns:
+                no_lines += 1
 
-        except AttributeError:
-            return
+        for _ in range(no_lines):
+            print("\033[A{}\033[A".format(" " * shutil.get_terminal_size().columns))
 
         if len(message) > 0:
             split_message = message.split(" ")
@@ -676,7 +681,9 @@ class Client:
                 case "/help":
                     if parsed_message[2] == "":
                         help_text = """Help:
-Any '\\n' will be converted into a linebreak.
+Input is multiline, so you can paste and edit code within the prompt.
+Press enter to send, and esc+enter/alt+enter/ctrl+n to add a newline.
+Lines can be cleared with ctrl+u.
 
 Client-based commands:
 /raw <json>
@@ -954,7 +961,20 @@ def main():
         print("Valid colors: \n{}".format("\n".join(termcolor.COLORS)))
         sys.exit(0)
 
-    client = Client(initialize_config(args, parser))
+    bindings = prompt_toolkit.key_binding.KeyBindings()
+
+    # Newline on esc+enter, alt+enter or ctrl+n
+    @bindings.add("escape", "enter")
+    @bindings.add("c-n")
+    def _(event):
+        event.current_buffer.insert_text('\n')
+
+    # Accept input on enter
+    @bindings.add("enter")
+    def _(event):
+        event.current_buffer.validate_and_handle()
+
+    client = Client(initialize_config(args, parser), bindings)
     client.thread_ping.start()
     client.thread_recv.start()
     client.input_loop()
