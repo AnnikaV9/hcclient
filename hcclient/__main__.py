@@ -37,7 +37,7 @@ class Client:
         self.online_ignored_users = []
 
         self.client_command_list = [
-            "/raw", "/list", "/nick", "/clear", "/profile",
+            "/help", "/raw", "/list", "/nick", "/clear", "/profile",
             "/wlock", "/ignore", "/unignoreall", "/reconnect",
             "/set", "/unset", "/configset", "/configdump", "/save", "/quit"
         ]
@@ -764,11 +764,16 @@ class Client:
                 case "/help":
                     if parsed_message[2] == "":
                         help_text = """Help:
-Input is multiline, so you can paste and edit code within the prompt.
+Input is multiline, so you can type, paste and edit code in the input field.
 Press enter to send, and esc+enter/alt+enter/ctrl+n to add a newline.
 Lines can be cleared with ctrl+u.
 
 Client-based commands:
+/help [server-based command]
+  Displays this help message if no
+  command is specified, otherwise
+  displays information about the
+  specified server-based command.
 /raw <json>
   Sends json directly to the server
   without parsing.
