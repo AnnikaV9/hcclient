@@ -92,6 +92,44 @@ class Client:
         }))
         self.reconnecting = False
 
+    # validate configuration options
+    def validate_config(option, value):
+        if option in ("timestamp_color", "client_color", "server_color", "nickname_color",
+                      "mod_nickname_color", "admin_nickname_color", "message_color",
+                      "emote_color", "whisper_color", "warning_color"):
+            if value not in termcolor.COLORS:
+                return False
+
+        elif option in ("no_unicode", "no_notify", "no_parse", "clear", "is_mod"):
+            if not isinstance(value, bool):
+                return False
+
+        elif option in ("websocket_address", "trip_password", "prompt_string"):
+            if not isinstance(value, str):
+                return False
+
+        elif option in ("aliases", "ignored"):
+            if not isinstance(value, dict):
+                return False
+
+            elif option == "aliases":
+                for alias, replacement in value.items():
+                    if not isinstance(alias, str) or not isinstance(replacement, str):
+                        return False
+
+            elif option == "ignored":
+                if "trips" not in value or "hashes" not in value:
+                    return False
+
+                elif not isinstance(value["trips"], list) or not isinstance(value["hashes"], list):
+                    return False
+
+        elif option == "proxy":
+            if value and not isinstance(value, str):
+                return False
+
+        return True
+
     # manage terminal contents
     def manage_term_contents(self):
         if self.args["clear"]:
@@ -564,14 +602,29 @@ class Client:
                 case "/configset":
                     message_args = parsed_message[2].lower().split(" ")
                     if message_args[0] in self.args and message_args[0] not in ("config_file", "channel", "nickname", "aliases", "ignored"):
-                        self.args[message_args[0]] = " ".join(message_args[1:])
-                        self.args[message_args[0]] = False if self.args[message_args[0]] == "false" else self.args[message_args[0]]
-                        self.args[message_args[0]] = True if self.args[message_args[0]] == "true" else self.args[message_args[0]]
-                        self.args[message_args[0]] = None if self.args[message_args[0]] in ("none", "null") else self.args[message_args[0]]
-                        self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
-                                                          termcolor.colored("CLIENT", self.args["client_color"]),
-                                                          termcolor.colored("Set configuration value '{}' to '{}'".format(message_args[0], self.args[message_args[0]]), self.args["client_color"])),
-                                                          bypass_lock=True)
+
+                        value, option = " ".join(message_args[1:]), message_args[0]
+                        if value.lower() == "false":
+                            value = False
+
+                        elif value.lower() == "true":
+                            value = True
+
+                        elif value.lower() in ("none", "null"):
+                            value = None
+
+                        if Client.validate_config(option, value):
+                            self.args[option] = value
+                            self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
+                                                              termcolor.colored("CLIENT", self.args["client_color"]),
+                                                              termcolor.colored("Set configuration option '{}' to '{}'".format(option, value), self.args["client_color"])),
+                                                              bypass_lock=True)
+
+                        else:
+                            self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
+                                                              termcolor.colored("CLIENT", self.args["client_color"]),
+                                                              termcolor.colored("Error setting configuration: Invalid value '{}' for option '{}'".format(value, option), self.args["client_color"])),
+                                                              bypass_lock=True)
 
                     else:
                         problem = "Invalid" if message_args[0] not in self.args else "Read-only"
@@ -748,9 +801,7 @@ Client-based commands:
 /configset <option> <value>
   Sets a configuration option to a
   value. Changed values will be in
-  effect immediately. Values are not
-  checked, an invalid value will
-  crash the client. Use carefully.
+  effect immediately.
 /configdump
   Prints the current configuration.
 /save
@@ -847,7 +898,7 @@ def generate_config(config):
                 print("Configuration written to config.json")
 
     except:
-        sys.exit("Error generating configuration! {}".format(sys.exc_info()[1]))
+        sys.exit("{}: error: {}".format(sys.argv[0], sys.exc_info()[1]))
 
 
 # load a config file from the specified path
@@ -877,7 +928,7 @@ def load_config(filepath):
             return config
 
     except:
-        sys.exit("Error loading configuration! {}".format(sys.exc_info()[1]))
+        sys.exit("{}: error: {}".format(sys.argv[0], sys.exc_info()[1]))
 
 
 # initialize the configuration options
@@ -903,6 +954,9 @@ def initialize_config(args, parser):
         config["nickname"] = args.nickname
         config["channel"] = args.channel
         config["config_file"] = args.config_file
+        for option in config:
+            if not Client.validate_config(option, config[option]):
+                sys.exit("{}: error: Invalid configuration value for option '{}'".format(sys.argv[0], option))
 
     else:
         loaded_config = False
@@ -918,6 +972,9 @@ def initialize_config(args, parser):
                     config["nickname"] = args.nickname
                     config["channel"] = args.channel
                     config["config_file"] = def_config_file
+                    for option in config:
+                        if not Client.validate_config(option, config[option]):
+                            sys.exit("{}: error: Invalid configuration value for option '{}'".format(sys.argv[0], option))
                     loaded_config = True
                     break
 
@@ -928,6 +985,9 @@ def initialize_config(args, parser):
             config.pop("gen_config")
             config.pop("no_config")
             config.pop("colors")
+            for option in config:
+                if not Client.validate_config(option, config[option]):
+                    sys.exit("{}: error: Invalid configuration value for option '{}'".format(sys.argv[0], option))
 
     return config
 
@@ -970,7 +1030,7 @@ def main():
                                 is_mod=False,
                                 no_unicode=False,
                                 no_notify=False,
-                                prompt_string=None,
+                                prompt_string="default",
                                 colors=False,
                                 message_color="white",
                                 whisper_color="green",
