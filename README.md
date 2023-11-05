@@ -64,7 +64,8 @@ pip install hcclient
 # Run hcclient
 hcclient --help
 ```
-On x86_64 linux:
+On Arch Linux, install the [AUR package](https://aur.archlinux.org/packages/hcclient-bin) with makepkg or an AUR helper.<br />
+On other x86_64 linux distributions:
 ```
 # Download the latest binary
 wget -O hcclient https://github.com/AnnikaV9/hcclient/releases/download/v1.10.8/hcclient-1.10.8-linux-x86-64
