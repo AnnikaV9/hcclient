@@ -7,11 +7,11 @@ Please note we have a [code of conduct](CODE_OF_CONDUCT.md), please follow it in
 
 ## Contributing Guidelines
 
-- Keep everything in `__main__.py`
+- Keep all code in [\_\_main.py__](hcclient/__main__.py)
 - Keep the code cross-platform
 - Do not increase the version number, this will be done before releases
-- Do not modify `README.md`, this will be done before releases
-- If new dependencies are added, please specify them in `requirements.txt`
+- Do not modify [README.md](README.md), this will be done before releases
+- If new dependencies are added, please specify them in [requirements.txt](requirements.txt) and [pyproject.toml](pyproject.toml)
 - If a new command is added, please add it to the help menu and completer
 
 For major changes, please open an issue first to discuss what you would like to change.
