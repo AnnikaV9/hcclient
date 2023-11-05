@@ -1,6 +1,6 @@
 # Contributing
 
-All contributions are welcome as long as they are in scope of the project, which is to provide a configurable, fully featured, and cross-platform terminal client for [hack.chat](https://hack.chat/).
+All contributions are welcome as long as they are in scope of the project, which is to provide a configurable, fully featured, and cross-platform terminal client for [hack.chat](https://hack.chat/). Pull requests that add features targetting other alternate hack.chat instances will not be entertained. Please fork the project for that.
 
 Please note we have a [code of conduct](CODE_OF_CONDUCT.md), please follow it in all your interactions with the project.
 
