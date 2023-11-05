@@ -1,5 +1,5 @@
 FROM docker.io/python:alpine
-COPY . .
-RUN pip3 install --no-cache-dir -r /requirements.txt
+COPY . /hcclient
+RUN pip3 install --no-cache-dir -r /hcclient/requirements.txt
 RUN apk add --no-cache ncurses
-ENTRYPOINT ["python3", "/hcclient"]
+ENTRYPOINT ["python3", "/hcclient/hcclient"]
