@@ -268,4 +268,6 @@ On linux, libnotify and aplay are required for notifications to work.
 
 All contributions are welcome! :D
 
+Please read [CONTRIBUTING.md](CONTRIBUTING.md) before submitting a pull request.
+
 **Credits to everyone [here](https://github.com/AnnikaV9/hcclient/graphs/contributors)**
