@@ -461,7 +461,7 @@ class Client:
                                                       bypass_lock=True)
 
                 case "/profile":
-                    target = parsed_message[2].replace("@", "")
+                    target = parsed_message[2].lstrip("@")
                     if target in self.online_users:
                         ignored = "Yes" if target in self.online_ignored_users else "No"
                         profile = "{}'s profile:\n".format(target) + "\n".join("{}: {}".format(option, value) for option, value in self.online_users_details[target].items()) + "\nIgnored: {}".format(ignored)
@@ -512,7 +512,7 @@ class Client:
                                                       bypass_lock=True)
 
                 case "/ignore":
-                    target = parsed_message[2].replace("@", "")
+                    target = parsed_message[2].lstrip("@")
                     if target in self.online_users:
                         self.online_ignored_users.append(target)
                         trip_to_ignore = self.online_users_details[target]["Trip"] if self.online_users_details[target]["Trip"] != "" else None
@@ -675,7 +675,7 @@ class Client:
 
                 case "/ban":
                     if self.args["is_mod"]:
-                        [self.send(json.dumps({"cmd": "ban", "nick": user})) for user in parsed_message[2].split(" ")]
+                        [self.send(json.dumps({"cmd": "ban", "nick": user.lstrip("@")})) for user in parsed_message[2].split(" ")]
 
                 case "/unban":
                     if self.args["is_mod"]:
@@ -687,17 +687,17 @@ class Client:
 
                 case "/dumb":
                     if self.args["is_mod"]:
-                        [self.send(json.dumps({"cmd": "dumb", "nick": user})) for user in parsed_message[2].split(" ")]
+                        [self.send(json.dumps({"cmd": "dumb", "nick": user.lstrip("@")})) for user in parsed_message[2].split(" ")]
 
                 case "/speak":
                     if self.args["is_mod"]:
-                        [self.send(json.dumps({"cmd": "speak", "nick": user})) for user in parsed_message[2].split(" ")]
+                        [self.send(json.dumps({"cmd": "speak", "nick": user.lstrip("@")})) for user in parsed_message[2].split(" ")]
 
                 case "/moveuser":
                     if self.args["is_mod"]:
                         message_args = parsed_message[2].split(" ")
                         if len(message_args) > 1:
-                            self.send(json.dumps({"cmd": "moveuser", "nick": message_args[0], "channel": message_args[1]}))
+                            self.send(json.dumps({"cmd": "moveuser", "nick": message_args[0].lstrip("@"), "channel": message_args[1]}))
 
                         else:
                             self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
@@ -707,15 +707,15 @@ class Client:
 
                 case "/kick":
                     if self.args["is_mod"]:
-                        [self.send(json.dumps({"cmd": "kick", "nick": user})) for user in parsed_message[2].split(" ")]
+                        [self.send(json.dumps({"cmd": "kick", "nick": user.lstrip("@")})) for user in parsed_message[2].split(" ")]
 
                 case "/kickasone":
                     if self.args["is_mod"]:
-                        self.send(json.dumps({"cmd": "kick", "nick": parsed_message[2].split(" ")})) # supply a list so everyone gets banished to the same room
+                        self.send(json.dumps({"cmd": "kick", "nick": [user.lstrip("@") for user in parsed_message[2].split(" ")]})) # supply a list so everyone gets banished to the same room
 
                 case "/overflow":
                     if self.args["is_mod"]:
-                        [self.send(json.dumps({"cmd": "overflow", "nick": user})) for user in parsed_message[2].split(" ")]
+                        [self.send(json.dumps({"cmd": "overflow", "nick": user.lstrip("@")})) for user in parsed_message[2].split(" ")]
 
                 case "/authtrip":
                     if self.args["is_mod"]:
@@ -745,7 +745,7 @@ class Client:
                     if self.args["is_mod"]:
                         message_args = parsed_message[2].split(" ")
                         if len(message_args) > 1:
-                            self.send(json.dumps({"cmd": "forcecolor", "nick": message_args[0], "color": message_args[1]}))
+                            self.send(json.dumps({"cmd": "forcecolor", "nick": message_args[0].lstrip("@"), "color": message_args[1]}))
 
                         else:
                             self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
@@ -759,7 +759,7 @@ class Client:
 
                 case "/uwuify":
                     if self.args["is_mod"]:
-                        [self.send(json.dumps({"cmd": "uwuify", "nick": user})) for user in parsed_message[2].split(" ")]
+                        [self.send(json.dumps({"cmd": "uwuify", "nick": user.lstrip("@")})) for user in parsed_message[2].split(" ")]
 
                 case "/help":
                     if parsed_message[2] == "":
