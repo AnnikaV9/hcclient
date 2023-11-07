@@ -78,6 +78,7 @@ class Client:
         """
         if not self.reconnecting:
             connect_status = "Connecting to {} ...".format(self.args["websocket_address"]) if not self.args["proxy"] else "Connecting to {} through proxy {} ...".format(self.args["websocket_address"], self.args["proxy"])
+
             self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
                                               termcolor.colored("CLIENT", self.args["client_color"]),
                                               termcolor.colored(connect_status, self.args["client_color"])),
@@ -366,6 +367,7 @@ class Client:
                 self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
                                                   termcolor.colored("CLIENT", self.args["client_color"]),
                                                   termcolor.colored("Try running /reconnect", self.args["client_color"])))
+
                 self.ping_event.set()
                 self.close(thread=True)
 
@@ -556,6 +558,7 @@ class Client:
                 case "/unignoreall":
                     self.online_ignored_users = []
                     self.args["ignored"] = {"trips": [], "hashes": []}
+
                     self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
                                                       termcolor.colored("CLIENT", self.args["client_color"]),
                                                       termcolor.colored("Unignored all trips/hashes, run /save to persist", self.args["client_color"])),
@@ -599,6 +602,7 @@ class Client:
 
                     else:
                         self.args["aliases"][message_args[0]] = " ".join(message_args[1:])
+
                         self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
                                                           termcolor.colored("CLIENT", self.args["client_color"]),
                                                           termcolor.colored("Set alias '{}' = '{}'".format(message_args[0], self.args["aliases"][message_args[0]]), self.args["client_color"])),
@@ -607,6 +611,7 @@ class Client:
                 case "/unset":
                     try:
                         self.args["aliases"].pop(parsed_message[2])
+
                         self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
                                                           termcolor.colored("CLIENT", self.args["client_color"]),
                                                           termcolor.colored("Unset alias '{}'".format(parsed_message[2]), self.args["client_color"])),
@@ -634,6 +639,7 @@ class Client:
 
                         if Client.validate_config(option, value):
                             self.args[option] = value
+
                             self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
                                                               termcolor.colored("CLIENT", self.args["client_color"]),
                                                               termcolor.colored("Set configuration option '{}' to '{}'".format(option, value), self.args["client_color"])),
@@ -647,6 +653,7 @@ class Client:
 
                     else:
                         problem = "Invalid" if message_args[0] not in self.args else "Read-only"
+
                         self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
                                                           termcolor.colored("CLIENT", self.args["client_color"]),
                                                           termcolor.colored("Error setting configuration: {} option '{}'".format(problem, message_args[0]), self.args["client_color"])),
@@ -856,6 +863,7 @@ Client-based commands:
 /uwuify <nick> <nick2> <nick3>..."""
                         server_help_text = "\n\nServer-based commands should be displayed below:"
                         display = help_text + mod_help_text + server_help_text if self.args["is_mod"] else help_text + server_help_text
+
                         self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
                                                           termcolor.colored("CLIENT", self.args["client_color"]),
                                                           termcolor.colored(display, self.args["client_color"])),
