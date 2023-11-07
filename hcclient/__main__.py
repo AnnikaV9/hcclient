@@ -25,7 +25,7 @@ class Client:
     """
     The main client class
     """
-    def __init__(self, args, bindings):
+    def __init__(self, args: dict, bindings: prompt_toolkit.key_binding.KeyBindings) -> None:
         """
         Initializes the client and environment, sets up variables and threads
         """
@@ -72,7 +72,7 @@ class Client:
         self.thread_ping = threading.Thread(target=self.ping_thread, daemon=True)
         self.thread_recv = threading.Thread(target=self.recv_thread, daemon=True)
 
-    def connect_to_server(self):
+    def connect_to_server(self) -> None:
         """
         Connects to the websocket server and send the join packet
         Uses a proxy if specified
@@ -97,7 +97,7 @@ class Client:
         }))
         self.reconnecting = False
 
-    def validate_config(option, value):
+    def validate_config(option: str, value: str) -> bool:
         """
         Validates a configuration option and its value
         Returns True if valid, False if not
@@ -138,7 +138,7 @@ class Client:
 
         return True
 
-    def manage_term_contents(self):
+    def manage_term_contents(self) -> None:
         """
         Use tput to save the terminal's contents if tput is available and --clear is specified
         """
@@ -156,7 +156,7 @@ class Client:
 
             os.system("cls" if os.name=="nt" else "clear")
 
-    def print_msg(self, message, bypass_lock=False):
+    def print_msg(self, message: str, bypass_lock: bool=False) -> None:
         """
         Prints a message to the terminal if the input lock is set, otherwise waits
         """
@@ -165,7 +165,7 @@ class Client:
 
         print(message)
 
-    def send(self, packet):
+    def send(self, packet: str) -> None:
         """
         Sends a packet to the server if connected, otherwise prints an error
         """
@@ -178,7 +178,7 @@ class Client:
                                               termcolor.colored("Can't send packet, not connected to server. Run /reconnect", self.args["client_color"])),
                                               bypass_lock=True)
 
-    def manage_complete_list(self):
+    def manage_complete_list(self) -> None:
         """
         Adds commands to the auto-complete list based on the user's permissions
         """
@@ -193,7 +193,7 @@ class Client:
             for user in self.online_users:
                 self.auto_complete_list.append("{}@{}".format(prefix, user))
 
-    def recv_thread(self):
+    def recv_thread(self) -> None:
         """
         Receives packets from the server and handles them
         """
@@ -373,7 +373,7 @@ class Client:
                 self.ping_event.set()
                 self.close(thread=True)
 
-    def ping_thread(self):
+    def ping_thread(self) -> None:
         """
         Sends a ping every 60 seconds as a keepalive
         """
@@ -381,7 +381,7 @@ class Client:
             self.send(json.dumps({"cmd": "ping"}))
             self.ping_event.wait(60)
 
-    def input_loop(self):
+    def input_loop(self) -> None:
         """
         The main input loop that draws the prompt and handles input
         """
@@ -441,7 +441,7 @@ class Client:
                 except:
                     self.close(error=sys.exc_info(), thread=False)
 
-    def send_input(self, message):
+    def send_input(self, message: str) -> None:
         """
         Handles input returned from the prompt
         """
@@ -893,7 +893,7 @@ Client-based commands:
 
                     self.send(json.dumps({"cmd": "chat", "text": message}))
 
-    def close(self, error=False, thread=True):
+    def close(self, error: bool=False, thread: bool=True) -> None:
         """
         Closes the websocket connection and exits the client or thread
         """
@@ -911,7 +911,7 @@ Client-based commands:
             sys.exit(0)
 
 
-def generate_config(config):
+def generate_config(config: argparse.Namespace) -> None:
     """
     Generates a config file from the specified arguments
     """
@@ -934,7 +934,7 @@ def generate_config(config):
         sys.exit("{}: error: {}".format(sys.argv[0], sys.exc_info()[1]))
 
 
-def load_config(filepath):
+def load_config(filepath: str) -> dict:
     """
     Loads a config file from the specified path
     """
@@ -966,7 +966,7 @@ def load_config(filepath):
         sys.exit("{}: error: {}".format(sys.argv[0], sys.exc_info()[1]))
 
 
-def initialize_config(args, parser):
+def initialize_config(args: argparse.Namespace, parser: argparse.ArgumentParser) -> dict:
     """
     Initializes the configuration and returns a dictionary
     """
