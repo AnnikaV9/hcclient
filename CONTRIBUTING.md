@@ -8,6 +8,7 @@ Please note we have a [code of conduct](CODE_OF_CONDUCT.md), please follow it in
 ## Contributing Guidelines
 
 - Keep all code in [\_\_main.py__](hcclient/__main__.py)
+- Document functions and classes using [docstrings](https://www.python.org/dev/peps/pep-0257/)
 - Keep the code cross-platform
 - Do not increase the version number, this will be done before releases
 - Do not modify [README.md](README.md), this will be done before releases
