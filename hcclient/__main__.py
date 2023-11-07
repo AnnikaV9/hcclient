@@ -863,7 +863,7 @@ Client-based commands:
                         display = help_text + mod_help_text + server_help_text if self.args["is_mod"] else help_text + server_help_text
                         self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
                                                           termcolor.colored("CLIENT", self.args["client_color"]),
-                                                          display),
+                                                          termcolor.colored(display, self.args["client_color"])),
                                                           bypass_lock=True)
 
                         self.send(json.dumps({"cmd": "help"}))
