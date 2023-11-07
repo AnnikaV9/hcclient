@@ -4,7 +4,6 @@
 # License:   Unlicense
 # Version:   1.10.8-git
 
-# import required modules
 import json
 import threading
 import ssl
@@ -22,11 +21,14 @@ import prompt_toolkit
 import notifypy
 import yaml
 
-# define the client class
 class Client:
-
-    # initialize the client
+    """
+    The main client class
+    """
     def __init__(self, args, bindings):
+        """
+        Initializes the client and environment, sets up variables and threads
+        """
         colorama.init()
         self.bindings = bindings
 
@@ -70,8 +72,11 @@ class Client:
         self.thread_ping = threading.Thread(target=self.ping_thread, daemon=True)
         self.thread_recv = threading.Thread(target=self.recv_thread, daemon=True)
 
-    # connect to the websocket server and join the channel
     def connect_to_server(self):
+        """
+        Connects to the websocket server and send the join packet
+        Uses a proxy if specified
+        """
         if not self.reconnecting:
             connect_status = "Connecting to {} ...".format(self.args["websocket_address"]) if not self.args["proxy"] else "Connecting to {} through proxy {} ...".format(self.args["websocket_address"], self.args["proxy"])
             self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
@@ -92,8 +97,11 @@ class Client:
         }))
         self.reconnecting = False
 
-    # validate configuration options
     def validate_config(option, value):
+        """
+        Validates a configuration option and its value
+        Returns True if valid, False if not
+        """
         if option in ("timestamp_color", "client_color", "server_color", "nickname_color",
                       "mod_nickname_color", "admin_nickname_color", "message_color",
                       "emote_color", "whisper_color", "warning_color"):
@@ -130,8 +138,10 @@ class Client:
 
         return True
 
-    # manage terminal contents
     def manage_term_contents(self):
+        """
+        Use tput to save the terminal's contents if tput is available and --clear is specified
+        """
         if self.args["clear"]:
             if shutil.which("tput"):
                 os.system("tput smcup")
@@ -146,15 +156,19 @@ class Client:
 
             os.system("cls" if os.name=="nt" else "clear")
 
-    # print a message to the terminal
     def print_msg(self, message, bypass_lock=False):
+        """
+        Prints a message to the terminal if the input lock is set, otherwise waits
+        """
         if not bypass_lock and not self.input_lock.is_set():
             self.input_lock.wait()
 
         print(message)
 
-    # send a packet to the server if connected
     def send(self, packet):
+        """
+        Sends a packet to the server if connected, otherwise prints an error
+        """
         if self.ws.connected:
             self.ws.send(packet)
 
@@ -164,8 +178,10 @@ class Client:
                                               termcolor.colored("Can't send packet, not connected to server. Run /reconnect", self.args["client_color"])),
                                               bypass_lock=True)
 
-    # Re-populate the auto-complete list
     def manage_complete_list(self):
+        """
+        Adds commands to the auto-complete list based on the user's permissions
+        """
         self.auto_complete_list.clear()
 
         self.auto_complete_list.extend(self.client_command_list)
@@ -177,8 +193,10 @@ class Client:
             for user in self.online_users:
                 self.auto_complete_list.append("{}@{}".format(prefix, user))
 
-    # ws.recv() loop that receives and parses packets
     def recv_thread(self):
+        """
+        Receives packets from the server and handles them
+        """
         try:
             if not self.ws.connected:
                 self.connect_to_server()
@@ -355,14 +373,18 @@ class Client:
                 self.ping_event.set()
                 self.close(thread=True)
 
-    # ping thread acting as a heartbeat
     def ping_thread(self):
+        """
+        Sends a ping every 60 seconds as a keepalive
+        """
         while self.ws.connected and not self.ping_event.is_set():
             self.send(json.dumps({"cmd": "ping"}))
             self.ping_event.wait(60)
 
-    # input loop that draws the prompt and handles input
     def input_loop(self):
+        """
+        The main input loop that draws the prompt and handles input
+        """
         exit_attempted = False
         with prompt_toolkit.patch_stdout.patch_stdout(raw=True):
             while True:
@@ -419,8 +441,10 @@ class Client:
                 except:
                     self.close(error=sys.exc_info(), thread=False)
 
-    # send input to the server and handle client commands
     def send_input(self, message):
+        """
+        Handles input returned from the prompt
+        """
         if self.unlock_after.is_alive():
             self.unlock_after.cancel()
         self.input_lock.clear()
@@ -869,8 +893,10 @@ Client-based commands:
 
                     self.send(json.dumps({"cmd": "chat", "text": message}))
 
-    # close the client or thread and print an error if there is one
     def close(self, error=False, thread=True):
+        """
+        Closes the websocket connection and exits the client or thread
+        """
         if not thread:
             colorama.deinit()
 
@@ -885,8 +911,10 @@ Client-based commands:
             sys.exit(0)
 
 
-# generate a config file in the current directory
 def generate_config(config):
+    """
+    Generates a config file from the specified arguments
+    """
     config = vars(config)
     for arg in ("gen_config", "config_file", "no_config", "channel", "nickname", "colors"):
             config.pop(arg)
@@ -906,8 +934,10 @@ def generate_config(config):
         sys.exit("{}: error: {}".format(sys.argv[0], sys.exc_info()[1]))
 
 
-# load a config file from the specified path
 def load_config(filepath):
+    """
+    Loads a config file from the specified path
+    """
     try:
         with open(filepath, "r") as config_file:
             if filepath.endswith(".json"):
@@ -936,8 +966,10 @@ def load_config(filepath):
         sys.exit("{}: error: {}".format(sys.argv[0], sys.exc_info()[1]))
 
 
-# initialize the configuration options
 def initialize_config(args, parser):
+    """
+    Initializes the configuration and returns a dictionary
+    """
     if args.gen_config:
         args.aliases = {"example": "example"}
         args.ignored = {"trips": ["example"], "hashes": ["example"]}
@@ -996,8 +1028,10 @@ def initialize_config(args, parser):
 
     return config
 
-# parse arguments and run the client
 def main():
+    """
+    Entry point
+    """
     parser = argparse.ArgumentParser(description="Terminal client for connecting to hack.chat servers. Use --colors to see a list of valid colors")
     required_group = parser.add_argument_group("required arguments")
     optional_group = parser.add_argument_group("optional arguments")
