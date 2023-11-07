@@ -36,4 +36,4 @@ To build a specific distribution format, run:
 ./build.sh <format>
 ```
 
-Where `<format>` is one of `executable`, `wheel`, or `container`.
+Where `<format>` is one of `executable`, `wheel`, `container` and `arch`.

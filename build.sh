@@ -79,10 +79,21 @@ container() {
       dist/hcclient-$VERSION-image.tar
 }
 
+arch() {
+   if ! command -v tar &> /dev/null
+   then
+     echo "command 'tar' not found"
+     exit 1
+   fi
+   cp LICENSE dist/LICENSE &&
+   tar -czvf dist/hcclient-$VERSION-arch.tar.gz -C dist hcclient-$VERSION LICENSE
+}
+
 case "$1" in
    executable) mkdir dist && prepare && executable ;;
    wheel) mkdir dist && prepare && wheel ;;
    container) mkdir dist && prepare && container ;;
-   all) mkdir dist && prepare && executable && wheel && container ;;
-   *) echo "valid commands: executable, wheel, container, all"; exit 1  ;;
+   arch) mkdir dist && prepare && executable && arch ;;
+   all) mkdir dist && prepare && executable && arch && wheel && container ;;
+   *) echo "valid commands: executable, wheel, container, arch, all"; exit 1  ;;
 esac
