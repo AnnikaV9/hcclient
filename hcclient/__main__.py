@@ -11,6 +11,7 @@ import websocket
 import sys
 import re
 import os
+import subprocess
 import copy
 import argparse
 import colorama
@@ -252,13 +253,21 @@ class Client:
                             color_to_use = self.args["nickname_color"]
 
                         if f"@{self.nick}" in received["text"] and not self.args["no_notify"]:
-                            notification = notifypy.Notify()
-                            notification.title = "hcclient"
-                            notification.message = "[{}] {}".format(received["nick"], received["text"])
-                            if os.path.isfile(os.path.join(self.def_config_dir, "tone.wav")):
-                                notification.audio = os.path.join(self.def_config_dir, "tone.wav")
+                            if shutil.which("termux-notification"):
+                                subprocess.Popen([
+                                    "termux-notification",
+                                    "-t", "hcclient",
+                                    "-c", "'[{}] {}'".format(received["nick"], received["text"])
+                                ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
-                            notification.send(block=False)
+                            else:
+                                notification = notifypy.Notify()
+                                notification.title = "hcclient"
+                                notification.message = "[{}] {}".format(received["nick"], received["text"])
+                                if os.path.isfile(os.path.join(self.def_config_dir, "tone.wav")):
+                                    notification.audio = os.path.join(self.def_config_dir, "tone.wav")
+
+                                notification.send(block=False)
 
                         self.print_msg("{}|{}| [{}] {}".format(termcolor.colored(packet_receive_time, self.args["timestamp_color"]),
                                                                termcolor.colored(tripcode, color_to_use),
@@ -277,13 +286,21 @@ class Client:
                                 tripcode = received.get("trip", "")
 
                             if received["from"] in self.online_users and not self.args["no_notify"]:
-                                notification = notifypy.Notify()
-                                notification.title = "hcclient"
-                                notification.message = "{}".format(received["text"])
-                                if os.path.isfile(os.path.join(self.def_config_dir, "tone.wav")):
-                                    notification.audio = os.path.join(self.def_config_dir, "tone.wav")
+                                if shutil.which("termux-notification"):
+                                    subprocess.Popen([
+                                        "termux-notification",
+                                        "-t", "hcclient",
+                                        "-c", received["text"]
+                                    ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
-                                notification.send(block=False)
+                                else:
+                                    notification = notifypy.Notify()
+                                    notification.title = "hcclient"
+                                    notification.message = received["text"]
+                                    if os.path.isfile(os.path.join(self.def_config_dir, "tone.wav")):
+                                        notification.audio = os.path.join(self.def_config_dir, "tone.wav")
+
+                                    notification.send(block=False)
 
                             self.print_msg("{}|{}| {}".format(termcolor.colored(packet_receive_time, self.args["timestamp_color"]),
                                                               termcolor.colored(tripcode, self.args["whisper_color"]),
