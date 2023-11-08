@@ -1,6 +1,6 @@
 <div align="left">
 <h1> hcclient <br /> <a target="_blank" href="https://github.com/AnnikaV9/carrotsh/blob/master/LICENSE" title="License"><img src="https://img.shields.io/static/v1?label=License&message=The%20Unlicense&color=blue&style=flat-square"></a></h1>
-A terminal client for connecting to <a href="https://hack.chat">hack.chat</a>
+A cross-platform terminal client for connecting to <a href="https://hack.chat">hack.chat</a>
 
 <br />
 <br />
