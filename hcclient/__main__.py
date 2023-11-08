@@ -257,7 +257,7 @@ class Client:
                                 subprocess.Popen([
                                     "termux-notification",
                                     "-t", "hcclient",
-                                    "-c", "'[{}] {}'".format(received["nick"], received["text"])
+                                    "-c", "[{}] {}".format(received["nick"], received["text"])
                                 ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
                             else:
