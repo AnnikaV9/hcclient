@@ -5,7 +5,7 @@ A cross-platform terminal client for connecting to <a href="https://hack.chat">h
 <br />
 <br />
 
-<img src="https://github.com/AnnikaV9/hcclient/assets/68383195/db0f13ab-b61a-4f42-b501-2175e792c443" width="80%"></div>
+<img src="https://github.com/AnnikaV9/hcclient/assets/68383195/8ca59367-0462-4683-8eec-023091a74fef" width="70%"></div>
 
 <br />
 
