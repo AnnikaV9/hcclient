@@ -33,10 +33,10 @@ hcclient is a cross-platform terminal client for connecting to [hack.chat](https
 <br />
 
 ## Features <a name="features"></a>
-- **Color theming:** &nbsp;Configured with command line flags, colors provided by termcolor.
+- **Color theming:** &nbsp;Configured with command line flags, colors provided by termcolor. See [Colors](#colors) for more information.
 - **Suggestions:** &nbsp;Starting your message with `@` or `/` will bring up a menu with a list of online users or commands. Cycle through them with arrow keys or continue typing to filter the suggestions even more. Outside of the menu, arrow keys cycle through message history.
-- **Configuration:** &nbsp;Generate and load YAML/JSON configuration files with no editing required. Change configuration options from within the client with commands, modifying behaviour and colors without having to restart.
-- **Desktop notifications:** &nbsp;Receive notifications whenever someone mentions you or sends you a whisper. (Not supported in container mode)
+- **Configuration:** &nbsp;Generate and load YAML/JSON configuration files with no editing required. Change configuration options from within the client with commands, modifying behaviour and colors without having to restart. See [Configuration](#configuration) for more information.
+- **Desktop notifications:** &nbsp;Receive notifications whenever someone mentions you or sends you a whisper. Android notifications are supported when running on [Termux](https://termux.dev/). See [Notifications](#notifications) for more information.
 - **Aliases:** &nbsp;Set aliases for messages and phrases you send often, because why wouldn't you?
 - **Whisper lock:** &nbsp;Lock the client with a command to send only whispers, preventing accidental information leaks.
 - **Ignore list:** &nbsp;Message blocking using tripcodes and connection hashes.
@@ -68,10 +68,10 @@ On Arch Linux, install the [AUR package](https://aur.archlinux.org/packages/hccl
 On other x86_64 linux distributions:
 ```
 # Download the latest binary
-wget -O hcclient https://github.com/AnnikaV9/hcclient/releases/download/v1.10.9/hcclient-1.10.9-linux-x86-64
+wget -O hcclient https://github.com/AnnikaV9/hcclient/releases/download/v1.10.10/hcclient-1.10.10-linux-x86-64
 
 # Or the statically linked binary if the above one doesn't work
-wget -O hcclient https://github.com/AnnikaV9/hcclient/releases/download/v1.10.9/hcclient-1.10.9-linux-x86-64-static
+wget -O hcclient https://github.com/AnnikaV9/hcclient/releases/download/v1.10.10/hcclient-1.10.10-linux-x86-64-static
 
 # Make the binary executable
 chmod +x hcclient
@@ -85,10 +85,10 @@ hcclient --help
 As a container:
 ```
 # Download the latest image
-wget https://github.com/AnnikaV9/hcclient/releases/download/v1.10.9/hcclient-1.10.9-image.tar.xz
+wget https://github.com/AnnikaV9/hcclient/releases/download/v1.10.10/hcclient-1.10.10-image.tar.xz
 
 # Install the image
-docker/podman load -i hcclient-1.10.9-image.tar.xz
+docker/podman load -i hcclient-1.10.10-image.tar.xz
 
 # Run hcclient
 docker/podman run --rm -it hcclient --help
@@ -252,6 +252,9 @@ Default config directory location:
 - **Other platforms:** &nbsp;$HOME/.config/hcclient
 
 On linux, libnotify and aplay are required for notifications to work.
+
+On Android, notifications are supported when running on [Termux](https://termux.dev/).<br />
+Install the [Termux:API](https://f-droid.org/en/packages/com.termux.api/) app and termux-api package and notifications will just work.
 
 **Note:** &nbsp; Notifications are not supported in container mode.
 
