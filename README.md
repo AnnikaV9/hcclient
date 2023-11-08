@@ -47,7 +47,7 @@ hcclient is a cross-platform terminal client for connecting to [hack.chat](https
 <br />
 
 ## Prerequisites <a name="prerequisites"></a>
-For x86_64 linux, statically and dynamically linked binaries are provided with the interpreter and dependencies bundled in.
+For x86_64 Linux, statically and dynamically linked binaries are provided with the interpreter and dependencies bundled in.
 
 On other platforms, python >= 3.10 and pip are required. <br />
 
@@ -65,7 +65,7 @@ pip install hcclient
 hcclient --help
 ```
 On Arch Linux, install the [AUR package](https://aur.archlinux.org/packages/hcclient-bin) with makepkg or an AUR helper.<br />
-On other x86_64 linux distributions:
+On other x86_64 Linux distributions:
 ```
 # Download the latest binary
 wget -O hcclient https://github.com/AnnikaV9/hcclient/releases/download/v1.10.10/hcclient-1.10.10-linux-x86-64
@@ -251,7 +251,7 @@ Default config directory location:
 - **Windows:** &nbsp;%APPDATA%/hcclient
 - **Other platforms:** &nbsp;$HOME/.config/hcclient
 
-On linux, libnotify and aplay are required for notifications to work.
+On Linux, libnotify and aplay are required for notifications to work.
 
 On Android, notifications are supported when running on [Termux](https://termux.dev/).<br />
 Install the [Termux:API](https://f-droid.org/en/packages/com.termux.api/) app and termux-api package and notifications will just work.
