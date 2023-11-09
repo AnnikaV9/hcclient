@@ -1,6 +1,6 @@
 <div align="left">
 <h1> hcclient <br /> <a target="_blank" href="https://github.com/AnnikaV9/carrotsh/blob/master/LICENSE" title="License"><img src="https://img.shields.io/static/v1?label=License&message=The%20Unlicense&color=blue&"></a> <a target="_blank" href="https://pypi.org/project/hcclient" title="PyPI"><img src="https://img.shields.io/pypi/v/hcclient?label=PyPI&color=blue"></a> </h1>
-A cross-platform terminal client for connecting to <a href="https://hack.chat">hack.chat</a>
+A cross-platform terminal client for <a href="https://hack.chat">hack.chat</a>
 
 <br />
 <br />
@@ -26,9 +26,9 @@ A cross-platform terminal client for connecting to <a href="https://hack.chat">h
 ## Introduction <a name="introduction"></a>
 *"hack.chat is a minimal, distraction-free, accountless, logless, disappearing chat service which is easily deployable as your own service."* - [hack.chat](https://github.com/hack-chat/main)
 
-hcclient is a cross-platform terminal client for connecting to [hack.chat](https://hack.chat).
+hcclient is a configurable and feature-rich cross-platform terminal client for connecting to [hack.chat](https://hack.chat).
 
-**Note:** &nbsp;As this client is written to be compatible with the official live instance running at https://hack.chat, compatibility with your own self-hosted instance or other alternate instances is not guaranteed.
+**Note:** &nbsp;This client is written to be compatible with the official live instance running at https://hack.chat. Compatibility with your own self-hosted instance or other alternate instances is not guaranteed.
 
 <br />
 
