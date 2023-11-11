@@ -104,8 +104,8 @@ class Client:
         Returns True if valid, False if not
         """
         if option in ("timestamp_color", "client_color", "server_color", "nickname_color",
-                      "mod_nickname_color", "admin_nickname_color", "message_color",
-                      "emote_color", "whisper_color", "warning_color"):
+                      "self_nickname_color", "mod_nickname_color", "admin_nickname_color",
+                      "message_color", "emote_color", "whisper_color", "warning_color"):
             if value not in termcolor.COLORS:
                 return False
 
@@ -242,15 +242,16 @@ class Client:
                             tripcode = received.get("trip", "")
 
                         if received["uType"] == "mod":
-                            color_to_use = self.args["mod_nickname_color"]
+                            color_to_use = self.args["mod_nickname_color"] if self.nick != received["nick"] else self.args["self_nickname_color"]
                             received["nick"] = "⭐ {}".format(received["nick"]) if not self.args["no_unicode"] else received["nick"]
 
                         elif received["uType"] == "admin":
-                            color_to_use = self.args["admin_nickname_color"]
+                            color_to_use = self.args["admin_nickname_color"] if self.nick != received["nick"] else self.args["self_nickname_color"]
                             received["nick"] = "⭐ {}".format(received["nick"]) if not self.args["no_unicode"] else received ["nick"]
+                            tripcode = "Admin"
 
                         else:
-                            color_to_use = self.args["nickname_color"]
+                            color_to_use = self.args["nickname_color"] if self.nick != received["nick"] else self.args["self_nickname_color"]
 
                         if f"@{self.nick}" in received["text"] and not self.args["no_notify"]:
                             if shutil.which("termux-notification"):
@@ -959,10 +960,10 @@ def load_config(filepath: str) -> dict:
             for key in ("trip_password", "websocket_address", "no_parse",
                        "clear", "is_mod", "no_unicode", "no_notify",
                        "prompt_string", "message_color", "whisper_color",
-                       "emote_color", "nickname_color", "warning_color",
-                       "server_color", "client_color", "timestamp_color",
-                       "mod_nickname_color", "admin_nickname_color",
-                       "ignored", "aliases", "proxy"):
+                       "emote_color", "nickname_color", "self_nickname_color",
+                       "warning_color", "server_color", "client_color",
+                       "timestamp_color", "mod_nickname_color",
+                       "admin_nickname_color", "ignored", "aliases", "proxy"):
                 if key not in config:
                     missing_args.append(key)
 
@@ -1061,13 +1062,14 @@ def main():
     optional_group.add_argument("--message-color", help="sets the message color (default: white)")
     optional_group.add_argument("--whisper-color", help="sets the whisper color (default: green)")
     optional_group.add_argument("--emote-color", help="sets the emote color (default: green)")
-    optional_group.add_argument("--nickname-color", help="sets the nickname color (default: white)")
+    optional_group.add_argument("--nickname-color", help="sets the nickname color of other users (default: blue)")
+    optional_group.add_argument("--self-nickname-color", help="sets the nickname color of yourself (default: magenta)")
     optional_group.add_argument("--warning-color", help="sets the warning color (default: yellow)")
     optional_group.add_argument("--server-color", help="sets the server color (default: green)")
     optional_group.add_argument("--client-color", help="sets the client color (default: green)")
     optional_group.add_argument("--timestamp-color", help="sets the timestamp color (default: white)")
-    optional_group.add_argument("--mod-nickname-color", help="sets the moderator nickname color (default: cyan)")
-    optional_group.add_argument("--admin-nickname-color", help="sets the admin nickname color (default: red)")
+    optional_group.add_argument("--mod-nickname-color", help="sets the nickname color of moderators (default: cyan)")
+    optional_group.add_argument("--admin-nickname-color", help="sets the nickname color of the admin (default: red)")
     optional_group.add_argument("--proxy", help="specify a proxy to use (format: TYPE:HOST:PORT) (default: None)")
     optional_group.add_argument("--version", help="displays the version and exits", action="version", version="hcclient 1.10.10-git")
     optional_group.set_defaults(gen_config=False,
@@ -1083,7 +1085,8 @@ def main():
                                 message_color="white",
                                 whisper_color="green",
                                 emote_color="green",
-                                nickname_color="white",
+                                nickname_color="blue",
+                                self_nickname_color="magenta",
                                 warning_color="yellow",
                                 server_color="green",
                                 client_color="green",
