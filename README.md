@@ -68,10 +68,10 @@ On Arch Linux, install the [AUR package](https://aur.archlinux.org/packages/hccl
 On other x86_64 Linux distributions:
 ```
 # Download the latest binary
-wget -O hcclient https://github.com/AnnikaV9/hcclient/releases/download/v1.10.10/hcclient-1.10.10-linux-x86-64
+wget -O hcclient https://github.com/AnnikaV9/hcclient/releases/download/v1.11.0/hcclient-1.11.0-linux-x86-64
 
 # Or the statically linked binary if the above one doesn't work
-wget -O hcclient https://github.com/AnnikaV9/hcclient/releases/download/v1.10.10/hcclient-1.10.10-linux-x86-64-static
+wget -O hcclient https://github.com/AnnikaV9/hcclient/releases/download/v1.11.0/hcclient-1.11.0-linux-x86-64-static
 
 # Make the binary executable
 chmod +x hcclient
@@ -85,10 +85,10 @@ hcclient --help
 As a container:
 ```
 # Download the latest image
-wget https://github.com/AnnikaV9/hcclient/releases/download/v1.10.10/hcclient-1.10.10-image.tar.xz
+wget https://github.com/AnnikaV9/hcclient/releases/download/v1.11.0/hcclient-1.11.0-image.tar.xz
 
 # Install the image
-docker/podman load -i hcclient-1.10.10-image.tar.xz
+docker/podman load -i hcclient-1.11.0-image.tar.xz
 
 # Run hcclient
 docker/podman run --rm -it hcclient --help
@@ -102,17 +102,17 @@ $ hcclient --help
 usage: hcclient [-h] [-c CHANNEL] [-n NICKNAME] [-t TRIP_PASSWORD]
                 [-w WEBSOCKET_ADDRESS] [-l CONFIG_FILE] [--no-config]
                 [--gen-config] [--no-parse] [--clear] [--is-mod]
-                [--no-unicode] [--no-notify]
-                [--prompt-string PROMPT_STRING] [--colors]
-                [--message-color MESSAGE_COLOR]
+                [--no-unicode] [--no-notify] [--prompt-string PROMPT_STRING]
+                [--colors] [--message-color MESSAGE_COLOR]
                 [--whisper-color WHISPER_COLOR] [--emote-color EMOTE_COLOR]
                 [--nickname-color NICKNAME_COLOR]
-                [--warning-color WARNING_COLOR]
-                [--server-color SERVER_COLOR] [--client-color CLIENT_COLOR]
+                [--self-nickname-color SELF_NICKNAME_COLOR]
+                [--warning-color WARNING_COLOR] [--server-color SERVER_COLOR]
+                [--client-color CLIENT_COLOR]
                 [--timestamp-color TIMESTAMP_COLOR]
                 [--mod-nickname-color MOD_NICKNAME_COLOR]
-                [--admin-nickname-color ADMIN_NICKNAME_COLOR]
-                [--proxy PROXY] [--version]
+                [--admin-nickname-color ADMIN_NICKNAME_COLOR] [--proxy PROXY]
+                [--version]
 
 Terminal client for connecting to hack.chat servers. Use --colors to see a
 list of valid colors
@@ -139,8 +139,8 @@ optional arguments:
   --no-parse            log received packets without parsing
   --clear               enables clearing of the terminal
   --is-mod              enables moderator commands
-  --no-unicode          disables moderator/admin icon and unicode
-                        characters in the UI
+  --no-unicode          disables moderator/admin icon and unicode characters
+                        in the UI
   --no-notify           disables desktop notifications
   --prompt-string PROMPT_STRING
                         sets the prompt string (default: '❯ ' or '> ' if
@@ -153,7 +153,9 @@ optional arguments:
   --emote-color EMOTE_COLOR
                         sets the emote color (default: green)
   --nickname-color NICKNAME_COLOR
-                        sets the nickname color (default: white)
+                        sets the nickname color of other users (default: blue)
+  --self-nickname-color SELF_NICKNAME_COLOR
+                        sets the nickname color of yourself (default: magenta)
   --warning-color WARNING_COLOR
                         sets the warning color (default: yellow)
   --server-color SERVER_COLOR
@@ -163,9 +165,9 @@ optional arguments:
   --timestamp-color TIMESTAMP_COLOR
                         sets the timestamp color (default: white)
   --mod-nickname-color MOD_NICKNAME_COLOR
-                        sets the moderator nickname color (default: cyan)
+                        sets the nickname color of moderators (default: cyan)
   --admin-nickname-color ADMIN_NICKNAME_COLOR
-                        sets the admin nickname color (default: red)
+                        sets the nickname color of the admin (default: red)
   --proxy PROXY         specify a proxy to use (format: TYPE:HOST:PORT)
                         (default: None)
   --version             displays the version and exits
