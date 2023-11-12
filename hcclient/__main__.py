@@ -905,7 +905,7 @@ Client-based commands:
 
     def close(self, error: bool=False, thread: bool=True) -> None:
         """
-        Closes the websocket connection and exits the client or thread
+        Exits the client or thread
         """
         if not thread:
             colorama.deinit()
