@@ -50,7 +50,8 @@ class Client:
         self.mod_command_list = [
             "/ban", "/unban", "/unbanall", "/dumb", "/speak", "/moveuser",
             "/kick", "/kickasone", "/overflow", "/authtrip", "/deauthtrip",
-            "/enablecaptcha", "/disablecaptcha", "/lockroom", "/unlockroom"
+            "/enablecaptcha", "/disablecaptcha", "/lockroom", "/unlockroom",
+            "/forcecolor", "/anticmd", "/uwuify"
         ]
 
         self.auto_complete_list = []
