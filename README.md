@@ -57,7 +57,7 @@ A [Docker](https://docs.docker.com/engine/) / [Podman](https://github.com/contai
 
 ## Installation <a name="installation"></a>
 On all platforms:
-```
+```bash
 # Install the pip package
 pip install hcclient
 
@@ -66,7 +66,7 @@ hcclient --help
 ```
 On Arch Linux, install the [AUR package](https://aur.archlinux.org/packages/hcclient-bin) with makepkg or an AUR helper.<br />
 On other x86_64 Linux distributions:
-```
+```bash
 # Download the latest binary
 wget -O hcclient https://github.com/AnnikaV9/hcclient/releases/download/v1.11.0/hcclient-1.11.0-linux-x86-64
 
@@ -77,13 +77,13 @@ wget -O hcclient https://github.com/AnnikaV9/hcclient/releases/download/v1.11.0/
 chmod +x hcclient
 
 # Move it to somewhere in PATH
-mv hcclient ~/.local/bin/
+mv hcclient $HOME/.local/bin/
 
 # Run hcclient
 hcclient --help
 ```
 As a container:
-```
+```bash
 # Download the latest image
 wget https://github.com/AnnikaV9/hcclient/releases/download/v1.11.0/hcclient-1.11.0-image.tar.xz
 
