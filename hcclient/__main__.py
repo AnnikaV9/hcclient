@@ -41,8 +41,9 @@ class Client:
 
         self.client_command_list = [
             "/help", "/raw", "/list", "/nick", "/clear", "/profile",
-            "/wlock", "/ignore", "/unignoreall", "/reconnect",
-            "/set", "/unset", "/configset", "/configdump", "/save", "/quit"
+            "/wlock", "/ignore", "/unignoreall", "/reconnect", "/set",
+            "/unset", "/configset", "/configdump", "/save", "/reprint",
+            "/quit"
         ]
         self.server_command_list = [
             "/whisper", "/reply", "/me", "/stats",
@@ -59,6 +60,7 @@ class Client:
 
         self.term_content_saved = False
         self.manage_term_contents()
+        self.stdout_history = []
 
         self.def_config_dir = os.path.join(os.getenv("APPDATA"), "hcclient") if os.name == "nt" else os.path.join(os.getenv("HOME"), ".config", "hcclient")
 
@@ -161,11 +163,16 @@ class Client:
     def print_msg(self, message: str, bypass_lock: bool=False) -> None:
         """
         Prints a message to the terminal if the input lock is set, otherwise waits
+        Also adds the message to the stdout history
         """
         if not bypass_lock and not self.input_lock.is_set():
             self.input_lock.wait()
 
         print(message)
+
+        self.stdout_history.append(message)
+        if len(self.stdout_history) > 500:
+            self.stdout_history.pop(0)
 
     def send(self, packet: str) -> None:
         """
@@ -749,6 +756,9 @@ class Client:
                                                           termcolor.colored("Unable to save configuration without a loaded config file, use --load-config", self.args["client_color"])),
                                                           bypass_lock=True)
 
+                case "/reprint":
+                    print("\n".join(self.stdout_history))
+
                 case "/quit":
                     self.close()
 
@@ -893,6 +903,10 @@ Client-based commands:
   to the loaded configuration file.
   Will save aliases and ignored
   trips/hashes.
+/reprint
+  Prints the last 500 lines of
+  output, even if they have been
+  cleared with /clear.
 /quit
   Exits the client."""
                         mod_help_text = """\n\nClient-based mod commands:
