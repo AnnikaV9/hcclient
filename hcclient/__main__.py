@@ -26,12 +26,12 @@ class Client:
     """
     The main client class
     """
-    def __init__(self, args: dict, bindings: prompt_toolkit.key_binding.KeyBindings) -> None:
+    def __init__(self, args: dict) -> None:
         """
         Initializes the client and environment, sets up variables and threads
         """
         colorama.init()
-        self.bindings = bindings
+        self.bindings = prompt_toolkit.key_binding.KeyBindings()
 
         self.args = args
         self.nick = self.args["nickname"]
@@ -398,10 +398,40 @@ class Client:
             self.send(json.dumps({"cmd": "ping"}))
             self.ping_event.wait(60)
 
+    def replace_aliases(self, event: prompt_toolkit.key_binding.KeyPressEvent) -> None:
+        """
+        Replaces aliases with their values on space
+        """
+        event.current_buffer.insert_text(" ")
+        no_chars = len(event.current_buffer.text)
+
+        for alias in self.args["aliases"]:
+            event.current_buffer.text = event.current_buffer.text.replace(f"${alias}", self.args["aliases"][alias])
+            added_chars = len(event.current_buffer.text) - no_chars
+
+        event.current_buffer.cursor_position += added_chars
+
+    def add_newline(self, event: prompt_toolkit.key_binding.KeyPressEvent) -> None:
+        """
+        Adds a newline on alt+enter, esc+enter, or ctrl+n
+        """
+        event.current_buffer.insert_text("\n")
+
+    def validate_and_send(self, event: prompt_toolkit.key_binding.KeyPressEvent) -> None:
+        """
+        Sends the message on enter
+        """
+        event.current_buffer.validate_and_handle()
+
     def input_loop(self) -> None:
         """
         The main input loop that draws the prompt and handles input
         """
+        self.bindings.add("space")(self.replace_aliases)
+        self.bindings.add("enter")(self.validate_and_send)
+        self.bindings.add("escape", "enter")(self.add_newline)
+        self.bindings.add("c-n")(self.add_newline)
+
         exit_attempted = False
         with prompt_toolkit.patch_stdout.patch_stdout(raw=True):
             while True:
@@ -1102,29 +1132,11 @@ def main():
         print("Valid colors: \n{}".format("\n".join(termcolor.COLORS)))
         sys.exit(0)
 
-    args = initialize_config(parser.parse_args(), parser)
-
-    bindings = prompt_toolkit.key_binding.KeyBindings()
-
-    @bindings.add("escape", "enter")
-    @bindings.add("c-n")
-    def _(event: prompt_toolkit.key_binding.KeyPressEvent) -> None:
-        """
-        Adds a newline on alt+enter, esc+enter, or ctrl+n
-        """
-        event.current_buffer.insert_text("\n")
-
-    @bindings.add("enter")
-    def _(event: prompt_toolkit.key_binding.KeyPressEvent) -> None:
-        """
-        Sends the message on enter
-        """
-        event.current_buffer.validate_and_handle()
-
-    client = Client(args, bindings)
+    client = Client(initialize_config(parser.parse_args(), parser))
     client.thread_ping.start()
     client.thread_recv.start()
     client.input_loop()
 
 
-if __name__ == "__main__": main()
+if __name__ == "__main__":
+    main()
