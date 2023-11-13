@@ -1097,30 +1097,34 @@ def main():
                                 trip_password="",
                                 websocket_address="wss://hack.chat/chat-ws",
                                 proxy=False)
-    args = parser.parse_args()
 
-    if args.colors:
+    if parser.parse_args().colors:
         print("Valid colors: \n{}".format("\n".join(termcolor.COLORS)))
         sys.exit(0)
 
+    args = initialize_config(parser.parse_args(), parser)
+
     bindings = prompt_toolkit.key_binding.KeyBindings()
 
-    # Newline on esc+enter, alt+enter or ctrl+n
     @bindings.add("escape", "enter")
     @bindings.add("c-n")
-    def _(event):
-        event.current_buffer.insert_text('\n')
+    def _(event: prompt_toolkit.key_binding.KeyPressEvent) -> None:
+        """
+        Adds a newline on alt+enter, esc+enter, or ctrl+n
+        """
+        event.current_buffer.insert_text("\n")
 
-    # Accept input on enter
     @bindings.add("enter")
-    def _(event):
+    def _(event: prompt_toolkit.key_binding.KeyPressEvent) -> None:
+        """
+        Sends the message on enter
+        """
         event.current_buffer.validate_and_handle()
 
-    client = Client(initialize_config(args, parser), bindings)
+    client = Client(args, bindings)
     client.thread_ping.start()
     client.thread_recv.start()
     client.input_loop()
 
 
-if __name__ == "__main__":
-    main()
+if __name__ == "__main__": main()
