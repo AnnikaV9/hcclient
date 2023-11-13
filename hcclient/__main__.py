@@ -404,12 +404,16 @@ class Client:
         """
         event.current_buffer.insert_text(" ")
         no_chars = len(event.current_buffer.text)
+        word_list = event.current_buffer.text.split(" ")
 
         for alias in self.args["aliases"]:
-            event.current_buffer.text = event.current_buffer.text.replace(f"${alias}", self.args["aliases"][alias])
-            added_chars = len(event.current_buffer.text) - no_chars
+            word_list[:] = [part if part != f"${alias}" else self.args["aliases"][alias] for part in word_list]
 
-        event.current_buffer.cursor_position += added_chars
+        processed_text = " ".join(word_list)
+        no_added = len(processed_text) - no_chars
+
+        event.current_buffer.text = processed_text
+        event.current_buffer.cursor_position += no_added
 
     def add_newline(self, event: prompt_toolkit.key_binding.KeyPressEvent) -> None:
         """
