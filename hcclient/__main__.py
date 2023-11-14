@@ -15,6 +15,7 @@ import subprocess
 import copy
 import argparse
 import colorama
+import time
 import datetime
 import termcolor
 import shutil
@@ -70,8 +71,6 @@ class Client:
         self.whisper_lock = False
         self.prompt_session = prompt_toolkit.PromptSession(reserve_space_for_menu=4)
 
-        self.input_lock = threading.Event()
-        self.ping_event = threading.Event()
         self.thread_ping = threading.Thread(target=self.ping_thread, daemon=True)
         self.thread_recv = threading.Thread(target=self.recv_thread, daemon=True)
 
@@ -80,13 +79,11 @@ class Client:
         Connects to the websocket server and send the join packet
         Uses a proxy if specified
         """
-        if not self.reconnecting:
-            connect_status = "Connecting to {} ...".format(self.args["websocket_address"]) if not self.args["proxy"] else "Connecting to {} through proxy {} ...".format(self.args["websocket_address"], self.args["proxy"])
+        connect_status = "Connecting to {} ...".format(self.args["websocket_address"]) if not self.args["proxy"] else "Connecting to {} through proxy {} ...".format(self.args["websocket_address"], self.args["proxy"])
 
-            self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
-                                              termcolor.colored("CLIENT", self.args["client_color"]),
-                                              termcolor.colored(connect_status, self.args["client_color"])),
-                                              bypass_lock=True)
+        self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
+                                          termcolor.colored("CLIENT", self.args["client_color"]),
+                                          termcolor.colored(connect_status, self.args["client_color"])))
 
         if self.args["proxy"]:
             self.ws.connect(self.args["websocket_address"], http_proxy_host=self.args["proxy"].split(":")[1], http_proxy_port=self.args["proxy"].split(":")[2], proxy_type=self.args["proxy"].split(":")[0].lower())
@@ -99,7 +96,6 @@ class Client:
             "channel": self.args["channel"],
             "nick": "{}#{}".format(self.nick, self.args["trip_password"])
         }))
-        self.reconnecting = False
 
     def validate_config(option: str, value: str) -> bool:
         """
@@ -160,14 +156,10 @@ class Client:
 
             os.system("cls" if os.name=="nt" else "clear")
 
-    def print_msg(self, message: str, bypass_lock: bool=False) -> None:
+    def print_msg(self, message: str) -> None:
         """
-        Prints a message to the terminal if the input lock is set, otherwise waits
-        Also adds the message to the stdout history
+        Prints a message to the terminal and adds it to the stdout history
         """
-        if not bypass_lock and not self.input_lock.is_set():
-            self.input_lock.wait()
-
         print(message)
 
         self.stdout_history.append(message)
@@ -184,8 +176,7 @@ class Client:
         else:
             self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
                                               termcolor.colored("CLIENT", self.args["client_color"]),
-                                              termcolor.colored("Can't send packet, not connected to server. Run /reconnect", self.args["client_color"])),
-                                              bypass_lock=True)
+                                              termcolor.colored("Can't send packet, not connected to server. Run /reconnect", self.args["client_color"])))
 
     def manage_complete_list(self) -> None:
         """
@@ -215,7 +206,8 @@ class Client:
                 packet_receive_time = datetime.datetime.now().strftime("%H:%M")
 
                 if self.args["no_parse"]:
-                    self.print_msg("\n{}|{}".format(packet_receive_time, received))
+                    self.print_msg("{}|{}".format(packet_receive_time, received))
+                    continue
 
                 match received["cmd"]:
                     case "onlineSet":
@@ -394,16 +386,16 @@ class Client:
                                                   termcolor.colored("CLIENT", self.args["client_color"]),
                                                   termcolor.colored("Try running /reconnect", self.args["client_color"])))
 
-                self.ping_event.set()
                 self.close(thread=True)
 
     def ping_thread(self) -> None:
         """
         Sends a ping every 60 seconds as a keepalive
         """
-        while self.ws.connected and not self.ping_event.is_set():
-            self.send(json.dumps({"cmd": "ping"}))
-            self.ping_event.wait(60)
+        while True:
+            if self.ws.connected:
+                self.send(json.dumps({"cmd": "ping"}))
+                time.sleep(60)
 
     def replace_aliases(self, event: prompt_toolkit.key_binding.KeyPressEvent) -> None:
         """
@@ -428,95 +420,66 @@ class Client:
         """
         event.current_buffer.insert_text("\n")
 
+    def keyboard_interrupt(self, event: prompt_toolkit.key_binding.KeyPressEvent) -> None:
+        """
+        Closes the client on ctrl+c twice
+        """
+        if self.exit_attempted:
+            raise KeyboardInterrupt
+
+        else:
+            self.exit_attempted = True
+            self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
+                                              termcolor.colored("CLIENT", self.args["client_color"]),
+                                              termcolor.colored("Press ctrl+c again to exit", self.args["client_color"])))
+
     def validate_and_send(self, event: prompt_toolkit.key_binding.KeyPressEvent) -> None:
         """
-        Sends the message on enter
+        Sends the message on enter and adds it to the prompt history
         """
-        event.current_buffer.validate_and_handle()
+        buffer = event.current_buffer.text
+        event.current_buffer.reset()
 
-    def input_loop(self) -> None:
+        self.send_input(buffer)
+        self.prompt_session.history.append_string(buffer)
+
+        self.exit_attempted = False
+
+    def input_manager(self) -> None:
         """
-        The main input loop that draws the prompt and handles input
+        The main input manager that draws the prompt and handles input
         """
         self.bindings.add("space")(self.replace_aliases)
         self.bindings.add("enter")(self.validate_and_send)
         self.bindings.add("escape", "enter")(self.add_newline)
         self.bindings.add("c-n")(self.add_newline)
+        self.bindings.add("c-c")(self.keyboard_interrupt)
 
-        exit_attempted = False
+        self.exit_attempted = False
         with prompt_toolkit.patch_stdout.patch_stdout(raw=True):
-            while True:
-                self.input_lock.clear()
+            if self.args["prompt_string"] and self.args["prompt_string"] != "default":
+                prompt_string = self.args["prompt_string"]
 
-                if self.args["prompt_string"] and self.args["prompt_string"] != "default":
-                    prompt_string = self.args["prompt_string"]
+            else:
+                prompt_string = "> " if self.args["no_unicode"] else "❯ "
 
-                else:
-                    prompt_string = "> " if self.args["no_unicode"] else "❯ "
+            self.prompt_length = len(prompt_string)
 
-                if exit_attempted:
-                    prompt_string = "(ctrl+c again to exit, enter to cancel) " + prompt_string
+            nick_completer = prompt_toolkit.completion.WordCompleter(self.auto_complete_list, match_middle=True, ignore_case=True, sentence=True)
 
-                else:
-                    buffer = ""
+            try:
+                self.prompt_session.prompt(prompt_string, completer=nick_completer, complete_in_thread=True, multiline=True, key_bindings=self.bindings, prompt_continuation=(" " * self.prompt_length))
 
-                self.prompt_length = len(prompt_string)
+            except (EOFError, KeyboardInterrupt):
+                self.close(thread=False)
 
-                nick_completer = prompt_toolkit.completion.WordCompleter(self.auto_complete_list, match_middle=True, ignore_case=True, sentence=True)
-
-                self.unlock_after = threading.Timer(0.3, self.input_lock.set)
-                self.unlock_after.start()
-
-                try:
-                    self.send_input(self.prompt_session.prompt(prompt_string, default=buffer, completer=nick_completer, complete_in_thread=True, multiline=True, key_bindings=self.bindings, prompt_continuation=(" " * self.prompt_length)))
-                    exit_attempted = False
-
-                except KeyboardInterrupt:
-                    if not exit_attempted:
-                        if self.unlock_after.is_alive():
-                            self.unlock_after.cancel()
-                        self.input_lock.clear()
-
-                        buffer = self.prompt_session.default_buffer.document.text
-                        lines = buffer.split("\n")
-                        no_lines = len(lines)
-                        true_term_size = shutil.get_terminal_size().columns - self.prompt_length
-                        for line in lines:
-                            if len(line) > true_term_size:
-                                no_lines += round(len(line) / true_term_size - 0.5)
-
-                        for _ in range(no_lines):
-                            print("\033[A{}\033[A".format(" " * shutil.get_terminal_size().columns))
-
-                        exit_attempted = True
-
-                    else:
-                        self.close(thread=False)
-
-                except EOFError:
-                    self.close(thread=False)
-
-                except:
-                    self.close(error=sys.exc_info(), thread=False)
+            except:
+                self.close(error=sys.exc_info(), thread=False)
 
     def send_input(self, message: str) -> None:
         """
         Handles input returned from the prompt
         """
-        if self.unlock_after.is_alive():
-            self.unlock_after.cancel()
-        self.input_lock.clear()
-
-        lines = message.split("\n")
-        no_lines = len(lines)
-        true_term_size = shutil.get_terminal_size().columns - self.prompt_length
-        for line in lines:
-            if len(line) > true_term_size:
-                no_lines += round(len(line) / true_term_size - 0.5)
-
-        for _ in range(no_lines):
-            print("\033[A{}\033[A".format(" " * shutil.get_terminal_size().columns))
-
         if len(message) > 0:
             split_message = message.split(" ")
             for alias in self.args["aliases"]:
@@ -533,14 +496,12 @@ class Client:
                     except:
                         self.print_msg("{}|{}| Error sending json: {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
                                                                               termcolor.colored("CLIENT", self.args["client_color"]),
-                                                                              termcolor.colored("{}".format(sys.exc_info()[1]), self.args["client_color"])),
-                                                                              bypass_lock=True)
+                                                                              termcolor.colored("{}".format(sys.exc_info()[1]), self.args["client_color"])))
 
                 case "/list":
                     self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
                                                       termcolor.colored("CLIENT", self.args["client_color"]),
-                                                      termcolor.colored("Channel: {} - Users: {}".format(self.channel, ", ".join(self.online_users)), self.args["client_color"])),
-                                                      bypass_lock=True)
+                                                      termcolor.colored("Channel: {} - Users: {}".format(self.channel, ", ".join(self.online_users)), self.args["client_color"])))
 
                 case "/profile":
                     target = parsed_message[2].lstrip("@")
@@ -550,15 +511,13 @@ class Client:
 
                         self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
                                                           termcolor.colored("CLIENT", self.args["client_color"]),
-                                                          termcolor.colored(profile, self.args["client_color"])),
-                                                          bypass_lock=True)
+                                                          termcolor.colored(profile, self.args["client_color"])))
 
 
                     else:
                         self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
                                                           termcolor.colored("CLIENT", self.args["client_color"]),
-                                                          termcolor.colored("No such user: '{}'".format(target), self.args["client_color"])),
-                                                          bypass_lock=True)
+                                                          termcolor.colored("No such user: '{}'".format(target), self.args["client_color"])))
 
                 case "/nick":
                     if re.match("^[A-Za-z0-9_]*$", parsed_message[2]) and 0 < len(parsed_message[2]) < 25:
@@ -571,8 +530,7 @@ class Client:
                     else:
                         self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
                                                           termcolor.colored("CLIENT", self.args["client_color"]),
-                                                          termcolor.colored("Nickname must consist of up to 24 letters, numbers, and underscores", self.args["client_color"])),
-                                                          bypass_lock=True)
+                                                          termcolor.colored("Nickname must consist of up to 24 letters, numbers, and underscores", self.args["client_color"])))
 
                 case "/clear":
                     if self.args["clear"]:
@@ -581,16 +539,14 @@ class Client:
                     else:
                         self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
                                                           termcolor.colored("CLIENT", self.args["client_color"]),
-                                                          termcolor.colored("Clearing is disabled, enable with the --clear flag or run `/configset clear true`", self.args["client_color"])),
-                                                          bypass_lock=True)
+                                                          termcolor.colored("Clearing is disabled, enable with the --clear flag or run `/configset clear true`", self.args["client_color"])))
 
                 case "/wlock":
                     self.whisper_lock = not self.whisper_lock
 
                     self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
                                                       termcolor.colored("CLIENT", self.args["client_color"]),
-                                                      termcolor.colored("Toggled whisper lock to {}".format(self.whisper_lock), self.args["client_color"])),
-                                                      bypass_lock=True)
+                                                      termcolor.colored("Toggled whisper lock to {}".format(self.whisper_lock), self.args["client_color"])))
 
                 case "/ignore":
                     target = parsed_message[2].lstrip("@")
@@ -606,14 +562,12 @@ class Client:
 
                         self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
                                                           termcolor.colored("CLIENT", self.args["client_color"]),
-                                                          termcolor.colored("Ignoring trip '{}' and hash '{}', run /save to persist".format(trip_to_ignore, self.online_users_details[target]["Hash"]), self.args["client_color"])),
-                                                          bypass_lock=True)
+                                                          termcolor.colored("Ignoring trip '{}' and hash '{}', run /save to persist".format(trip_to_ignore, self.online_users_details[target]["Hash"]), self.args["client_color"])))
 
                     else:
                         self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
                                                           termcolor.colored("CLIENT", self.args["client_color"]),
-                                                          termcolor.colored("No such user: '{}'".format(target), self.args["client_color"])),
-                                                          bypass_lock=True)
+                                                          termcolor.colored("No such user: '{}'".format(target), self.args["client_color"])))
 
                 case "/unignoreall":
                     self.online_ignored_users = []
@@ -621,52 +575,36 @@ class Client:
 
                     self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
                                                       termcolor.colored("CLIENT", self.args["client_color"]),
-                                                      termcolor.colored("Unignored all trips/hashes, run /save to persist", self.args["client_color"])),
-                                                      bypass_lock=True)
+                                                      termcolor.colored("Unignored all trips/hashes, run /save to persist", self.args["client_color"])))
 
                 case "/reconnect":
                     self.reconnecting = True
 
                     self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
                                                       termcolor.colored("CLIENT", self.args["client_color"]),
-                                                      termcolor.colored("Reconnecting...", self.args["client_color"])),
-                                                      bypass_lock=True)
+                                                      termcolor.colored("Initiating reconnect ...", self.args["client_color"])))
 
                     self.ws.close()
-                    self.ping_event.set()
-                    self.thread_ping.join()
                     self.thread_recv.join()
 
-                    try:
-                        self.connect_to_server()
+                    self.reconnecting = False
 
-                        self.ping_event.clear()
-                        self.thread_ping = threading.Thread(target=self.ping_thread, daemon=True)
-                        self.thread_recv = threading.Thread(target=self.recv_thread, daemon=True)
-                        self.thread_ping.start()
-                        self.thread_recv.start()
-
-                    except:
-                        self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
-                                                          termcolor.colored("CLIENT", self.args["client_color"]),
-                                                          termcolor.colored("Reconnect failed: {}".format(sys.exc_info()[1]), self.args["client_color"])),
-                                                          bypass_lock=True)
+                    self.thread_recv = threading.Thread(target=self.recv_thread, daemon=True)
+                    self.thread_recv.start()
 
                 case "/set":
                     message_args = parsed_message[2].split(" ")
                     if len(message_args) < 2:
                         self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
                                                           termcolor.colored("CLIENT", self.args["client_color"]),
-                                                          termcolor.colored("Alias/Value cannot be empty", self.args["client_color"])),
-                                                          bypass_lock=True)
+                                                          termcolor.colored("Alias/Value cannot be empty", self.args["client_color"])))
 
                     else:
                         self.args["aliases"][message_args[0]] = " ".join(message_args[1:])
 
                         self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
                                                           termcolor.colored("CLIENT", self.args["client_color"]),
-                                                          termcolor.colored("Set alias '{}' = '{}'".format(message_args[0], self.args["aliases"][message_args[0]]), self.args["client_color"])),
-                                                          bypass_lock=True)
+                                                          termcolor.colored("Set alias '{}' = '{}'".format(message_args[0], self.args["aliases"][message_args[0]]), self.args["client_color"])))
 
                 case "/unset":
                     try:
@@ -674,14 +612,12 @@ class Client:
 
                         self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
                                                           termcolor.colored("CLIENT", self.args["client_color"]),
-                                                          termcolor.colored("Unset alias '{}'".format(parsed_message[2]), self.args["client_color"])),
-                                                          bypass_lock=True)
+                                                          termcolor.colored("Unset alias '{}'".format(parsed_message[2]), self.args["client_color"])))
 
                     except KeyError:
                         self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
                                                           termcolor.colored("CLIENT", self.args["client_color"]),
-                                                          termcolor.colored("Alias '{}' isn't defined".format(parsed_message[2]), self.args["client_color"])),
-                                                          bypass_lock=True)
+                                                          termcolor.colored("Alias '{}' isn't defined".format(parsed_message[2]), self.args["client_color"])))
 
                 case "/configset":
                     message_args = parsed_message[2].lower().split(" ")
@@ -702,28 +638,24 @@ class Client:
 
                             self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
                                                               termcolor.colored("CLIENT", self.args["client_color"]),
-                                                              termcolor.colored("Set configuration option '{}' to '{}'".format(option, value), self.args["client_color"])),
-                                                              bypass_lock=True)
+                                                              termcolor.colored("Set configuration option '{}' to '{}'".format(option, value), self.args["client_color"])))
 
                         else:
                             self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
                                                               termcolor.colored("CLIENT", self.args["client_color"]),
-                                                              termcolor.colored("Error setting configuration: Invalid value '{}' for option '{}'".format(value, option), self.args["client_color"])),
-                                                              bypass_lock=True)
+                                                              termcolor.colored("Error setting configuration: Invalid value '{}' for option '{}'".format(value, option), self.args["client_color"])))
 
                     else:
                         problem = "Invalid" if message_args[0] not in self.args else "Read-only"
 
                         self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
                                                           termcolor.colored("CLIENT", self.args["client_color"]),
-                                                          termcolor.colored("Error setting configuration: {} option '{}'".format(problem, message_args[0]), self.args["client_color"])),
-                                                          bypass_lock=True)
+                                                          termcolor.colored("Error setting configuration: {} option '{}'".format(problem, message_args[0]), self.args["client_color"])))
 
                 case "/configdump":
                     self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
                                                       termcolor.colored("CLIENT", self.args["client_color"]),
-                                                      termcolor.colored("Active configuration:\n" + "\n".join("{}: {}".format(option, value) for option, value in self.args.items()), self.args["client_color"])),
-                                                      bypass_lock=True)
+                                                      termcolor.colored("Active configuration:\n" + "\n".join("{}: {}".format(option, value) for option, value in self.args.items()), self.args["client_color"])))
 
                 case "/save":
                     if self.args["config_file"]:
@@ -741,20 +673,17 @@ class Client:
 
                                 self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
                                                                   termcolor.colored("CLIENT", self.args["client_color"]),
-                                                                  termcolor.colored("Configuration saved to {}".format(self.args["config_file"]), self.args["client_color"])),
-                                                                  bypass_lock=True)
+                                                                  termcolor.colored("Configuration saved to {}".format(self.args["config_file"]), self.args["client_color"])))
 
                         except:
                             self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
                                                               termcolor.colored("CLIENT", self.args["client_color"]),
-                                                              termcolor.colored("Error saving configuration: {}".format(sys.exc_info()[1]), self.args["client_color"])),
-                                                              bypass_lock=True)
+                                                              termcolor.colored("Error saving configuration: {}".format(sys.exc_info()[1]), self.args["client_color"])))
 
                     else:
                         self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
                                                           termcolor.colored("CLIENT", self.args["client_color"]),
-                                                          termcolor.colored("Unable to save configuration without a loaded config file, use --load-config", self.args["client_color"])),
-                                                          bypass_lock=True)
+                                                          termcolor.colored("Unable to save configuration without a loaded config file, use --load-config", self.args["client_color"])))
 
                 case "/reprint":
                     print("\n".join(self.stdout_history))
@@ -791,8 +720,7 @@ class Client:
                         else:
                             self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
                                                               termcolor.colored("CLIENT", self.args["client_color"]),
-                                                              termcolor.colored("User/Channel cannot be empty", self.args["client_color"])),
-                                                              bypass_lock=True)
+                                                              termcolor.colored("User/Channel cannot be empty", self.args["client_color"])))
 
                 case "/kick":
                     if self.args["is_mod"]:
@@ -839,8 +767,7 @@ class Client:
                         else:
                             self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
                                                               termcolor.colored("CLIENT", self.args["client_color"]),
-                                                              termcolor.colored("User/Color cannot be empty", self.args["client_color"])),
-                                                              bypass_lock=True)
+                                                              termcolor.colored("User/Color cannot be empty", self.args["client_color"])))
 
                 case "/anticmd":
                     if self.args["is_mod"]:
@@ -933,8 +860,7 @@ Client-based commands:
 
                         self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
                                                           termcolor.colored("CLIENT", self.args["client_color"]),
-                                                          termcolor.colored(display, self.args["client_color"])),
-                                                          bypass_lock=True)
+                                                          termcolor.colored(display, self.args["client_color"])))
 
                         self.send(json.dumps({"cmd": "help"}))
 
@@ -946,8 +872,7 @@ Client-based commands:
                         if not message.split(" ")[0] in ("/whisper", "/w", "/reply", "/r") or message.startswith(" "):
                             self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
                                                               termcolor.colored("CLIENT", self.args["client_color"]),
-                                                              termcolor.colored("Whisper lock active, toggle it off to send messages", self.args["client_color"])),
-                                                              bypass_lock=True)
+                                                              termcolor.colored("Whisper lock active, toggle it off to send messages", self.args["client_color"])))
                             return
 
                     self.send(json.dumps({"cmd": "chat", "text": message}))
@@ -1153,7 +1078,7 @@ def main():
     client = Client(initialize_config(parser.parse_args(), parser))
     client.thread_ping.start()
     client.thread_recv.start()
-    client.input_loop()
+    client.input_manager()
 
 
 if __name__ == "__main__":
