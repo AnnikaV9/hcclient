@@ -458,6 +458,17 @@ class Client:
 
         self.exit_attempted = False
 
+    def return_prompt_string(self) -> str:
+        """
+        Returns the prompt string, either the default or the one specified by the user
+        Used as a callable, so it can be changed at runtime with /configset
+        """
+        if self.args["prompt_string"] and self.args["prompt_string"] != "default":
+            return self.args["prompt_string"]
+
+        else:
+            return "> " if self.args["no_unicode"] else "❯ "
+
     def input_manager(self) -> None:
         """
         The main input manager that draws the prompt and handles input
@@ -470,19 +481,12 @@ class Client:
         self.bindings.add("c-l")(self.buffer_clear)
 
         self.exit_attempted = False
+
+        nick_completer = prompt_toolkit.completion.WordCompleter(self.auto_complete_list, match_middle=True, ignore_case=True, sentence=True)
+
         with prompt_toolkit.patch_stdout.patch_stdout(raw=True):
-            if self.args["prompt_string"] and self.args["prompt_string"] != "default":
-                prompt_string = self.args["prompt_string"]
-
-            else:
-                prompt_string = "> " if self.args["no_unicode"] else "❯ "
-
-            self.prompt_length = len(prompt_string)
-
-            nick_completer = prompt_toolkit.completion.WordCompleter(self.auto_complete_list, match_middle=True, ignore_case=True, sentence=True)
-
             try:
-                self.prompt_session.prompt(prompt_string, completer=nick_completer, complete_in_thread=True, multiline=True, key_bindings=self.bindings, prompt_continuation=(" " * self.prompt_length))
+                self.prompt_session.prompt(self.return_prompt_string, completer=nick_completer, complete_in_thread=True, multiline=True, key_bindings=self.bindings)
 
             except (EOFError, KeyboardInterrupt, SystemExit):
                 self.close(thread=False)
