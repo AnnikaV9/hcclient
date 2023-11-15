@@ -482,11 +482,11 @@ class Client:
 
         self.exit_attempted = False
 
-        nick_completer = prompt_toolkit.completion.WordCompleter(self.auto_complete_list, match_middle=True, ignore_case=True, sentence=True)
+        auto_completer = prompt_toolkit.completion.WordCompleter(self.auto_complete_list, match_middle=True, ignore_case=True, sentence=True)
 
         with prompt_toolkit.patch_stdout.patch_stdout(raw=True):
             try:
-                self.prompt_session.prompt(self.return_prompt_string, completer=nick_completer, complete_in_thread=True, multiline=True, key_bindings=self.bindings)
+                self.prompt_session.prompt(self.return_prompt_string, completer=auto_completer, complete_in_thread=True, multiline=True, key_bindings=self.bindings)
 
             except (EOFError, KeyboardInterrupt, SystemExit):
                 self.close(thread=False)
