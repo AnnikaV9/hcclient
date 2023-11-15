@@ -2,7 +2,7 @@
 #
 # Requires ldd and binutils
 
-VERSION="1.11.2-git"
+VERSION="1.12.0-git"
 
 prepare() {
    if [[ "$RELEASE_VERSION" ]]

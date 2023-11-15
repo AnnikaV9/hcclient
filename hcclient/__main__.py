@@ -2,7 +2,7 @@
 #
 # Author:    AnnikaV9
 # License:   Unlicense
-# Version:   1.11.2-git
+# Version:   1.12.0-git
 
 import json
 import threading
@@ -136,7 +136,7 @@ class Client:
             if value and not isinstance(value, str):
                 return False
 
-        elif option == "complete_aggr":
+        elif option == "suggest_aggr":
             if value not in (1, 2, 3):
                 return False
 
@@ -488,12 +488,12 @@ class Client:
 
         base_completer = prompt_toolkit.completion.WordCompleter(
             self.auto_complete_list,
-            match_middle=False if self.args["complete_aggr"] == 1 else True,
+            match_middle=False if self.args["suggest_aggr"] == 1 else True,
             ignore_case=True,
             sentence=True
         )
 
-        auto_completer = prompt_toolkit.completion.FuzzyCompleter(base_completer) if self.args["complete_aggr"] == 3 else base_completer
+        auto_completer = prompt_toolkit.completion.FuzzyCompleter(base_completer) if self.args["suggest_aggr"] == 3 else base_completer
 
         with prompt_toolkit.patch_stdout.patch_stdout(raw=True):
             try:
@@ -662,7 +662,7 @@ class Client:
                         elif value.lower() in ("none", "null"):
                             value = None
 
-                        elif option == "complete_aggr":
+                        elif option == "suggest_aggr":
                             with contextlib.suppress(Exception):
                                 value = int(value)
 
@@ -970,7 +970,7 @@ def load_config(filepath: str) -> dict:
                        "prompt_string", "message_color", "whisper_color",
                        "emote_color", "nickname_color", "self_nickname_color",
                        "warning_color", "server_color", "client_color",
-                       "timestamp_color", "mod_nickname_color", "complete_aggr",
+                       "timestamp_color", "mod_nickname_color", "suggest_aggr",
                        "admin_nickname_color", "ignored", "aliases", "proxy"):
                 if key not in config:
                     missing_args.append(key)
@@ -1066,7 +1066,7 @@ def main():
     optional_group.add_argument("--no-unicode", help="disables moderator/admin icon and unicode characters in the UI", action="store_true")
     optional_group.add_argument("--no-notify", help="disables desktop notifications", action="store_true")
     optional_group.add_argument("--prompt-string", help="sets the prompt string (default: '❯ ' or '> ' if --no-unicode)")
-    optional_group.add_argument("--complete-aggr", help="sets the completer aggressiveness: 1=normal, 2=aggressive, 3=fuzzy (default: 1)", type=int)
+    optional_group.add_argument("--suggest-aggr", help="sets the suggestion aggressiveness: 1=normal, 2=aggressive, 3=fuzzy (default: 1)", type=int)
     optional_group.add_argument("--colors", help="displays a list of valid colors and exits", action="store_true")
     optional_group.add_argument("--message-color", help="sets the message color (default: white)")
     optional_group.add_argument("--whisper-color", help="sets the whisper color (default: green)")
@@ -1080,7 +1080,7 @@ def main():
     optional_group.add_argument("--mod-nickname-color", help="sets the nickname color of moderators (default: cyan)")
     optional_group.add_argument("--admin-nickname-color", help="sets the nickname color of the admin (default: red)")
     optional_group.add_argument("--proxy", help="specify a proxy to use (format: TYPE:HOST:PORT) (default: None)")
-    optional_group.add_argument("--version", help="displays the version and exits", action="version", version="hcclient 1.11.2-git")
+    optional_group.add_argument("--version", help="displays the version and exits", action="version", version="hcclient 1.12.0-git")
     optional_group.set_defaults(gen_config=False,
                                 config_file=None,
                                 no_config=False,
@@ -1090,7 +1090,7 @@ def main():
                                 no_unicode=False,
                                 no_notify=False,
                                 prompt_string="default",
-                                complete_aggr=1,
+                                suggest_aggr=1,
                                 colors=False,
                                 message_color="white",
                                 whisper_color="green",

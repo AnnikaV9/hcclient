@@ -34,7 +34,7 @@ hcclient is a configurable and feature-rich cross-platform terminal client for c
 
 ## Features <a name="features"></a>
 - **Color theming:** &nbsp;Configured with command line flags, colors provided by termcolor. See [Colors](#colors) for more information.
-- **Suggestions:** &nbsp;Starting your message with `@` or `/` will bring up a menu with a list of online users or commands. Cycle through them with arrow keys or continue typing to filter the suggestions even more. Outside of the menu, arrow keys cycle through message history.
+- **Suggestions:** &nbsp;Starting your message with `@` or `/` will bring up a menu with a list of online users or commands. Cycle through them with arrow keys or continue typing to filter the suggestions even more. Outside of the menu, arrow keys cycle through message history. Suggestion aggressiveness can be set with `--suggest-aggr`.
 - **Configuration:** &nbsp;Generate and load YAML/JSON configuration files with no editing required. Change configuration options from within the client with commands, modifying behaviour and colors without having to restart. See [Configuration](#configuration) for more information.
 - **Desktop notifications:** &nbsp;Receive notifications whenever someone mentions you or sends you a whisper. Android notifications are supported when running on [Termux](https://termux.dev/). See [Notifications](#notifications) for more information.
 - **Aliases:** &nbsp;Set aliases for messages and phrases you send often, because why wouldn't you?
@@ -68,10 +68,10 @@ On Arch Linux, install the [source AUR package](https://aur.archlinux.org/packag
 On other x86_64 Linux distributions:
 ```bash
 # Download the latest binary
-wget -O hcclient https://github.com/AnnikaV9/hcclient/releases/download/v1.11.2/hcclient-1.11.2-linux-x86-64
+wget -O hcclient https://github.com/AnnikaV9/hcclient/releases/download/v1.12.0/hcclient-1.12.0-linux-x86-64
 
 # Or the statically linked binary if the above one doesn't work
-wget -O hcclient https://github.com/AnnikaV9/hcclient/releases/download/v1.11.2/hcclient-1.11.2-linux-x86-64-static
+wget -O hcclient https://github.com/AnnikaV9/hcclient/releases/download/v1.12.0/hcclient-1.12.0-linux-x86-64-static
 
 # Make the binary executable
 chmod +x hcclient
@@ -85,10 +85,10 @@ hcclient --help
 As a container:
 ```bash
 # Download the latest image
-wget https://github.com/AnnikaV9/hcclient/releases/download/v1.11.2/hcclient-1.11.2-image.tar.xz
+wget https://github.com/AnnikaV9/hcclient/releases/download/v1.12.0/hcclient-1.12.0-image.tar.xz
 
 # Install the image
-docker/podman load -i hcclient-1.11.2-image.tar.xz
+docker/podman load -i hcclient-1.12.0-image.tar.xz
 
 # Run hcclient
 docker/podman run --rm -it hcclient --help
@@ -103,7 +103,8 @@ usage: hcclient [-h] [-c CHANNEL] [-n NICKNAME] [-t TRIP_PASSWORD]
                 [-w WEBSOCKET_ADDRESS] [-l CONFIG_FILE] [--no-config]
                 [--gen-config] [--no-parse] [--clear] [--is-mod]
                 [--no-unicode] [--no-notify] [--prompt-string PROMPT_STRING]
-                [--colors] [--message-color MESSAGE_COLOR]
+                [--complete-aggr COMPLETE_AGGR] [--colors]
+                [--message-color MESSAGE_COLOR]
                 [--whisper-color WHISPER_COLOR] [--emote-color EMOTE_COLOR]
                 [--nickname-color NICKNAME_COLOR]
                 [--self-nickname-color SELF_NICKNAME_COLOR]
@@ -145,6 +146,9 @@ optional arguments:
   --prompt-string PROMPT_STRING
                         sets the prompt string (default: '❯ ' or '> ' if
                         --no-unicode)
+  --suggest-aggr COMPLETE_AGGR
+                        sets the suggestion aggressiveness: 1=normal,
+                        2=aggressive, 3=fuzzy (default: 1)
   --colors              displays a list of valid colors and exits
   --message-color MESSAGE_COLOR
                         sets the message color (default: white)
@@ -153,9 +157,11 @@ optional arguments:
   --emote-color EMOTE_COLOR
                         sets the emote color (default: green)
   --nickname-color NICKNAME_COLOR
-                        sets the nickname color of other users (default: blue)
+                        sets the nickname color of other users
+                        (default: blue)
   --self-nickname-color SELF_NICKNAME_COLOR
-                        sets the nickname color of yourself (default: magenta)
+                        sets the nickname color of yourself
+                        (default: magenta)
   --warning-color WARNING_COLOR
                         sets the warning color (default: yellow)
   --server-color SERVER_COLOR
