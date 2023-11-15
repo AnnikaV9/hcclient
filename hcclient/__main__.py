@@ -163,7 +163,7 @@ class Client:
         print(message)
 
         self.stdout_history.append(message)
-        if len(self.stdout_history) > 500:
+        if len(self.stdout_history) > 100:
             self.stdout_history.pop(0)
 
     def send(self, packet: str) -> None:
@@ -846,7 +846,7 @@ Client-based commands:
   Will save aliases and ignored
   trips/hashes.
 /reprint
-  Prints the last 500 lines of
+  Prints the last 100 lines of
   output, even if they have been
   cleared with /clear.
 /quit
