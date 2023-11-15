@@ -482,7 +482,7 @@ class Client:
 
         self.exit_attempted = False
 
-        auto_completer = prompt_toolkit.completion.WordCompleter(self.auto_complete_list, match_middle=True, ignore_case=True, sentence=True)
+        auto_completer = prompt_toolkit.completion.WordCompleter(self.auto_complete_list, match_middle=False, ignore_case=True, sentence=True)
 
         with prompt_toolkit.patch_stdout.patch_stdout(raw=True):
             try:
