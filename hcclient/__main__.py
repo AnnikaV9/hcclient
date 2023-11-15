@@ -376,7 +376,7 @@ class Client:
                 self.auto_complete_list.extend(self.mod_command_list)
 
             if self.reconnecting:
-                self.close(thread=True)
+                self.close()
 
             else:
                 self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
@@ -386,7 +386,7 @@ class Client:
                                                   termcolor.colored("CLIENT", self.args["client_color"]),
                                                   termcolor.colored("Try running /reconnect", self.args["client_color"])))
 
-                self.close(thread=True)
+                self.close()
 
     def ping_thread(self) -> None:
         """
@@ -484,7 +484,7 @@ class Client:
             try:
                 self.prompt_session.prompt(prompt_string, completer=nick_completer, complete_in_thread=True, multiline=True, key_bindings=self.bindings, prompt_continuation=(" " * self.prompt_length))
 
-            except (EOFError, KeyboardInterrupt):
+            except (EOFError, KeyboardInterrupt, SystemExit):
                 self.close(thread=False)
 
             except:
@@ -703,7 +703,7 @@ class Client:
                     print("\n".join(self.stdout_history))
 
                 case "/quit":
-                    self.close()
+                    raise SystemExit
 
                 case "/ban":
                     if self.args["is_mod"]:
