@@ -206,7 +206,7 @@ class Client:
                 packet_receive_time = datetime.datetime.now().strftime("%H:%M")
 
                 if self.args["no_parse"]:
-                    self.print_msg("{}|{}".format(packet_receive_time, received))
+                    self.print_msg("\n{}|{}".format(packet_receive_time, received))
                     continue
 
                 match received["cmd"]:
