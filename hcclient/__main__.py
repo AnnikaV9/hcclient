@@ -369,7 +369,7 @@ class Client:
                                                               termcolor.colored("CLIENT", self.args["client_color"]),
                                                               termcolor.colored("Try running /nick <newnick> and /reconnect", self.args["client_color"])))
 
-        except:
+        except Exception as e:
             self.online_users = []
             self.online_users_details = {}
             self.online_ignored_users = []
@@ -385,7 +385,7 @@ class Client:
             else:
                 self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
                                                   termcolor.colored("CLIENT", self.args["client_color"]),
-                                                  termcolor.colored("Disconnected from server: {}".format(sys.exc_info()[1]), self.args["client_color"])))
+                                                  termcolor.colored(f"Disconnected from server: {e}", self.args["client_color"])))
                 self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
                                                   termcolor.colored("CLIENT", self.args["client_color"]),
                                                   termcolor.colored("Try running /reconnect", self.args["client_color"])))
@@ -502,8 +502,8 @@ class Client:
             except (EOFError, KeyboardInterrupt, SystemExit):
                 self.close(thread=False)
 
-            except:
-                self.close(error=sys.exc_info(), thread=False)
+            except Exception as e:
+                self.close(error=e, thread=False)
 
     def send_input(self, message: str) -> None:
         """
@@ -522,10 +522,10 @@ class Client:
                         json_to_send = json.loads(parsed_message[2])
                         self.send(json.dumps(json_to_send))
 
-                    except:
-                        self.print_msg("{}|{}| Error sending json: {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
+                    except Exception as e:
+                        self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
                                                                               termcolor.colored("CLIENT", self.args["client_color"]),
-                                                                              termcolor.colored("{}".format(sys.exc_info()[1]), self.args["client_color"])))
+                                                                              termcolor.colored(f"Error sending json: {e}", self.args["client_color"])))
 
                 case "/list":
                     self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
@@ -708,10 +708,10 @@ class Client:
                                                                   termcolor.colored("CLIENT", self.args["client_color"]),
                                                                   termcolor.colored("Configuration saved to {}".format(self.args["config_file"]), self.args["client_color"])))
 
-                        except:
+                        except Exception as e:
                             self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
                                                               termcolor.colored("CLIENT", self.args["client_color"]),
-                                                              termcolor.colored("Error saving configuration: {}".format(sys.exc_info()[1]), self.args["client_color"])))
+                                                              termcolor.colored(f"Error saving configuration: {e}", self.args["client_color"])))
 
                     else:
                         self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
@@ -922,7 +922,7 @@ Client-based commands:
             os.system("tput rmcup")
 
         if error:
-            print(error)
+            print(f"{type(error).__name__}: {error}")
             sys.exit(1)
 
         else:
@@ -948,8 +948,8 @@ def generate_config(config: argparse.Namespace) -> None:
                 json.dump(config, config_file, indent=2)
                 print("Configuration written to config.json")
 
-    except:
-        sys.exit("{}: error: {}".format(sys.argv[0], sys.exc_info()[1]))
+    except Exception as e:
+        sys.exit("{}: error: {}".format(sys.argv[0], e))
 
 
 def load_config(filepath: str) -> dict:
@@ -980,8 +980,8 @@ def load_config(filepath: str) -> dict:
 
             return config
 
-    except:
-        sys.exit("{}: error: {}".format(sys.argv[0], sys.exc_info()[1]))
+    except Exception as e:
+        sys.exit("{}: error: {}".format(sys.argv[0], e))
 
 
 def initialize_config(args: argparse.Namespace, parser: argparse.ArgumentParser) -> dict:
