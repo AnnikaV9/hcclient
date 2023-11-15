@@ -68,10 +68,10 @@ On Arch Linux, install the [AUR package](https://aur.archlinux.org/packages/hccl
 On other x86_64 Linux distributions:
 ```bash
 # Download the latest binary
-wget -O hcclient https://github.com/AnnikaV9/hcclient/releases/download/v1.11.1/hcclient-1.11.1-linux-x86-64
+wget -O hcclient https://github.com/AnnikaV9/hcclient/releases/download/v1.11.2/hcclient-1.11.2-linux-x86-64
 
 # Or the statically linked binary if the above one doesn't work
-wget -O hcclient https://github.com/AnnikaV9/hcclient/releases/download/v1.11.1/hcclient-1.11.1-linux-x86-64-static
+wget -O hcclient https://github.com/AnnikaV9/hcclient/releases/download/v1.11.2/hcclient-1.11.2-linux-x86-64-static
 
 # Make the binary executable
 chmod +x hcclient
@@ -85,10 +85,10 @@ hcclient --help
 As a container:
 ```bash
 # Download the latest image
-wget https://github.com/AnnikaV9/hcclient/releases/download/v1.11.1/hcclient-1.11.1-image.tar.xz
+wget https://github.com/AnnikaV9/hcclient/releases/download/v1.11.2/hcclient-1.11.2-image.tar.xz
 
 # Install the image
-docker/podman load -i hcclient-1.11.1-image.tar.xz
+docker/podman load -i hcclient-1.11.2-image.tar.xz
 
 # Run hcclient
 docker/podman run --rm -it hcclient --help

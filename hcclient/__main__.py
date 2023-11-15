@@ -2,7 +2,7 @@
 #
 # Author:    AnnikaV9
 # License:   Unlicense
-# Version:   1.11.1-git
+# Version:   1.11.2-git
 
 import json
 import threading
@@ -1064,7 +1064,7 @@ def main():
     optional_group.add_argument("--mod-nickname-color", help="sets the nickname color of moderators (default: cyan)")
     optional_group.add_argument("--admin-nickname-color", help="sets the nickname color of the admin (default: red)")
     optional_group.add_argument("--proxy", help="specify a proxy to use (format: TYPE:HOST:PORT) (default: None)")
-    optional_group.add_argument("--version", help="displays the version and exits", action="version", version="hcclient 1.11.1-git")
+    optional_group.add_argument("--version", help="displays the version and exits", action="version", version="hcclient 1.11.2-git")
     optional_group.set_defaults(gen_config=False,
                                 config_file=None,
                                 no_config=False,

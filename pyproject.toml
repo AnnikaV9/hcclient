@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "hcclient"
-version = "v1.11.1"
+version = "v1.11.2"
 description = "A terminal client for connecting to hack.chat"
 
 license = "Unlicense"
@@ -21,12 +21,13 @@ colorama = "0.4.6"
 jeepney = "0.8.0"
 loguru = "0.6.0"
 notify-py = "0.3.42"
-prompt-toolkit = "3.0.39"
+prompt-toolkit = "3.0.41"
 termcolor = "2.3.0"
-websocket-client = "1.5.3"
+websocket-client = "1.6.4"
 wsaccel = "0.6.6"
 python-socks = "2.4.3"
 PyYAML = "6.0.1"
+wcwidth = "0.2.10"
 
 [tool.poetry.scripts]
 hcclient = "hcclient.__main__:main"
