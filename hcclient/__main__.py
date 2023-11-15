@@ -15,7 +15,7 @@ import subprocess
 import copy
 import argparse
 import colorama
-import time
+import contextlib
 import datetime
 import termcolor
 import shutil
@@ -394,12 +394,15 @@ class Client:
         """
         while True:
             if self.ws.connected:
-                self.send(json.dumps({"cmd": "ping"}))
-                time.sleep(60)
+                with contextlib.suppress(Exception):
+                    self.ws.send(json.dumps({"cmd": "ping"}))
 
-    def replace_aliases(self, event: prompt_toolkit.key_binding.KeyPressEvent) -> None:
+                threading.Event().wait(60)
+
+    def buffer_replace_aliases(self, event: prompt_toolkit.key_binding.KeyPressEvent) -> None:
         """
-        Replaces aliases with their values on space
+        Replaces aliases with their values in the current buffer
+        Will be bound to space
         """
         event.current_buffer.insert_text(" ")
         no_chars = len(event.current_buffer.text)
@@ -414,15 +417,24 @@ class Client:
         event.current_buffer.text = processed_text
         event.current_buffer.cursor_position += no_added
 
-    def add_newline(self, event: prompt_toolkit.key_binding.KeyPressEvent) -> None:
+    def buffer_add_newline(self, event: prompt_toolkit.key_binding.KeyPressEvent) -> None:
         """
-        Adds a newline on alt+enter, esc+enter, or ctrl+n
+        Adds a newline to the current buffer
+        Will be bound to ctrl+n, escape+enter and alt+enter
         """
         event.current_buffer.insert_text("\n")
 
+    def buffer_clear(self, event: prompt_toolkit.key_binding.KeyPressEvent) -> None:
+        """
+        Clears the current buffer
+        Will be bound to ctrl+l
+        """
+        event.current_buffer.reset()
+
     def keyboard_interrupt(self, event: prompt_toolkit.key_binding.KeyPressEvent) -> None:
         """
-        Closes the client on ctrl+c twice
+        Closes the client if initated twice
+        Will be bound to ctrl+c
         """
         if self.exit_attempted:
             raise KeyboardInterrupt
@@ -433,9 +445,10 @@ class Client:
                                               termcolor.colored("CLIENT", self.args["client_color"]),
                                               termcolor.colored("Press ctrl+c again to exit", self.args["client_color"])))
 
-    def validate_and_send(self, event: prompt_toolkit.key_binding.KeyPressEvent) -> None:
+    def buffer_handle_send(self, event: prompt_toolkit.key_binding.KeyPressEvent) -> None:
         """
-        Sends the message on enter and adds it to the prompt history
+        Sends the message and adds it to the prompt history
+        Will be bound to enter
         """
         buffer = event.current_buffer.text
         event.current_buffer.reset()
@@ -449,11 +462,12 @@ class Client:
         """
         The main input manager that draws the prompt and handles input
         """
-        self.bindings.add("space")(self.replace_aliases)
-        self.bindings.add("enter")(self.validate_and_send)
-        self.bindings.add("escape", "enter")(self.add_newline)
-        self.bindings.add("c-n")(self.add_newline)
+        self.bindings.add("space")(self.buffer_replace_aliases)
+        self.bindings.add("enter")(self.buffer_handle_send)
+        self.bindings.add("escape", "enter")(self.buffer_add_newline)
+        self.bindings.add("c-n")(self.buffer_add_newline)
         self.bindings.add("c-c")(self.keyboard_interrupt)
+        self.bindings.add("c-l")(self.buffer_clear)
 
         self.exit_attempted = False
         with prompt_toolkit.patch_stdout.patch_stdout(raw=True):
@@ -783,6 +797,7 @@ class Client:
 Input is multiline, so you can type, paste and edit code in the input field.
 Press enter to send, and esc+enter/alt+enter/ctrl+n to add a newline.
 Lines can be cleared with ctrl+u.
+The entire buffer can be cleared with ctrl+l.
 
 Client-based commands:
 /help [server-based command]
