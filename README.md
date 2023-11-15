@@ -244,7 +244,7 @@ You can also configure hcclient while it's running, without having to restart it
 The changes will be applied live and lost once you exit the client, but you can save it to the configuration file with `/save`<br />
 Configuration options can be listed with `/configdump`
 
-**Note:** &nbsp; ~~Values set by `/configset` and the configuration file are not checked. An invalid value will crash the client.~~ Values set by `/configset` and the configuration file are now checked before being applied. hcclient will not start if a value in the configuration file is invalid.
+**Note:** &nbsp; Options `suggest_aggr` and `is_mod` will require a restart.
 
 <br />
 
