@@ -105,40 +105,37 @@ class Client:
         if option in ("timestamp_color", "client_color", "server_color", "nickname_color",
                       "self_nickname_color", "mod_nickname_color", "admin_nickname_color",
                       "message_color", "emote_color", "whisper_color", "warning_color"):
-            if value not in termcolor.COLORS:
-                return False
+            return value in termcolor.COLORS
 
         elif option in ("no_unicode", "no_notify", "no_parse", "clear", "is_mod"):
-            if not isinstance(value, bool):
-                return False
+            return isinstance(value, bool)
 
         elif option in ("websocket_address", "trip_password", "prompt_string"):
-            if not isinstance(value, str):
-                return False
+            return isinstance(value, str)
 
         elif option in ("aliases", "ignored"):
             if not isinstance(value, dict):
                 return False
 
-            elif option == "aliases":
-                for alias, replacement in value.items():
-                    if not isinstance(alias, str) or not isinstance(replacement, str):
+            match option:
+                case "aliases":
+                    for alias, replacement in value.items():
+                        if not isinstance(alias, str) or not isinstance(replacement, str):
+                            return False
+
+                case "ignored":
+                    if "trips" not in value or "hashes" not in value:
                         return False
 
-            elif option == "ignored":
-                if "trips" not in value or "hashes" not in value:
-                    return False
-
-                elif not isinstance(value["trips"], list) or not isinstance(value["hashes"], list):
-                    return False
+                    if not isinstance(value["trips"], list) or not isinstance(value["hashes"], list):
+                        return False
 
         elif option == "proxy":
             if value and not isinstance(value, str):
                 return False
 
         elif option == "suggest_aggr":
-            if value not in range(4):
-                return False
+            return value in range(4)
 
         return True
 
@@ -245,17 +242,18 @@ class Client:
                         else:
                             tripcode = received.get("trip", "")
 
-                        if received["uType"] == "mod":
-                            color_to_use = self.args["mod_nickname_color"] if self.nick != received["nick"] else self.args["self_nickname_color"]
-                            received["nick"] = "⭐ {}".format(received["nick"]) if not self.args["no_unicode"] else received["nick"]
+                        match received["uType"]:
+                            case "mod":
+                                color_to_use = self.args["mod_nickname_color"] if self.nick != received["nick"] else self.args["self_nickname_color"]
+                                received["nick"] = "⭐ {}".format(received["nick"]) if not self.args["no_unicode"] else received["nick"]
 
-                        elif received["uType"] == "admin":
-                            color_to_use = self.args["admin_nickname_color"] if self.nick != received["nick"] else self.args["self_nickname_color"]
-                            received["nick"] = "⭐ {}".format(received["nick"]) if not self.args["no_unicode"] else received ["nick"]
-                            tripcode = "Admin"
+                            case "admin":
+                                color_to_use = self.args["admin_nickname_color"] if self.nick != received["nick"] else self.args["self_nickname_color"]
+                                received["nick"] = "⭐ {}".format(received["nick"]) if not self.args["no_unicode"] else received ["nick"]
+                                tripcode = "Admin"
 
-                        else:
-                            color_to_use = self.args["nickname_color"] if self.nick != received["nick"] else self.args["self_nickname_color"]
+                            case _:
+                                color_to_use = self.args["nickname_color"] if self.nick != received["nick"] else self.args["self_nickname_color"]
 
                         if f"@{self.nick}" in received["text"] and not self.args["no_notify"]:
                             if shutil.which("termux-notification"):
@@ -661,16 +659,17 @@ class Client:
                     if message_args[0] in self.args and message_args[0] not in ("config_file", "channel", "nickname", "aliases", "ignored"):
 
                         value, option = " ".join(message_args[1:]), message_args[0]
-                        if value.lower() == "false":
-                            value = False
+                        match value.lower():
+                            case "false":
+                                value = False
 
-                        elif value.lower() == "true":
-                            value = True
+                            case "true":
+                                value = True
 
-                        elif value.lower() in ("none", "null"):
-                            value = None
+                            case "none" | "null":
+                                value = None
 
-                        elif option == "suggest_aggr":
+                        if option == "suggest_aggr":
                             with contextlib.suppress(Exception):
                                 value = int(value)
 
