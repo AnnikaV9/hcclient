@@ -146,7 +146,7 @@ optional arguments:
   --prompt-string PROMPT_STRING
                         sets the prompt string (default: '❯ ' or '> ' if
                         --no-unicode)
-  --suggest-aggr COMPLETE_AGGR
+  --suggest-aggr SUGGEST_AGGR
                         sets the suggestion aggressiveness: 1=normal,
                         2=aggressive, 3=fuzzy (default: 1)
   --colors              displays a list of valid colors and exits
