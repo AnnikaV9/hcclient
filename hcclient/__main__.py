@@ -471,6 +471,27 @@ class Client:
         else:
             return "> " if self.args["no_unicode"] else "❯ "
 
+    def create_completer(self) -> prompt_toolkit.completion.Completer | None:
+        """
+        Creates a completer instance based on the suggest_aggr option
+        """
+        base_completer = prompt_toolkit.completion.WordCompleter(
+            self.auto_complete_list,
+            match_middle=False if self.args["suggest_aggr"] == 1 else True,
+            ignore_case=True,
+            sentence=True
+        )
+
+        match self.args["suggest_aggr"]:
+            case 0:
+                return None
+
+            case 1 | 2:
+                return base_completer
+
+            case 3:
+                return prompt_toolkit.completion.FuzzyCompleter(base_completer)
+
     def input_manager(self) -> None:
         """
         Input manager that draws the prompt and handles input
@@ -484,26 +505,9 @@ class Client:
 
         self.exit_attempted = False
 
-        base_completer = prompt_toolkit.completion.WordCompleter(
-            self.auto_complete_list,
-            match_middle=False if self.args["suggest_aggr"] == 1 else True,
-            ignore_case=True,
-            sentence=True
-        )
-
-        match self.args["suggest_aggr"]:
-            case 0:
-                auto_completer = None
-
-            case 1 | 2:
-                auto_completer = base_completer
-
-            case 3:
-                auto_completer = prompt_toolkit.completion.FuzzyCompleter(base_completer)
-
         with prompt_toolkit.patch_stdout.patch_stdout(raw=True):
             try:
-                self.prompt_session.prompt(self.return_prompt_string, completer=auto_completer, complete_in_thread=True, multiline=True, key_bindings=self.bindings)
+                self.prompt_session.prompt(self.return_prompt_string, completer=self.create_completer(), complete_in_thread=True, multiline=True, key_bindings=self.bindings)
 
             except (EOFError, KeyboardInterrupt, SystemExit):
                 self.close(thread=False)
@@ -676,6 +680,7 @@ class Client:
                         if Client.validate_config(option, value):
                             self.args[option] = value
                             self.manage_complete_list()
+                            self.prompt_session.completer = self.create_completer()
 
                             self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
                                                               termcolor.colored("CLIENT", self.args["client_color"]),
