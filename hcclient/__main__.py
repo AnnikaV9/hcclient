@@ -137,7 +137,7 @@ class Client:
                 return False
 
         elif option == "suggest_aggr":
-            if value not in (1, 2, 3):
+            if value not in range(4):
                 return False
 
         return True
@@ -493,7 +493,15 @@ class Client:
             sentence=True
         )
 
-        auto_completer = prompt_toolkit.completion.FuzzyCompleter(base_completer) if self.args["suggest_aggr"] == 3 else base_completer
+        match self.args["suggest_aggr"]:
+            case 0:
+                auto_completer = None
+
+            case 1 | 2:
+                auto_completer = base_completer
+
+            case 3:
+                auto_completer = prompt_toolkit.completion.FuzzyCompleter(base_completer)
 
         with prompt_toolkit.patch_stdout.patch_stdout(raw=True):
             try:
@@ -1066,7 +1074,7 @@ def main():
     optional_group.add_argument("--no-unicode", help="disables moderator/admin icon and unicode characters in the UI", action="store_true")
     optional_group.add_argument("--no-notify", help="disables desktop notifications", action="store_true")
     optional_group.add_argument("--prompt-string", help="sets the prompt string (default: '❯ ' or '> ' if --no-unicode)")
-    optional_group.add_argument("--suggest-aggr", help="sets the suggestion aggressiveness: 1=normal, 2=aggressive, 3=fuzzy (default: 1)", type=int)
+    optional_group.add_argument("--suggest-aggr", help="sets the suggestion aggressiveness: 0=disable, 1=normal, 2=aggressive, 3=fuzzy (default: 1)", type=int)
     optional_group.add_argument("--colors", help="displays a list of valid colors and exits", action="store_true")
     optional_group.add_argument("--message-color", help="sets the message color (default: white)")
     optional_group.add_argument("--whisper-color", help="sets the whisper color (default: green)")
