@@ -473,7 +473,7 @@ class Client:
 
     def input_manager(self) -> None:
         """
-        The main input manager that draws the prompt and handles input
+        Input manager that draws the prompt and handles input
         """
         self.bindings.add("space")(self.buffer_replace_aliases)
         self.bindings.add("enter")(self.buffer_handle_send)
@@ -513,7 +513,7 @@ class Client:
 
     def send_input(self, message: str) -> None:
         """
-        Handles input returned from the prompt
+        Handles input received from the prompt
         """
         if len(message) > 0:
             split_message = message.split(" ")
@@ -675,6 +675,7 @@ class Client:
 
                         if Client.validate_config(option, value):
                             self.args[option] = value
+                            self.manage_complete_list()
 
                             self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
                                                               termcolor.colored("CLIENT", self.args["client_color"]),
