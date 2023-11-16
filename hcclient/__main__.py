@@ -67,6 +67,7 @@ class Client:
 
         self.ws = websocket.WebSocket(sslopt={"cert_reqs": ssl.CERT_NONE})
         self.reconnecting = False
+        self.timed_reconnect = threading.Timer(0, None)
 
         self.whisper_lock = False
         self.prompt_session = prompt_toolkit.PromptSession(reserve_space_for_menu=4)
@@ -96,6 +97,25 @@ class Client:
             "channel": self.args["channel"],
             "nick": "{}#{}".format(self.nick, self.args["trip_password"])
         }))
+
+    def reconnect_to_server(self) -> None:
+        """
+        Reconnects to the websocket server
+        Runs in a separate temporary thread
+        """
+        self.reconnecting = True
+
+        self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
+                                          termcolor.colored("CLIENT", self.args["client_color"]),
+                                          termcolor.colored("Initiating reconnect...", self.args["client_color"])))
+
+        self.ws.close()
+        self.thread_recv.join()
+
+        self.reconnecting = False
+
+        self.thread_recv = threading.Thread(target=self.recv_thread, daemon=True)
+        self.thread_recv.start()
 
     def validate_config(option: str, value: str) -> bool:
         """
@@ -386,8 +406,9 @@ class Client:
                                                   termcolor.colored(f"Disconnected from server: {e}", self.args["client_color"])))
                 self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
                                                   termcolor.colored("CLIENT", self.args["client_color"]),
-                                                  termcolor.colored("Try running /reconnect", self.args["client_color"])))
-
+                                                  termcolor.colored("Reconnecting in 60 seconds, run /reconnect do it immediately", self.args["client_color"])))
+                self.timed_reconnect = threading.Timer(60, self.reconnect_to_server)
+                self.timed_reconnect.start()
                 self.close()
 
     def ping_thread(self) -> None:
@@ -617,19 +638,8 @@ class Client:
                                                       termcolor.colored("Unignored all trips/hashes, run /save to persist", self.args["client_color"])))
 
                 case "/reconnect":
-                    self.reconnecting = True
-
-                    self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
-                                                      termcolor.colored("CLIENT", self.args["client_color"]),
-                                                      termcolor.colored("Initiating reconnect...", self.args["client_color"])))
-
-                    self.ws.close()
-                    self.thread_recv.join()
-
-                    self.reconnecting = False
-
-                    self.thread_recv = threading.Thread(target=self.recv_thread, daemon=True)
-                    self.thread_recv.start()
+                    self.timed_reconnect.cancel()
+                    threading.Thread(target=self.reconnect_to_server, daemon=True).start()
 
                 case "/set":
                     message_args = parsed_message[2].split(" ")
