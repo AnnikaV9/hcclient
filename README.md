@@ -68,10 +68,10 @@ On Arch Linux, install the [source AUR package](https://aur.archlinux.org/packag
 On other x86_64 Linux distributions:
 ```bash
 # Download the latest binary
-wget -O hcclient https://github.com/AnnikaV9/hcclient/releases/download/v1.12.1/hcclient-1.12.1-linux-x86-64
+wget -O hcclient https://github.com/AnnikaV9/hcclient/releases/download/v1.13.0/hcclient-1.13.0-linux-x86-64
 
 # Or the statically linked binary if the above one doesn't work
-wget -O hcclient https://github.com/AnnikaV9/hcclient/releases/download/v1.12.1/hcclient-1.12.1-linux-x86-64-static
+wget -O hcclient https://github.com/AnnikaV9/hcclient/releases/download/v1.13.0/hcclient-1.13.0-linux-x86-64-static
 
 # Make the binary executable
 chmod +x hcclient
@@ -85,10 +85,10 @@ hcclient --help
 As a container:
 ```bash
 # Download the latest image
-wget https://github.com/AnnikaV9/hcclient/releases/download/v1.12.1/hcclient-1.12.1-image.tar.xz
+wget https://github.com/AnnikaV9/hcclient/releases/download/v1.13.0/hcclient-1.13.0-image.tar.xz
 
 # Install the image
-docker/podman load -i hcclient-1.12.1-image.tar.xz
+docker/podman load -i hcclient-1.13.0-image.tar.xz
 
 # Run hcclient
 docker/podman run --rm -it hcclient --help
@@ -99,27 +99,20 @@ docker/podman run --rm -it hcclient --help
 ```
 $ hcclient --help
 
-usage: hcclient [-h] [-c CHANNEL] [-n NICKNAME] [-t TRIP_PASSWORD]
-                [-w WEBSOCKET_ADDRESS] [-l CONFIG_FILE] [--no-config]
-                [--gen-config] [--no-parse] [--clear] [--is-mod]
-                [--no-unicode] [--no-notify] [--prompt-string PROMPT_STRING]
-                [--complete-aggr COMPLETE_AGGR] [--colors]
-                [--message-color MESSAGE_COLOR]
-                [--whisper-color WHISPER_COLOR] [--emote-color EMOTE_COLOR]
-                [--nickname-color NICKNAME_COLOR]
-                [--self-nickname-color SELF_NICKNAME_COLOR]
-                [--warning-color WARNING_COLOR] [--server-color SERVER_COLOR]
-                [--client-color CLIENT_COLOR]
-                [--timestamp-color TIMESTAMP_COLOR]
-                [--mod-nickname-color MOD_NICKNAME_COLOR]
-                [--admin-nickname-color ADMIN_NICKNAME_COLOR] [--proxy PROXY]
-                [--version]
+usage: hcclient [-h] [--gen-config] [--colors] [--version] [-c CHANNEL]
+                [-n NICKNAME] [-t TRIP_PASSWORD] [-w WEBSOCKET_ADDRESS]
+                [-l CONFIG_FILE] [--no-config] [--no-parse] [--clear]
+                [--is-mod] [--no-unicode] [--no-notify]
+                [--prompt-string PROMPT_STRING] [--suggest-aggr {0,1,2,3}]
+                [--proxy PROXY]
 
-Terminal client for connecting to hack.chat servers. Use --colors to see a
-list of valid colors
+terminal client for connecting to hack.chat
 
-options:
-  -h, --help            show this help message and exit
+commands:
+  -h, --help            display this help message
+  --gen-config          generate a config file with provided arguments
+  --colors              display a list of valid colors
+  --version             display version information
 
 required arguments:
   -c CHANNEL, --channel CHANNEL
@@ -135,54 +128,27 @@ optional arguments:
                         (default: wss://hack-chat/chat-ws)
   -l CONFIG_FILE, --load-config CONFIG_FILE
                         specify a config file to load
-  --no-config           disables loading of the default config file
-  --gen-config          generates a config file with provided arguments
+  --no-config           disable loading of the default config file
   --no-parse            log received packets without parsing
-  --clear               enables clearing of the terminal
-  --is-mod              enables moderator commands
-  --no-unicode          disables moderator/admin icon and unicode characters
+  --clear               enable clearing of the terminal
+  --is-mod              enable moderator commands
+  --no-unicode          disable moderator/admin icon and unicode characters
                         in the UI
-  --no-notify           disables desktop notifications
+  --no-notify           disable desktop notifications
   --prompt-string PROMPT_STRING
-                        sets the prompt string (default: '❯ ' or '> ' if
+                        set the prompt string (default: '❯ ' or '> ' if
                         --no-unicode)
-  --suggest-aggr SUGGEST_AGGR
-                        sets the suggestion aggressiveness: 0=disable,
-                        1=normal, 2=aggressive, 3=fuzzy (default: 1)
-  --colors              displays a list of valid colors and exits
-  --message-color MESSAGE_COLOR
-                        sets the message color (default: white)
-  --whisper-color WHISPER_COLOR
-                        sets the whisper color (default: green)
-  --emote-color EMOTE_COLOR
-                        sets the emote color (default: green)
-  --nickname-color NICKNAME_COLOR
-                        sets the nickname color of other users
-                        (default: blue)
-  --self-nickname-color SELF_NICKNAME_COLOR
-                        sets the nickname color of yourself
-                        (default: magenta)
-  --warning-color WARNING_COLOR
-                        sets the warning color (default: yellow)
-  --server-color SERVER_COLOR
-                        sets the server color (default: green)
-  --client-color CLIENT_COLOR
-                        sets the client color (default: green)
-  --timestamp-color TIMESTAMP_COLOR
-                        sets the timestamp color (default: white)
-  --mod-nickname-color MOD_NICKNAME_COLOR
-                        sets the nickname color of moderators (default: cyan)
-  --admin-nickname-color ADMIN_NICKNAME_COLOR
-                        sets the nickname color of the admin (default: red)
+  --suggest-aggr {0,1,2,3}
+                        set the suggestion aggressiveness (default: 1)
   --proxy PROXY         specify a proxy to use (format: TYPE:HOST:PORT)
                         (default: None)
-  --version             displays the version and exits
 ```
 
 <br />
 
 ## Colors <a name="colors"></a>
-The default color scheme can be overidden by using arguments such as `--message-color` or `--timestamp-color`. More options can be viewed with `--help`.
+The default color scheme can be overidden with a configuration file. See [Configuration](#configuration) for more information.<br />
+A list of valid colors can be viewed with `--help`.
 
 ```
 $ hcclient --colors
@@ -224,7 +190,7 @@ Alternatively, a JSON configuration file can be generated by running `--gen-conf
 
 Override defaults when generating the configuration file by specifying options:
 ```
-hcclient --nickname_color light_grey --no-notify --proxy socks5:127.0.0.1:9050 --gen-config
+hcclient --no-notify --proxy socks5:127.0.0.1:9050 --gen-config
 ```
 
 hcclient searches for *config.yml* or *config.json* in the following directories by default:

@@ -2,7 +2,7 @@
 #
 # Author:    AnnikaV9
 # License:   Unlicense
-# Version:   1.12.1-git
+# Version:   1.13.0-git
 
 import json
 import threading
@@ -1096,7 +1096,8 @@ def main():
     command_group.add_argument("-h", "--help", help="display this help message", action="help")
     command_group.add_argument("--gen-config", help="generate a config file with provided arguments", action="store_true")
     command_group.add_argument("--colors", help="display a list of valid colors", action="store_true")
-    command_group.add_argument("--version", help="display version information", action="version", version="hcclient 1.12.1-git")
+    command_group.add_argument("--version", help="display version information", action="version", version="hcclient 1.13.0-git")
+    command_group.set_defaults(gen_config=False, colors=False)
     required_group.add_argument("-c", "--channel", help="specify the channel to join")
     required_group.add_argument("-n", "--nickname", help="specify the nickname to use")
     optional_group.add_argument("-t", "--trip-password", help="specify a tripcode password to use when joining")
@@ -1111,7 +1112,6 @@ def main():
     optional_group.add_argument("--prompt-string", help="set the prompt string (default: '❯ ' or '> ' if --no-unicode)")
     optional_group.add_argument("--suggest-aggr", help="set the suggestion aggressiveness (default: 1)", type=int, choices=[0, 1, 2, 3])
     optional_group.add_argument("--proxy", help="specify a proxy to use (format: TYPE:HOST:PORT) (default: None)")
-    command_group.set_defaults(gen_config=False, colors=False)
     optional_group.set_defaults(config_file=None, no_config=False, no_parse=False, clear=False,
                                 is_mod=False, no_unicode=False, no_notify=False, prompt_string="default",
                                 suggest_aggr=1, trip_password="", websocket_address="wss://hack.chat/chat-ws",
