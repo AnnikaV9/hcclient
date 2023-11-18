@@ -1011,6 +1011,22 @@ def initialize_config(args: argparse.Namespace, parser: argparse.ArgumentParser)
     """
     Initializes the configuration and returns a dictionary
     """
+    default_colors = {
+        "message_color": "white",
+        "whisper_color": "green",
+        "emote_color": "green",
+        "nickname_color": "blue",
+        "self_nickname_color": "magenta",
+        "warning_color": "yellow",
+        "server_color": "green",
+        "client_color": "green",
+        "timestamp_color": "white",
+        "mod_nickname_color": "cyan",
+        "admin_nickname_color": "red"
+    }
+    for color in default_colors:
+        args.__dict__[color] = default_colors[color]
+
     if args.gen_config:
         args.aliases = {"example": "example"}
         args.ignored = {"trips": ["example"], "hashes": ["example"]}
@@ -1073,61 +1089,32 @@ def main():
     """
     Entry point
     """
-    parser = argparse.ArgumentParser(description="Terminal client for connecting to hack.chat servers. Use --colors to see a list of valid colors")
+    parser = argparse.ArgumentParser(description="terminal client for connecting to hack.chat", add_help=False)
+    command_group = parser.add_argument_group("commands")
     required_group = parser.add_argument_group("required arguments")
     optional_group = parser.add_argument_group("optional arguments")
+    command_group.add_argument("-h", "--help", help="display this help message", action="help")
+    command_group.add_argument("--gen-config", help="generate a config file with provided arguments", action="store_true")
+    command_group.add_argument("--colors", help="display a list of valid colors", action="store_true")
+    command_group.add_argument("--version", help="display version information", action="version", version="hcclient 1.12.1-git")
     required_group.add_argument("-c", "--channel", help="specify the channel to join")
     required_group.add_argument("-n", "--nickname", help="specify the nickname to use")
     optional_group.add_argument("-t", "--trip-password", help="specify a tripcode password to use when joining")
     optional_group.add_argument("-w", "--websocket-address", help="specify the websocket address to connect to (default: wss://hack-chat/chat-ws)")
     optional_group.add_argument("-l", "--load-config", help="specify a config file to load", dest="config_file")
-    optional_group.add_argument("--no-config", help="disables loading of the default config file", action="store_true")
-    optional_group.add_argument("--gen-config", help="generates a config file with provided arguments", action="store_true")
+    optional_group.add_argument("--no-config", help="disable loading of the default config file", action="store_true")
     optional_group.add_argument("--no-parse", help="log received packets without parsing", action="store_true")
-    optional_group.add_argument("--clear", help="enables clearing of the terminal", action="store_true")
-    optional_group.add_argument("--is-mod", help="enables moderator commands", action="store_true")
-    optional_group.add_argument("--no-unicode", help="disables moderator/admin icon and unicode characters in the UI", action="store_true")
-    optional_group.add_argument("--no-notify", help="disables desktop notifications", action="store_true")
-    optional_group.add_argument("--prompt-string", help="sets the prompt string (default: '❯ ' or '> ' if --no-unicode)")
-    optional_group.add_argument("--suggest-aggr", help="sets the suggestion aggressiveness: 0=disable, 1=normal, 2=aggressive, 3=fuzzy (default: 1)", type=int)
-    optional_group.add_argument("--colors", help="displays a list of valid colors and exits", action="store_true")
-    optional_group.add_argument("--message-color", help="sets the message color (default: white)")
-    optional_group.add_argument("--whisper-color", help="sets the whisper color (default: green)")
-    optional_group.add_argument("--emote-color", help="sets the emote color (default: green)")
-    optional_group.add_argument("--nickname-color", help="sets the nickname color of other users (default: blue)")
-    optional_group.add_argument("--self-nickname-color", help="sets the nickname color of yourself (default: magenta)")
-    optional_group.add_argument("--warning-color", help="sets the warning color (default: yellow)")
-    optional_group.add_argument("--server-color", help="sets the server color (default: green)")
-    optional_group.add_argument("--client-color", help="sets the client color (default: green)")
-    optional_group.add_argument("--timestamp-color", help="sets the timestamp color (default: white)")
-    optional_group.add_argument("--mod-nickname-color", help="sets the nickname color of moderators (default: cyan)")
-    optional_group.add_argument("--admin-nickname-color", help="sets the nickname color of the admin (default: red)")
+    optional_group.add_argument("--clear", help="enable clearing of the terminal", action="store_true")
+    optional_group.add_argument("--is-mod", help="enable moderator commands", action="store_true")
+    optional_group.add_argument("--no-unicode", help="disable moderator/admin icon and unicode characters in the UI", action="store_true")
+    optional_group.add_argument("--no-notify", help="disable desktop notifications", action="store_true")
+    optional_group.add_argument("--prompt-string", help="set the prompt string (default: '❯ ' or '> ' if --no-unicode)")
+    optional_group.add_argument("--suggest-aggr", help="set the suggestion aggressiveness (default: 1)", type=int, choices=[0, 1, 2, 3])
     optional_group.add_argument("--proxy", help="specify a proxy to use (format: TYPE:HOST:PORT) (default: None)")
-    optional_group.add_argument("--version", help="displays the version and exits", action="version", version="hcclient 1.12.1-git")
-    optional_group.set_defaults(gen_config=False,
-                                config_file=None,
-                                no_config=False,
-                                no_parse=False,
-                                clear=False,
-                                is_mod=False,
-                                no_unicode=False,
-                                no_notify=False,
-                                prompt_string="default",
-                                suggest_aggr=1,
-                                colors=False,
-                                message_color="white",
-                                whisper_color="green",
-                                emote_color="green",
-                                nickname_color="blue",
-                                self_nickname_color="magenta",
-                                warning_color="yellow",
-                                server_color="green",
-                                client_color="green",
-                                timestamp_color="white",
-                                mod_nickname_color="cyan",
-                                admin_nickname_color="red",
-                                trip_password="",
-                                websocket_address="wss://hack.chat/chat-ws",
+    command_group.set_defaults(gen_config=False, colors=False)
+    optional_group.set_defaults(config_file=None, no_config=False, no_parse=False, clear=False,
+                                is_mod=False, no_unicode=False, no_notify=False, prompt_string="default",
+                                suggest_aggr=1, trip_password="", websocket_address="wss://hack.chat/chat-ws",
                                 proxy=False)
 
     if parser.parse_args().colors:
