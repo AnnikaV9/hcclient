@@ -33,20 +33,21 @@ hcclient is a configurable and feature-rich cross-platform terminal client for c
 <br />
 
 ## Features <a name="features"></a>
-- **Color theming:** &nbsp;Configured with command line flags, colors provided by termcolor. See [Colors](#colors) for more information.
-- **Suggestions:** &nbsp;Starting your message with `@` or `/` will bring up a menu with a list of online users or commands. Cycle through them with arrow keys or continue typing to filter the suggestions even more. Outside of the menu, arrow keys cycle through message history. Suggestion aggressiveness can be set with `--suggest-aggr`.
+Some of the features hcclient has to offer:
+- **Cross-platform:** &nbsp;Tested to work on Windows, Linux, macOS and Android. See [Prerequisites](#prerequisites) for more information.
+- **Suggestions:** &nbsp;Starting your message with `@` or `/` will bring up a menu with a list of online users or commands. Cycle through them with arrow keys or continue typing to filter the suggestions even more. Suggestion aggressiveness can be set with `--suggest-aggr`.
 - **Configuration:** &nbsp;Generate and load YAML/JSON configuration files with no editing required. Change configuration options from within the client with commands, modifying behaviour and colors without having to restart. See [Configuration](#configuration) for more information.
 - **Desktop notifications:** &nbsp;Receive notifications whenever someone mentions you or sends you a whisper. Android notifications are supported when running on [Termux](https://termux.dev/). See [Notifications](#notifications) for more information.
 - **Aliases:** &nbsp;Set aliases for messages and phrases you send often, because why wouldn't you?
-- **Whisper lock:** &nbsp;Lock the client with a command to send only whispers, preventing accidental information leaks.
+- **Whisper locking:** &nbsp;Lock the client with a command to send only whispers, preventing accidental information leaks.
 - **Ignore list:** &nbsp;Message blocking using tripcodes and connection hashes.
-- **Send/Receive raw json:** &nbsp;Send json packets without parsing with `/raw`, display received packets as json with `--no-parse`.
 - **Proxy support:** &nbsp;Connect through SOCKS4, SOCKS5 or HTTP proxies. Tested to work with Tor.
-- **Moderator mode:** &nbsp;Enabled with `--is-mod`, gives you a bunch of `/` commands for moderator actions.
 
 <br />
 
 ## Prerequisites <a name="prerequisites"></a>
+The main requirement for any platform is a terminal emulator that supports ANSI escape sequences.
+
 For x86_64 Linux, statically and dynamically linked binaries are provided with the interpreter and dependencies bundled in.
 
 On other platforms, python >= 3.10 and pip are required. <br />
