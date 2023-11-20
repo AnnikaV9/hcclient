@@ -149,7 +149,7 @@ optional arguments:
 
 ## Colors <a name="colors"></a>
 The default color scheme can be overidden with a configuration file. See [Configuration](#configuration) for more information.<br />
-A list of valid colors can be viewed with `--help`.
+A list of valid colors can be viewed with `--colors`.
 
 ```
 $ hcclient --colors
