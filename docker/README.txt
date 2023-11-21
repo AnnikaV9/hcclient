@@ -19,7 +19,7 @@ Then build the image:
 
     $ docker/podman build -t hcclient .
 
-To export the image as a compressed tarball:
+To export the image as a compressed tarball, run from the root of the project:
 
     $ docker/podman save --output dist/hcclient-image.tar hcclient
     $ xz --compress \
