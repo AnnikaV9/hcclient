@@ -245,6 +245,6 @@ Install the [Termux:API](https://f-droid.org/en/packages/com.termux.api/) app an
 
 All contributions are welcome! :D
 
-Please read [CONTRIBUTING.md](CONTRIBUTING.md) before submitting a pull request.
+Please read [CONTRIBUTING.md](./docs/CONTRIBUTING.md) before submitting a pull request.
 
 **Credits to everyone [here](https://github.com/AnnikaV9/hcclient/graphs/contributors)**
