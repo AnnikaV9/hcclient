@@ -57,7 +57,7 @@ container() {
      exit 1
    fi
 
-   cp -r {src/hcclient,requirements.txt} docker &&
+   cp -r {src/hcclient,requirements.txt} docker/src &&
    cd docker &&
 
    if command -v podman &> /dev/null

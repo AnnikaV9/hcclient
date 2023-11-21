@@ -37,3 +37,5 @@ To build a specific distribution format, run:
 ```
 
 Where `<format>` is one of `executable`, `wheel`, `container` and `arch`.
+
+Builds will be placed in the `dist` directory.
