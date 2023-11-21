@@ -8,7 +8,7 @@ prepare() {
    if [[ "$RELEASE_VERSION" ]]
    then
      VERSION=${VERSION%-git}
-     sed -i 's/-git//g' hcclient/__main__.py
+     sed -i 's/-git//g' src/hcclient/__main__.py
    fi
 }
 
@@ -31,7 +31,7 @@ executable() {
    pyinstaller --onefile \
                --clean \
                --name hcclient-$VERSION \
-               hcclient/__main__.py &&
+               src/hcclient/__main__.py &&
 
    staticx --strip dist/hcclient-$VERSION dist/hcclient-$VERSION-static
 }
@@ -57,7 +57,7 @@ container() {
      exit 1
    fi
 
-   cp -r {hcclient,requirements.txt} docker &&
+   cp -r {src/hcclient,requirements.txt} docker &&
    cd docker &&
 
    if command -v podman &> /dev/null

@@ -7,7 +7,7 @@ Please note we have a [code of conduct](../docs/CODE_OF_CONDUCT.md), please foll
 
 ## Contributing Guidelines
 
-- Keep all code in [\_\_main.py__](../hcclient/__main__.py)
+- Keep all code in [\_\_main.py__](../src/hcclient/__main__.py)
 - Document functions and classes using [docstrings](https://www.python.org/dev/peps/pep-0257/)
 - Keep the code cross-platform
 - Do not increase the version number, this will be done before releases

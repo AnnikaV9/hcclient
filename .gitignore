@@ -1,5 +1,5 @@
 .venv
-hcclient/__pycache__
+src/hcclient/__pycache__
 dist
 build
 hcclient*.spec
