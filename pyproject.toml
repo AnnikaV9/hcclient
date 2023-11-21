@@ -13,7 +13,7 @@ repository = "https://github.com/AnnikaV9/hcclient"
 homepage = "https://github.com/AnnikaV9/hcclient"
 
 # README file(s) are used as the package description
-readme = ["README.md", "LICENSE"]
+readme = ["docs/README.md", "LICENSE"]
 
 [tool.poetry.dependencies]
 python = ">=3.10"

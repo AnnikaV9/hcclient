@@ -5,4 +5,5 @@ build
 hcclient*.spec
 config.json
 config.yml
-
+docker/hcclient
+docker/requirements.txt

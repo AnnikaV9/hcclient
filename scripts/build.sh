@@ -57,13 +57,18 @@ container() {
      exit 1
    fi
 
+   cp -r {hcclient,requirements.txt} docker &&
+   cd docker &&
+
    if command -v podman &> /dev/null
    then
      podman build --tag hcclient . &&
+     cd .. &&
      podman save --output dist/hcclient-$VERSION-image.tar hcclient
    elif command -v docker &> /dev/null
    then
      docker build --tag hcclient . &&
+     cd .. &&
      docker save --output dist/hcclient-$VERSION-image.tar hcclient
    else
      echo "no container runtime found"
