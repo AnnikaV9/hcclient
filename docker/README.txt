@@ -1,4 +1,4 @@
-This directory for building Docker/Podman compatible images.
+This directory is for building a Docker/Podman compatible image.
 
 
 
