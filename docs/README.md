@@ -138,6 +138,8 @@ optional arguments:
   --prompt-string PROMPT_STRING
                         set the prompt string (default: '❯ ' or '> ' if
                         --no-unicode)
+  --timestamp-format TIMESTAMP_FORMAT
+                        set the timestamp format (default: %H:%M)
   --suggest-aggr {0,1,2,3}
                         set the suggestion aggressiveness (default: 1)
   --proxy PROXY         specify a proxy to use (format: TYPE:HOST:PORT)
