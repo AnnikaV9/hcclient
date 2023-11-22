@@ -2,7 +2,7 @@
 #
 # Author:    AnnikaV9
 # License:   Unlicense
-# Version:   1.13.0-git
+# Version:   1.14.0-git
 
 import json
 import threading
@@ -17,6 +17,8 @@ import argparse
 import colorama
 import contextlib
 import datetime
+import time
+import random
 import termcolor
 import shutil
 import prompt_toolkit
@@ -31,10 +33,13 @@ class Client:
         """
         Initializes the client and environment, sets up variables and threads
         """
+        self.args = args
+
         colorama.init()
         self.bindings = prompt_toolkit.key_binding.KeyBindings()
+        if args["clear"]:
+            os.system("cls" if os.name == "nt" else "clear")
 
-        self.args = args
         self.nick = self.args["nickname"]
         self.online_users = []
         self.online_users_details = {}
@@ -59,9 +64,9 @@ class Client:
         self.auto_complete_list = []
         self.manage_complete_list()
 
-        self.term_content_saved = False
-        self.manage_term_contents()
         self.stdout_history = []
+        self.updatable_messages = {}
+        self.updatable_messages_lock = threading.Lock()
 
         self.def_config_dir = os.path.join(os.getenv("APPDATA"), "hcclient") if os.name == "nt" else os.path.join(os.getenv("HOME"), ".config", "hcclient")
 
@@ -74,6 +79,13 @@ class Client:
 
         self.thread_ping = threading.Thread(target=self.ping_thread, daemon=True)
         self.thread_recv = threading.Thread(target=self.recv_thread, daemon=True)
+        self.thread_cleanup = threading.Thread(target=self.cleanup_thread, daemon=True)
+
+    def formatted_datetime(self) -> str:
+        """
+        Returns the current datetime as a string formatted with timestamp_format
+        """
+        return datetime.datetime.now().strftime(self.args["timestamp_format"])
 
     def connect_to_server(self) -> None:
         """
@@ -82,7 +94,7 @@ class Client:
         """
         connect_status = "Connecting to {}...".format(self.args["websocket_address"]) if not self.args["proxy"] else "Connecting to {} through proxy {}...".format(self.args["websocket_address"], self.args["proxy"])
 
-        self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
+        self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
                                           termcolor.colored("CLIENT", self.args["client_color"]),
                                           termcolor.colored(connect_status, self.args["client_color"])))
 
@@ -105,7 +117,7 @@ class Client:
         """
         self.reconnecting = True
 
-        self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
+        self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
                                           termcolor.colored("CLIENT", self.args["client_color"]),
                                           termcolor.colored("Initiating reconnect...", self.args["client_color"])))
 
@@ -130,7 +142,7 @@ class Client:
         elif option in ("no_unicode", "no_notify", "no_parse", "clear", "is_mod"):
             return isinstance(value, bool)
 
-        elif option in ("websocket_address", "trip_password", "prompt_string"):
+        elif option in ("websocket_address", "trip_password", "prompt_string", "timestamp_format"):
             return isinstance(value, str)
 
         elif option in ("aliases", "ignored"):
@@ -159,24 +171,6 @@ class Client:
 
         return True
 
-    def manage_term_contents(self) -> None:
-        """
-        Use tput to save the terminal's contents if tput is available and --clear is specified
-        """
-        if self.args["clear"]:
-            if shutil.which("tput"):
-                os.system("tput smcup")
-                self.term_content_saved = True
-
-            else:
-                try:
-                    input("Warning! The 'tput' command was not found in your path.\nThis means that the terminal's contents will not be saved.\nExit and re-run without --clear as a workaround.\nPress enter to continue and clear the terminal anyway.")
-
-                except (KeyboardInterrupt, EOFError):
-                    sys.exit(0)
-
-            os.system("cls" if os.name=="nt" else "clear")
-
     def print_msg(self, message: str) -> None:
         """
         Prints a message to the terminal and adds it to the stdout history
@@ -195,7 +189,7 @@ class Client:
             self.ws.send(packet)
 
         else:
-            self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
+            self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
                                               termcolor.colored("CLIENT", self.args["client_color"]),
                                               termcolor.colored("Can't send packet, not connected to server. Run /reconnect", self.args["client_color"])))
 
@@ -228,6 +222,40 @@ class Client:
             case _:
                 return "user"
 
+    def cleanup_updatables(self) -> None:
+        """
+        Expires updatable messages if older than 3 minutes
+        """
+        self.updatable_messages_lock.acquire()
+        hashes_to_remove = []
+        for message_hash in self.updatable_messages:
+            if time.time() - self.updatable_messages[message_hash]["sent"] > 3 * 60:
+                message = self.updatable_messages[message_hash]
+                unique_id = message["unique_id"]
+                timestamp = datetime.datetime.now().strftime("%H:%M")
+
+                self.print_msg("{}|{}| [{}] [{}] {}".format(termcolor.colored(timestamp, self.args["timestamp_color"]),
+                                                            termcolor.colored(message["trip"], message["color"]),
+                                                            f"Expired.ID: {unique_id}" if self.args["no_unicode"] else f"{chr(10007)} {unique_id}",
+                                                            termcolor.colored(message["nick"], message["color"]),
+                                                            termcolor.colored(message["text"], self.args["message_color"])))
+
+                hashes_to_remove.append(message_hash)
+
+        for message_hash in hashes_to_remove:
+            self.updatable_messages.pop(message_hash)
+
+        self.updatable_messages_lock.release()
+
+    def cleanup_thread(self) -> None:
+        """
+        Thread that runs cleanup tasks every 30 seconds
+        """
+        while True:
+            self.cleanup_updatables()
+            # more cleanup tasks here
+            threading.Event().wait(30)
+
     def recv_thread(self) -> None:
         """
         Receives packets from the server and handles them
@@ -238,7 +266,7 @@ class Client:
 
             while self.ws.connected:
                 received = json.loads(self.ws.recv())
-                packet_receive_time = datetime.datetime.now().strftime("%H:%M")
+                packet_receive_time = datetime.datetime.now().strftime(self.args["timestamp_format"])
 
                 if self.args["no_parse"]:
                     self.print_msg("\n{}|{}".format(packet_receive_time, received))
@@ -306,10 +334,65 @@ class Client:
 
                                 notification.send(block=False)
 
-                        self.print_msg("{}|{}| [{}] {}".format(termcolor.colored(packet_receive_time, self.args["timestamp_color"]),
-                                                               termcolor.colored(tripcode, color_to_use),
-                                                               termcolor.colored(received["nick"], color_to_use),
-                                                               termcolor.colored(received["text"], self.args["message_color"])))
+                        if "customId" in received:
+                            message_hash = abs(hash(str(received["userid"]) + received["customId"])) % 100000000
+                            unique_id = "".join(random.choice("123456789") for _ in range(5))
+
+                            self.updatable_messages_lock.acquire()
+                            self.updatable_messages[message_hash] = {
+                                "customId": received["customId"],
+                                "userid": received["userid"],
+                                "text": received["text"],
+                                "sent": time.time(),
+                                "trip": tripcode,
+                                "nick": received["nick"],
+                                "color": color_to_use,
+                                "unique_id": unique_id
+                            }
+                            self.updatable_messages_lock.release()
+
+                            self.print_msg("{}|{}| [{}] [{}] {}".format(termcolor.colored(packet_receive_time, self.args["timestamp_color"]),
+                                                                        termcolor.colored(tripcode, color_to_use),
+                                                                        f"Updatable.ID: {unique_id}" if self.args["no_unicode"] else f"{chr(10711)} {unique_id}",
+                                                                        termcolor.colored(received["nick"], color_to_use),
+                                                                        termcolor.colored(received["text"], self.args["message_color"])))
+
+                        else:
+                            self.print_msg("{}|{}| [{}] {}".format(termcolor.colored(packet_receive_time, self.args["timestamp_color"]),
+                                                                   termcolor.colored(tripcode, color_to_use),
+                                                                   termcolor.colored(received["nick"], color_to_use),
+                                                                   termcolor.colored(received["text"], self.args["message_color"])))
+
+                    case "updateMessage":
+                        message_hash = abs(hash(str(received["userid"]) + received["customId"])) % 100000000
+                        self.updatable_messages_lock.acquire()
+                        match received["mode"]:
+                            case "overwrite":
+                                if message_hash in self.updatable_messages:
+                                    self.updatable_messages[message_hash]["text"] = received["text"]
+
+                            case "append":
+                                if message_hash in self.updatable_messages:
+                                    self.updatable_messages[message_hash]["text"] += received["text"]
+
+                            case "prepend":
+                                if message_hash in self.updatable_messages:
+                                    self.updatable_messages[message_hash]["text"] = received["text"] + self.updatable_messages[message_hash]["text"]
+
+                            case "complete":
+                                if message_hash in self.updatable_messages:
+                                    message = self.updatable_messages[message_hash]
+                                    unique_id = message["unique_id"]
+
+                                    self.print_msg("{}|{}| [{}] [{}] {}".format(termcolor.colored(packet_receive_time, self.args["timestamp_color"]),
+                                                                                termcolor.colored(message["trip"], message["color"]),
+                                                                                f"Completed.ID: {unique_id}" if self.args["no_unicode"] else f"{chr(10003)} {unique_id}",
+                                                                                termcolor.colored(message["nick"], message["color"]),
+                                                                                termcolor.colored(message["text"], self.args["message_color"])))
+
+                                    self.updatable_messages.pop(message_hash)
+
+                        self.updatable_messages_lock.release()
 
                     case "info":
                         if received.get("type") is not None and received.get("type") == "whisper":
@@ -397,7 +480,7 @@ class Client:
                                                           termcolor.colored(received["text"], self.args["warning_color"])))
 
                         if received["text"].startswith("Nickname"):
-                            self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
+                            self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
                                                               termcolor.colored("CLIENT", self.args["client_color"]),
                                                               termcolor.colored("Try running /nick <newnick> and /reconnect", self.args["client_color"])))
 
@@ -415,10 +498,10 @@ class Client:
                 self.close()
 
             else:
-                self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
+                self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
                                                   termcolor.colored("CLIENT", self.args["client_color"]),
                                                   termcolor.colored(f"Disconnected from server: {e}", self.args["client_color"])))
-                self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
+                self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
                                                   termcolor.colored("CLIENT", self.args["client_color"]),
                                                   termcolor.colored("Reconnecting in 60 seconds, run /reconnect do it immediately", self.args["client_color"])))
                 self.timed_reconnect = threading.Timer(60, self.reconnect_to_server)
@@ -478,7 +561,7 @@ class Client:
 
         else:
             self.exit_attempted = True
-            self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
+            self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
                                               termcolor.colored("CLIENT", self.args["client_color"]),
                                               termcolor.colored("Press ctrl+c again to exit", self.args["client_color"])))
 
@@ -568,12 +651,12 @@ class Client:
                         self.send(json.dumps(json_to_send))
 
                     except Exception as e:
-                        self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
+                        self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
                                                                               termcolor.colored("CLIENT", self.args["client_color"]),
                                                                               termcolor.colored(f"Error sending json: {e}", self.args["client_color"])))
 
                 case "/list":
-                    self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
+                    self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
                                                       termcolor.colored("CLIENT", self.args["client_color"]),
                                                       termcolor.colored("Channel: {} - Users: {}".format(self.channel, ", ".join(self.online_users)), self.args["client_color"])))
 
@@ -583,13 +666,13 @@ class Client:
                         ignored = "Yes" if target in self.online_ignored_users else "No"
                         profile = "{}'s profile:\n".format(target) + "\n".join("{}: {}".format(option, value) for option, value in self.online_users_details[target].items()) + "\nIgnored: {}".format(ignored)
 
-                        self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
+                        self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
                                                           termcolor.colored("CLIENT", self.args["client_color"]),
                                                           termcolor.colored(profile, self.args["client_color"])))
 
 
                     else:
-                        self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
+                        self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
                                                           termcolor.colored("CLIENT", self.args["client_color"]),
                                                           termcolor.colored("No such user: '{}'".format(target), self.args["client_color"])))
 
@@ -602,23 +685,17 @@ class Client:
                         self.args["nickname"] = parsed_message[2]
 
                     else:
-                        self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
+                        self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
                                                           termcolor.colored("CLIENT", self.args["client_color"]),
                                                           termcolor.colored("Nickname must consist of up to 24 letters, numbers, and underscores", self.args["client_color"])))
 
                 case "/clear":
-                    if self.args["clear"]:
-                        os.system("cls" if os.name=="nt" else "clear")
-
-                    else:
-                        self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
-                                                          termcolor.colored("CLIENT", self.args["client_color"]),
-                                                          termcolor.colored("Clearing is disabled, enable with the --clear flag or run `/configset clear true`", self.args["client_color"])))
+                    os.system("cls" if os.name == "nt" else "clear")
 
                 case "/wlock":
                     self.whisper_lock = not self.whisper_lock
 
-                    self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
+                    self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
                                                       termcolor.colored("CLIENT", self.args["client_color"]),
                                                       termcolor.colored("Toggled whisper lock to {}".format(self.whisper_lock), self.args["client_color"])))
 
@@ -634,12 +711,12 @@ class Client:
                         if self.online_users_details[target]["Hash"] not in self.args["ignored"]["hashes"]:
                             self.args["ignored"]["hashes"].append(self.online_users_details[target]["Hash"])
 
-                        self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
+                        self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
                                                           termcolor.colored("CLIENT", self.args["client_color"]),
                                                           termcolor.colored("Ignoring trip '{}' and hash '{}', run /save to persist".format(trip_to_ignore, self.online_users_details[target]["Hash"]), self.args["client_color"])))
 
                     else:
-                        self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
+                        self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
                                                           termcolor.colored("CLIENT", self.args["client_color"]),
                                                           termcolor.colored("No such user: '{}'".format(target), self.args["client_color"])))
 
@@ -647,7 +724,7 @@ class Client:
                     self.online_ignored_users = []
                     self.args["ignored"] = {"trips": [], "hashes": []}
 
-                    self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
+                    self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
                                                       termcolor.colored("CLIENT", self.args["client_color"]),
                                                       termcolor.colored("Unignored all trips/hashes, run /save to persist", self.args["client_color"])))
 
@@ -658,14 +735,14 @@ class Client:
                 case "/set":
                     message_args = parsed_message[2].split(" ")
                     if len(message_args) < 2:
-                        self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
+                        self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
                                                           termcolor.colored("CLIENT", self.args["client_color"]),
                                                           termcolor.colored("Alias/Value cannot be empty", self.args["client_color"])))
 
                     else:
                         self.args["aliases"][message_args[0]] = " ".join(message_args[1:])
 
-                        self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
+                        self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
                                                           termcolor.colored("CLIENT", self.args["client_color"]),
                                                           termcolor.colored("Set alias '{}' = '{}'".format(message_args[0], self.args["aliases"][message_args[0]]), self.args["client_color"])))
 
@@ -673,12 +750,12 @@ class Client:
                     try:
                         self.args["aliases"].pop(parsed_message[2])
 
-                        self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
+                        self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
                                                           termcolor.colored("CLIENT", self.args["client_color"]),
                                                           termcolor.colored("Unset alias '{}'".format(parsed_message[2]), self.args["client_color"])))
 
                     except KeyError:
-                        self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
+                        self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
                                                           termcolor.colored("CLIENT", self.args["client_color"]),
                                                           termcolor.colored("Alias '{}' isn't defined".format(parsed_message[2]), self.args["client_color"])))
 
@@ -706,24 +783,24 @@ class Client:
                             self.manage_complete_list()
                             self.prompt_session.completer = self.create_completer()
 
-                            self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
+                            self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
                                                               termcolor.colored("CLIENT", self.args["client_color"]),
                                                               termcolor.colored("Set configuration option '{}' to '{}'".format(option, value), self.args["client_color"])))
 
                         else:
-                            self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
+                            self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
                                                               termcolor.colored("CLIENT", self.args["client_color"]),
                                                               termcolor.colored("Error setting configuration: Invalid value '{}' for option '{}'".format(value, option), self.args["client_color"])))
 
                     else:
                         problem = "Invalid" if message_args[0] not in self.args else "Read-only"
 
-                        self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
+                        self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
                                                           termcolor.colored("CLIENT", self.args["client_color"]),
                                                           termcolor.colored("Error setting configuration: {} option '{}'".format(problem, message_args[0]), self.args["client_color"])))
 
                 case "/configdump":
-                    self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
+                    self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
                                                       termcolor.colored("CLIENT", self.args["client_color"]),
                                                       termcolor.colored("Active configuration:\n" + "\n".join("{}: {}".format(option, value) for option, value in self.args.items()), self.args["client_color"])))
 
@@ -741,17 +818,17 @@ class Client:
                                 else:
                                     yaml.dump(config, config_file, sort_keys=False, default_flow_style=False)
 
-                                self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
+                                self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
                                                                   termcolor.colored("CLIENT", self.args["client_color"]),
                                                                   termcolor.colored("Configuration saved to {}".format(self.args["config_file"]), self.args["client_color"])))
 
                         except Exception as e:
-                            self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
+                            self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
                                                               termcolor.colored("CLIENT", self.args["client_color"]),
                                                               termcolor.colored(f"Error saving configuration: {e}", self.args["client_color"])))
 
                     else:
-                        self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
+                        self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
                                                           termcolor.colored("CLIENT", self.args["client_color"]),
                                                           termcolor.colored("Unable to save configuration without a loaded config file, use --load-config", self.args["client_color"])))
 
@@ -788,7 +865,7 @@ class Client:
                             self.send(json.dumps({"cmd": "moveuser", "nick": message_args[0].lstrip("@"), "channel": message_args[1]}))
 
                         else:
-                            self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
+                            self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
                                                               termcolor.colored("CLIENT", self.args["client_color"]),
                                                               termcolor.colored("User/Channel cannot be empty", self.args["client_color"])))
 
@@ -835,7 +912,7 @@ class Client:
                             self.send(json.dumps({"cmd": "forcecolor", "nick": message_args[0].lstrip("@"), "color": message_args[1]}))
 
                         else:
-                            self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
+                            self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
                                                               termcolor.colored("CLIENT", self.args["client_color"]),
                                                               termcolor.colored("User/Color cannot be empty", self.args["client_color"])))
 
@@ -929,7 +1006,7 @@ Client-based commands:
                         server_help_text = "\n\nServer-based commands should be displayed below:"
                         display = help_text + mod_help_text + server_help_text if self.args["is_mod"] else help_text + server_help_text
 
-                        self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
+                        self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
                                                           termcolor.colored("CLIENT", self.args["client_color"]),
                                                           termcolor.colored(display, self.args["client_color"])))
 
@@ -941,7 +1018,7 @@ Client-based commands:
                 case _:
                     if self.whisper_lock:
                         if not message.split(" ")[0] in ("/whisper", "/w", "/reply", "/r") or message.startswith(" "):
-                            self.print_msg("{}|{}| {}".format(termcolor.colored("-NIL-", self.args["timestamp_color"]),
+                            self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
                                                               termcolor.colored("CLIENT", self.args["client_color"]),
                                                               termcolor.colored("Whisper lock active, toggle it off to send messages", self.args["client_color"])))
                             return
@@ -954,9 +1031,6 @@ Client-based commands:
         """
         if not thread:
             colorama.deinit()
-
-        if self.term_content_saved and not thread:
-            os.system("tput rmcup")
 
         if error:
             print(f"{type(error).__name__}: {error}")
@@ -1004,11 +1078,12 @@ def load_config(filepath: str) -> dict:
             missing_args = []
             for key in ("trip_password", "websocket_address", "no_parse",
                        "clear", "is_mod", "no_unicode", "no_notify",
-                       "prompt_string", "message_color", "whisper_color",
-                       "emote_color", "nickname_color", "self_nickname_color",
-                       "warning_color", "server_color", "client_color",
-                       "timestamp_color", "mod_nickname_color", "suggest_aggr",
-                       "admin_nickname_color", "ignored", "aliases", "proxy"):
+                       "prompt_string", "timestamp_format", "message_color",
+                       "whisper_color", "emote_color", "nickname_color",
+                       "self_nickname_color", "warning_color", "server_color",
+                       "client_color", "timestamp_color", "mod_nickname_color",
+                       "suggest_aggr", "admin_nickname_color", "ignored",
+                       "aliases", "proxy"):
                 if key not in config:
                     missing_args.append(key)
 
@@ -1110,7 +1185,7 @@ def main():
     command_group.add_argument("-h", "--help", help="display this help message", action="help")
     command_group.add_argument("--gen-config", help="generate a config file with provided arguments", action="store_true")
     command_group.add_argument("--colors", help="display a list of valid colors", action="store_true")
-    command_group.add_argument("--version", help="display version information", action="version", version="hcclient 1.13.0-git")
+    command_group.add_argument("--version", help="display version information", action="version", version="hcclient 1.14.0-git")
     command_group.set_defaults(gen_config=False, colors=False)
     required_group.add_argument("-c", "--channel", help="specify the channel to join")
     required_group.add_argument("-n", "--nickname", help="specify the nickname to use")
@@ -1119,17 +1194,18 @@ def main():
     optional_group.add_argument("-l", "--load-config", help="specify a config file to load", dest="config_file")
     optional_group.add_argument("--no-config", help="disable loading of the default config file", action="store_true")
     optional_group.add_argument("--no-parse", help="log received packets without parsing", action="store_true")
-    optional_group.add_argument("--clear", help="enable clearing of the terminal", action="store_true")
+    optional_group.add_argument("--clear", help="clear the terminal before joining", action="store_true")
     optional_group.add_argument("--is-mod", help="enable moderator commands", action="store_true")
-    optional_group.add_argument("--no-unicode", help="disable moderator/admin icon and unicode characters in the UI", action="store_true")
+    optional_group.add_argument("--no-unicode", help="disable unicode characters in ui elements", action="store_true")
     optional_group.add_argument("--no-notify", help="disable desktop notifications", action="store_true")
     optional_group.add_argument("--prompt-string", help="set the prompt string (default: '❯ ' or '> ' if --no-unicode)")
+    optional_group.add_argument("--timestamp-format", help="set the timestamp format (default: %%H:%%M)")
     optional_group.add_argument("--suggest-aggr", help="set the suggestion aggressiveness (default: 1)", type=int, choices=[0, 1, 2, 3])
     optional_group.add_argument("--proxy", help="specify a proxy to use (format: TYPE:HOST:PORT) (default: None)")
     optional_group.set_defaults(config_file=None, no_config=False, no_parse=False, clear=False,
                                 is_mod=False, no_unicode=False, no_notify=False, prompt_string="default",
-                                suggest_aggr=1, trip_password="", websocket_address="wss://hack.chat/chat-ws",
-                                proxy=False)
+                                timestamp_format="%H:%M", suggest_aggr=1, trip_password="",
+                                websocket_address="wss://hack.chat/chat-ws", proxy=False)
 
     if parser.parse_args().colors:
         print("Valid colors: \n{}".format("\n".join(termcolor.COLORS)))
@@ -1138,6 +1214,7 @@ def main():
     client = Client(initialize_config(parser.parse_args(), parser))
     client.thread_ping.start()
     client.thread_recv.start()
+    client.thread_cleanup.start()
     client.input_manager()
 
 

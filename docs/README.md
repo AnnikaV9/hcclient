@@ -18,7 +18,7 @@ A cross-platform terminal client for <a href="https://hack.chat">hack.chat</a>
 - [Colors](#colors)
 - [Configuration](#configuration)
 - [Notifications](#notifications)
-- [Known Issues](#issues)
+- [Updatable Messages](#updatable-messages)
 - [Contributing](#contributing)
 
 <br />
@@ -69,10 +69,10 @@ On Arch Linux, install the [source AUR package](https://aur.archlinux.org/packag
 On other x86_64 Linux distributions:
 ```bash
 # Download the latest binary
-wget -O hcclient https://github.com/AnnikaV9/hcclient/releases/download/v1.13.0/hcclient-1.13.0-linux-x86-64
+wget -O hcclient https://github.com/AnnikaV9/hcclient/releases/download/v1.14.0/hcclient-1.14.0-linux-x86-64
 
 # Or the statically linked binary if the above one doesn't work
-wget -O hcclient https://github.com/AnnikaV9/hcclient/releases/download/v1.13.0/hcclient-1.13.0-linux-x86-64-static
+wget -O hcclient https://github.com/AnnikaV9/hcclient/releases/download/v1.14.0/hcclient-1.14.0-linux-x86-64-static
 
 # Make the binary executable
 chmod +x hcclient
@@ -86,10 +86,10 @@ hcclient --help
 As a container:
 ```bash
 # Download the latest image
-wget https://github.com/AnnikaV9/hcclient/releases/download/v1.13.0/hcclient-1.13.0-image.tar.xz
+wget https://github.com/AnnikaV9/hcclient/releases/download/v1.14.0/hcclient-1.14.0-image.tar.xz
 
 # Install the image
-docker/podman load -i hcclient-1.13.0-image.tar.xz
+docker/podman load -i hcclient-1.14.0-image.tar.xz
 
 # Run hcclient
 docker/podman run --rm -it hcclient --help
@@ -131,10 +131,9 @@ optional arguments:
                         specify a config file to load
   --no-config           disable loading of the default config file
   --no-parse            log received packets without parsing
-  --clear               enable clearing of the terminal
+  --clear               clear the terminal before joining
   --is-mod              enable moderator commands
-  --no-unicode          disable moderator/admin icon and unicode characters
-                        in the UI
+  --no-unicode          disable unicode characters in ui elements
   --no-notify           disable desktop notifications
   --prompt-string PROMPT_STRING
                         set the prompt string (default: '❯ ' or '> ' if
@@ -233,11 +232,29 @@ Install the [Termux:API](https://f-droid.org/en/packages/com.termux.api/) app an
 
 <br />
 
-## Known Issues <a name="issues"></a>
+## Updatable Messages <a name="updatable-messages"></a>
 
-- Not compatible with hack.chat's new `updateMessage` implementation. You won't be able to see the output of any bots that use `updateMessage` to display delayed/streamed output.
+hack.chat has support for updatable messages, which allows editing previously sent messages on the official web client. This is usually used by bots to display streamed/delayed output.<br />
+Since hcclient is a terminal client, editing messages that have been printed is not possible.<br />
+However, `updateMessage` events are still handled, just differently.
 
-- Some terminal emulators will have locked scrolling when hcclient is run with `--clear`. This is an issue with how the terminal emulators interact with the alternate screen `tput smcup` invokes. There's no fix for this at the moment, so run hcclient without `--clear` if you want to be able to scroll.
+When an updatable message is received, it will be printed as per normal together but with an unique identifier. For example:
+```
+23:06|jEuh/s| [⧗ 84263] [user] hi
+```
+Here, `84263` is the message identifier.
+
+As the sender continues to update and edit the message, hcclient will track the changes in memory.<br />
+Once the sender sends the `complete` status, the message will be printed again with the same identifier and all changes applied:
+```
+23:08|jEuh/s| [✓ 84263] [user] hi guys!
+```
+It's displayed as a new message, but it's actually just the same message.
+
+If no `complete` status is received in 3 minutes, the message will expire. All changes applied so far will be printed like normal, but with the `✗` icon instead.
+
+**Note:** &nbsp; If `no_unicode` is enabled, the `⧗`, `✓` and `✗` icons will be replaced with `Updatable.ID:`, `Completed.ID:` and `Expired.ID:` respectively.
+
 
 <br />
 
