@@ -133,8 +133,7 @@ optional arguments:
   --no-parse            log received packets without parsing
   --clear               clear the terminal before joining
   --is-mod              enable moderator commands
-  --no-unicode          disable moderator/admin icon and unicode characters
-                        in the UI
+  --no-unicode          disable unicode characters in ui elements
   --no-notify           disable desktop notifications
   --prompt-string PROMPT_STRING
                         set the prompt string (default: '❯ ' or '> ' if

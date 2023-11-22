@@ -1196,7 +1196,7 @@ def main():
     optional_group.add_argument("--no-parse", help="log received packets without parsing", action="store_true")
     optional_group.add_argument("--clear", help="clear the terminal before joining", action="store_true")
     optional_group.add_argument("--is-mod", help="enable moderator commands", action="store_true")
-    optional_group.add_argument("--no-unicode", help="disable moderator/admin icon and unicode characters in the UI", action="store_true")
+    optional_group.add_argument("--no-unicode", help="disable unicode characters in ui elements", action="store_true")
     optional_group.add_argument("--no-notify", help="disable desktop notifications", action="store_true")
     optional_group.add_argument("--prompt-string", help="set the prompt string (default: '❯ ' or '> ' if --no-unicode)")
     optional_group.add_argument("--timestamp-format", help="set the timestamp format (default: %%H:%%M)")
