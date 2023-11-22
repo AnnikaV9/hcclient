@@ -214,6 +214,20 @@ class Client:
             for user in self.online_users:
                 self.auto_complete_list.append("{}@{}".format(prefix, user))
 
+    def level_to_utype(self, level: int) -> str:
+        """
+        Converts a user level to a user type
+        """
+        match level:
+            case 9999999:
+                return "admin"
+
+            case 999999:
+                return "mod"
+
+            case _:
+                return "user"
+
     def recv_thread(self) -> None:
         """
         Receives packets from the server and handles them
@@ -236,7 +250,7 @@ class Client:
                             self.online_users.append(nick)
 
                         for user_details in received["users"]:
-                            self.online_users_details[user_details["nick"]] = {"Trip": user_details["trip"], "Type": user_details["uType"], "Hash": user_details["hash"]}
+                            self.online_users_details[user_details["nick"]] = {"Trip": user_details["trip"], "Type": self.level_to_utype(user_details["level"]), "Hash": user_details["hash"]}
 
                             if self.online_users_details[user_details["nick"]]["Trip"] in self.args["ignored"]["trips"]:
                                 self.online_ignored_users.append(user_details["nick"])
@@ -262,7 +276,7 @@ class Client:
                         else:
                             tripcode = received.get("trip", "")
 
-                        match received["uType"]:
+                        match self.level_to_utype(received["level"]):
                             case "mod":
                                 color_to_use = self.args["mod_nickname_color"] if self.nick != received["nick"] else self.args["self_nickname_color"]
                                 received["nick"] = "{} {}".format(chr(11088), received["nick"]) if not self.args["no_unicode"] else received["nick"]
@@ -336,7 +350,7 @@ class Client:
 
                     case "onlineAdd":
                         self.online_users.append(received["nick"])
-                        self.online_users_details[received["nick"]] = {"Trip": received["trip"], "Type": received["uType"], "Hash": received["hash"]}
+                        self.online_users_details[received["nick"]] = {"Trip": received["trip"], "Type": self.level_to_utype(received["level"]), "Hash": received["hash"]}
 
                         self.manage_complete_list()
 
