@@ -18,6 +18,8 @@ import colorama
 import contextlib
 import datetime
 import time
+import random
+import string
 import termcolor
 import shutil
 import prompt_toolkit
@@ -245,7 +247,7 @@ class Client:
 
                 self.print_msg("{}|{}| [{}] [{}] {}".format(termcolor.colored(timestamp, self.args["timestamp_color"]),
                                                             termcolor.colored(message["trip"], message["color"]),
-                                                            "Expired.ID: {}".format(abs(hash(str(message["userid"]) + message["customId"])) % 100000),
+                                                            "Expired.ID: {}".format(message["unique_id"]),
                                                             termcolor.colored(message["nick"], message["color"]),
                                                             termcolor.colored(message["text"], self.args["message_color"])))
 
@@ -340,6 +342,11 @@ class Client:
 
                         if "customId" in received:
                             self.updatable_messages_lock.acquire()
+                            for message in self.updatable_messages:
+                                if message["customId"] == received["customId"] and message["userid"] == received["userid"]:
+                                    self.updatable_messages.remove(message)
+                                    break
+
                             self.updatable_messages.append({
                                 "customId": received["customId"],
                                 "userid": received["userid"],
@@ -347,13 +354,14 @@ class Client:
                                 "sent": time.time(),
                                 "trip": tripcode,
                                 "nick": received["nick"],
-                                "color": color_to_use
+                                "color": color_to_use,
+                                "unique_id": abs(hash(str(received["userid"]) + received["customId"])) % 100000
                             })
                             self.updatable_messages_lock.release()
 
                             self.print_msg("{}|{}| [{}] [{}] {}".format(termcolor.colored(packet_receive_time, self.args["timestamp_color"]),
                                                                         termcolor.colored(tripcode, color_to_use),
-                                                                        "Updatable.ID: {}".format(abs(hash(str(received["userid"]) + received["customId"])) % 100000),
+                                                                        "Updatable.ID: {}".format(self.updatable_messages[-1]["unique_id"]),
                                                                         termcolor.colored(received["nick"], color_to_use),
                                                                         termcolor.colored(received["text"], self.args["message_color"])))
 
@@ -390,7 +398,7 @@ class Client:
 
                                         self.print_msg("{}|{}| [{}] [{}] {}".format(termcolor.colored(packet_receive_time, self.args["timestamp_color"]),
                                                                                     termcolor.colored(message["trip"], message["color"]),
-                                                                                    "Completed.ID: {}".format(abs(hash(str(received["userid"]) + received["customId"])) % 100000),
+                                                                                    "Completed.ID: {}".format(message["unique_id"]),
                                                                                     termcolor.colored(message["nick"], message["color"]),
                                                                                     termcolor.colored(message["text"], self.args["message_color"])))
 
