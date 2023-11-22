@@ -265,11 +265,11 @@ class Client:
                         match received["uType"]:
                             case "mod":
                                 color_to_use = self.args["mod_nickname_color"] if self.nick != received["nick"] else self.args["self_nickname_color"]
-                                received["nick"] = "⭐ {}".format(received["nick"]) if not self.args["no_unicode"] else received["nick"]
+                                received["nick"] = "{} {}".format(chr(11088), received["nick"]) if not self.args["no_unicode"] else received["nick"]
 
                             case "admin":
                                 color_to_use = self.args["admin_nickname_color"] if self.nick != received["nick"] else self.args["self_nickname_color"]
-                                received["nick"] = "⭐ {}".format(received["nick"]) if not self.args["no_unicode"] else received ["nick"]
+                                received["nick"] = "{} {}".format(chr(11088), received["nick"]) if not self.args["no_unicode"] else received ["nick"]
                                 tripcode = "Admin"
 
                             case _:
