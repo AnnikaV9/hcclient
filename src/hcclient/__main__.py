@@ -17,6 +17,7 @@ import argparse
 import colorama
 import contextlib
 import datetime
+import time
 import termcolor
 import shutil
 import prompt_toolkit
@@ -62,6 +63,8 @@ class Client:
         self.term_content_saved = False
         self.manage_term_contents()
         self.stdout_history = []
+        self.updatable_messages = []
+        self.updatable_messages_lock = threading.Lock()
 
         self.def_config_dir = os.path.join(os.getenv("APPDATA"), "hcclient") if os.name == "nt" else os.path.join(os.getenv("HOME"), ".config", "hcclient")
 
@@ -74,6 +77,8 @@ class Client:
 
         self.thread_ping = threading.Thread(target=self.ping_thread, daemon=True)
         self.thread_recv = threading.Thread(target=self.recv_thread, daemon=True)
+        self.thread_cleanup = threading.Thread(target=self.cleanup_thread, daemon=True)
+
 
     def connect_to_server(self) -> None:
         """
@@ -228,6 +233,33 @@ class Client:
             case _:
                 return "user"
 
+    def cleanup_updatables(self) -> None:
+        """
+        Removes expired updatable messages
+        """
+        self.updatable_messages_lock.acquire()
+        for message in self.updatable_messages:
+            if time.time() - message["sent"] > 6 * 60:
+                self.updatable_messages.remove(message)
+                timestamp = datetime.datetime.now().strftime("%H:%M")
+
+                self.print_msg("{}|{}| [{}] [{}] {}".format(termcolor.colored(timestamp, self.args["timestamp_color"]),
+                                                            termcolor.colored(message["trip"], message["color"]),
+                                                            "Expired.ID: {}".format(abs(hash(str(message["userid"]) + message["customId"])) % 100000),
+                                                            termcolor.colored(message["nick"], message["color"]),
+                                                            termcolor.colored(message["text"], self.args["message_color"])))
+
+        self.updatable_messages_lock.release()
+
+    def cleanup_thread(self) -> None:
+        """
+        Thread that runs cleanup tasks every 30 seconds
+        """
+        while True:
+            self.cleanup_updatables()
+            # more cleanup tasks here
+            threading.Event().wait(30)
+
     def recv_thread(self) -> None:
         """
         Receives packets from the server and handles them
@@ -306,10 +338,66 @@ class Client:
 
                                 notification.send(block=False)
 
-                        self.print_msg("{}|{}| [{}] {}".format(termcolor.colored(packet_receive_time, self.args["timestamp_color"]),
-                                                               termcolor.colored(tripcode, color_to_use),
-                                                               termcolor.colored(received["nick"], color_to_use),
-                                                               termcolor.colored(received["text"], self.args["message_color"])))
+                        if "customId" in received:
+                            self.updatable_messages_lock.acquire()
+                            self.updatable_messages.append({
+                                "customId": received["customId"],
+                                "userid": received["userid"],
+                                "text": received["text"],
+                                "sent": time.time(),
+                                "trip": tripcode,
+                                "nick": received["nick"],
+                                "color": color_to_use
+                            })
+                            self.updatable_messages_lock.release()
+
+                            self.print_msg("{}|{}| [{}] [{}] {}".format(termcolor.colored(packet_receive_time, self.args["timestamp_color"]),
+                                                                        termcolor.colored(tripcode, color_to_use),
+                                                                        "Updatable.ID: {}".format(abs(hash(str(received["userid"]) + received["customId"])) % 100000),
+                                                                        termcolor.colored(received["nick"], color_to_use),
+                                                                        termcolor.colored(received["text"], self.args["message_color"])))
+
+                        else:
+                            self.print_msg("{}|{}| [{}] {}".format(termcolor.colored(packet_receive_time, self.args["timestamp_color"]),
+                                                                   termcolor.colored(tripcode, color_to_use),
+                                                                   termcolor.colored(received["nick"], color_to_use),
+                                                                   termcolor.colored(received["text"], self.args["message_color"])))
+
+                    case "updateMessage":
+                        self.updatable_messages_lock.acquire()
+                        match received["mode"]:
+                            case "overwrite":
+                                for message in self.updatable_messages:
+                                    if message["customId"] == received["customId"] and message["userid"] == received["userid"]:
+                                        message["text"] = received["text"]
+                                        break
+
+                            case "append":
+                                for message in self.updatable_messages:
+                                    if message["customId"] == received["customId"] and message["userid"] == received["userid"]:
+                                        message["text"] += received["text"]
+                                        break
+
+                            case "prepend":
+                                for message in self.updatable_messages:
+                                    if message["customId"] == received["customId"] and message["userid"] == received["userid"]:
+                                        message["text"] = received["text"] + message["text"]
+                                        break
+
+                            case "complete":
+                                for message in self.updatable_messages:
+                                    if message["customId"] == received["customId"] and message["userid"] == received["userid"]:
+
+                                        self.print_msg("{}|{}| [{}] [{}] {}".format(termcolor.colored(packet_receive_time, self.args["timestamp_color"]),
+                                                                                    termcolor.colored(message["trip"], message["color"]),
+                                                                                    "Completed.ID: {}".format(abs(hash(str(received["userid"]) + received["customId"])) % 100000),
+                                                                                    termcolor.colored(message["nick"], message["color"]),
+                                                                                    termcolor.colored(message["text"], self.args["message_color"])))
+
+                                        self.updatable_messages.remove(message)
+                                        break
+
+                        self.updatable_messages_lock.release()
 
                     case "info":
                         if received.get("type") is not None and received.get("type") == "whisper":
@@ -1138,6 +1226,7 @@ def main():
     client = Client(initialize_config(parser.parse_args(), parser))
     client.thread_ping.start()
     client.thread_recv.start()
+    client.thread_cleanup.start()
     client.input_manager()
 
 
