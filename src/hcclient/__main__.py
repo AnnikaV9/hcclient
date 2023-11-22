@@ -235,9 +235,10 @@ class Client:
 
     def cleanup_updatables(self) -> None:
         """
-        Removes expired updatable messages
+        Expires updatable messages if older than 6 minutes
         """
         self.updatable_messages_lock.acquire()
+        hashes_to_remove = []
         for message_hash in self.updatable_messages:
             if time.time() - self.updatable_messages[message_hash]["sent"] > 6 * 60:
                 message = self.updatable_messages[message_hash]
@@ -249,8 +250,10 @@ class Client:
                                                             termcolor.colored(message["nick"], message["color"]),
                                                             termcolor.colored(message["text"], self.args["message_color"])))
 
-                self.updatable_messages.pop(message_hash)
-                break
+                hashes_to_remove.append(message_hash)
+
+        for message_hash in hashes_to_remove:
+            self.updatable_messages.pop(message_hash)
 
         self.updatable_messages_lock.release()
 
