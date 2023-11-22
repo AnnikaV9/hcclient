@@ -33,10 +33,13 @@ class Client:
         """
         Initializes the client and environment, sets up variables and threads
         """
+        self.args = args
+
         colorama.init()
         self.bindings = prompt_toolkit.key_binding.KeyBindings()
+        if args["clear"]:
+            os.system("cls" if os.name == "nt" else "clear")
 
-        self.args = args
         self.nick = self.args["nickname"]
         self.online_users = []
         self.online_users_details = {}
@@ -61,8 +64,6 @@ class Client:
         self.auto_complete_list = []
         self.manage_complete_list()
 
-        self.term_content_saved = False
-        self.manage_term_contents()
         self.stdout_history = []
         self.updatable_messages = {}
         self.updatable_messages_lock = threading.Lock()
@@ -169,24 +170,6 @@ class Client:
             return value in range(4)
 
         return True
-
-    def manage_term_contents(self) -> None:
-        """
-        Use tput to save the terminal's contents if tput is available and --clear is specified
-        """
-        if self.args["clear"]:
-            if shutil.which("tput"):
-                os.system("tput smcup")
-                self.term_content_saved = True
-
-            else:
-                try:
-                    input("Warning! The 'tput' command was not found in your path.\nThis means that the terminal's contents will not be saved.\nExit and re-run without --clear as a workaround.\nPress enter to continue and clear the terminal anyway.")
-
-                except (KeyboardInterrupt, EOFError):
-                    sys.exit(0)
-
-            os.system("cls" if os.name=="nt" else "clear")
 
     def print_msg(self, message: str) -> None:
         """
@@ -707,13 +690,7 @@ class Client:
                                                           termcolor.colored("Nickname must consist of up to 24 letters, numbers, and underscores", self.args["client_color"])))
 
                 case "/clear":
-                    if self.args["clear"]:
-                        os.system("cls" if os.name=="nt" else "clear")
-
-                    else:
-                        self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
-                                                          termcolor.colored("CLIENT", self.args["client_color"]),
-                                                          termcolor.colored("Clearing is disabled, enable with the --clear flag or run `/configset clear true`", self.args["client_color"])))
+                    os.system("cls" if os.name == "nt" else "clear")
 
                 case "/wlock":
                     self.whisper_lock = not self.whisper_lock
@@ -1055,9 +1032,6 @@ Client-based commands:
         if not thread:
             colorama.deinit()
 
-        if self.term_content_saved and not thread:
-            os.system("tput rmcup")
-
         if error:
             print(f"{type(error).__name__}: {error}")
             sys.exit(1)
@@ -1220,7 +1194,7 @@ def main():
     optional_group.add_argument("-l", "--load-config", help="specify a config file to load", dest="config_file")
     optional_group.add_argument("--no-config", help="disable loading of the default config file", action="store_true")
     optional_group.add_argument("--no-parse", help="log received packets without parsing", action="store_true")
-    optional_group.add_argument("--clear", help="enable clearing of the terminal", action="store_true")
+    optional_group.add_argument("--clear", help="clear the terminal before joining", action="store_true")
     optional_group.add_argument("--is-mod", help="enable moderator commands", action="store_true")
     optional_group.add_argument("--no-unicode", help="disable moderator/admin icon and unicode characters in the UI", action="store_true")
     optional_group.add_argument("--no-notify", help="disable desktop notifications", action="store_true")
