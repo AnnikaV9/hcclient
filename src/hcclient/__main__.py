@@ -224,12 +224,12 @@ class Client:
 
     def cleanup_updatables(self) -> None:
         """
-        Expires updatable messages if older than 6 minutes
+        Expires updatable messages if older than 3 minutes
         """
         self.updatable_messages_lock.acquire()
         hashes_to_remove = []
         for message_hash in self.updatable_messages:
-            if time.time() - self.updatable_messages[message_hash]["sent"] > 6 * 60:
+            if time.time() - self.updatable_messages[message_hash]["sent"] > 3 * 60:
                 message = self.updatable_messages[message_hash]
                 unique_id = message["unique_id"]
                 timestamp = datetime.datetime.now().strftime("%H:%M")

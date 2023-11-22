@@ -253,7 +253,7 @@ Once the sender sends the `complete` status, the message will be printed again w
 ```
 It's displayed as a new message, but it's actually just the same message.
 
-If no `complete` status is received in 6 minutes, the message will expire. All changes applied so far will be printed like normal, but with the `✗` icon instead.
+If no `complete` status is received in 3 minutes, the message will expire. All changes applied so far will be printed like normal, but with the `✗` icon instead.
 
 **Note:** &nbsp; If `no_unicode` is enabled, the `⧗`, `✓` and `✗` icons will be replaced with `Updatable.ID:`, `Completed.ID:` and `Expired.ID:` respectively.
 
