@@ -63,7 +63,7 @@ class Client:
         self.term_content_saved = False
         self.manage_term_contents()
         self.stdout_history = []
-        self.updatable_messages = []
+        self.updatable_messages = {}
         self.updatable_messages_lock = threading.Lock()
 
         self.def_config_dir = os.path.join(os.getenv("APPDATA"), "hcclient") if os.name == "nt" else os.path.join(os.getenv("HOME"), ".config", "hcclient")
@@ -238,16 +238,19 @@ class Client:
         Removes expired updatable messages
         """
         self.updatable_messages_lock.acquire()
-        for message in self.updatable_messages:
-            if time.time() - message["sent"] > 6 * 60:
-                self.updatable_messages.remove(message)
+        for message_hash in self.updatable_messages:
+            if time.time() - self.updatable_messages[message_hash]["sent"] > 6 * 60:
+                message = self.updatable_messages[message_hash]
                 timestamp = datetime.datetime.now().strftime("%H:%M")
 
                 self.print_msg("{}|{}| [{}] [{}] {}".format(termcolor.colored(timestamp, self.args["timestamp_color"]),
                                                             termcolor.colored(message["trip"], message["color"]),
-                                                            "Expired.ID: {}".format(message["unique_id"]),
+                                                            f"Expired.ID: {message_hash}",
                                                             termcolor.colored(message["nick"], message["color"]),
                                                             termcolor.colored(message["text"], self.args["message_color"])))
+
+                self.updatable_messages.pop(message_hash)
+                break
 
         self.updatable_messages_lock.release()
 
@@ -339,13 +342,10 @@ class Client:
                                 notification.send(block=False)
 
                         if "customId" in received:
-                            self.updatable_messages_lock.acquire()
-                            for message in self.updatable_messages:
-                                if message["customId"] == received["customId"] and message["userid"] == received["userid"]:
-                                    self.updatable_messages.remove(message)
-                                    break
+                            message_hash = abs(hash(str(received["userid"]) + received["customId"])) % 100000
 
-                            self.updatable_messages.append({
+                            self.updatable_messages_lock.acquire()
+                            self.updatable_messages[message_hash] = {
                                 "customId": received["customId"],
                                 "userid": received["userid"],
                                 "text": received["text"],
@@ -353,13 +353,12 @@ class Client:
                                 "trip": tripcode,
                                 "nick": received["nick"],
                                 "color": color_to_use,
-                                "unique_id": abs(hash(str(received["userid"]) + received["customId"])) % 100000
-                            })
+                            }
                             self.updatable_messages_lock.release()
 
                             self.print_msg("{}|{}| [{}] [{}] {}".format(termcolor.colored(packet_receive_time, self.args["timestamp_color"]),
                                                                         termcolor.colored(tripcode, color_to_use),
-                                                                        "Updatable.ID: {}".format(self.updatable_messages[-1]["unique_id"]),
+                                                                        f"Updatable.ID: {message_hash}",
                                                                         termcolor.colored(received["nick"], color_to_use),
                                                                         termcolor.colored(received["text"], self.args["message_color"])))
 
@@ -370,38 +369,32 @@ class Client:
                                                                    termcolor.colored(received["text"], self.args["message_color"])))
 
                     case "updateMessage":
+                        message_hash = abs(hash(str(received["userid"]) + received["customId"])) % 100000
                         self.updatable_messages_lock.acquire()
                         match received["mode"]:
                             case "overwrite":
-                                for message in self.updatable_messages:
-                                    if message["customId"] == received["customId"] and message["userid"] == received["userid"]:
-                                        message["text"] = received["text"]
-                                        break
+                                if message_hash in self.updatable_messages:
+                                    self.updatable_messages[message_hash]["text"] = received["text"]
 
                             case "append":
-                                for message in self.updatable_messages:
-                                    if message["customId"] == received["customId"] and message["userid"] == received["userid"]:
-                                        message["text"] += received["text"]
-                                        break
+                                if message_hash in self.updatable_messages:
+                                    self.updatable_messages[message_hash]["text"] += received["text"]
 
                             case "prepend":
-                                for message in self.updatable_messages:
-                                    if message["customId"] == received["customId"] and message["userid"] == received["userid"]:
-                                        message["text"] = received["text"] + message["text"]
-                                        break
+                                if message_hash in self.updatable_messages:
+                                    self.updatable_messages[message_hash]["text"] = received["text"] + self.updatable_messages[message_hash]["text"]
 
                             case "complete":
-                                for message in self.updatable_messages:
-                                    if message["customId"] == received["customId"] and message["userid"] == received["userid"]:
+                                if message_hash in self.updatable_messages:
+                                    message = self.updatable_messages[message_hash]
 
-                                        self.print_msg("{}|{}| [{}] [{}] {}".format(termcolor.colored(packet_receive_time, self.args["timestamp_color"]),
-                                                                                    termcolor.colored(message["trip"], message["color"]),
-                                                                                    "Completed.ID: {}".format(message["unique_id"]),
-                                                                                    termcolor.colored(message["nick"], message["color"]),
-                                                                                    termcolor.colored(message["text"], self.args["message_color"])))
+                                    self.print_msg("{}|{}| [{}] [{}] {}".format(termcolor.colored(packet_receive_time, self.args["timestamp_color"]),
+                                                                                termcolor.colored(message["trip"], message["color"]),
+                                                                                "Completed.ID: {}".format(message_hash),
+                                                                                termcolor.colored(message["nick"], message["color"]),
+                                                                                termcolor.colored(message["text"], self.args["message_color"])))
 
-                                        self.updatable_messages.remove(message)
-                                        break
+                                    self.updatable_messages.pop(message_hash)
 
                         self.updatable_messages_lock.release()
 
