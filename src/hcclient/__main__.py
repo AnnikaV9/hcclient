@@ -18,8 +18,6 @@ import colorama
 import contextlib
 import datetime
 import time
-import random
-import string
 import termcolor
 import shutil
 import prompt_toolkit
