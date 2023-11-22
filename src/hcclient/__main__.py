@@ -18,6 +18,7 @@ import colorama
 import contextlib
 import datetime
 import time
+import random
 import termcolor
 import shutil
 import prompt_toolkit
@@ -242,11 +243,12 @@ class Client:
         for message_hash in self.updatable_messages:
             if time.time() - self.updatable_messages[message_hash]["sent"] > 6 * 60:
                 message = self.updatable_messages[message_hash]
+                unique_id = message["unique_id"]
                 timestamp = datetime.datetime.now().strftime("%H:%M")
 
                 self.print_msg("{}|{}| [{}] [{}] {}".format(termcolor.colored(timestamp, self.args["timestamp_color"]),
                                                             termcolor.colored(message["trip"], message["color"]),
-                                                            f"Expired.ID: {message_hash}",
+                                                            f"Expired.ID: {unique_id}" if self.args["no_unicode"] else f"{chr(10007)} {unique_id}",
                                                             termcolor.colored(message["nick"], message["color"]),
                                                             termcolor.colored(message["text"], self.args["message_color"])))
 
@@ -345,7 +347,8 @@ class Client:
                                 notification.send(block=False)
 
                         if "customId" in received:
-                            message_hash = abs(hash(str(received["userid"]) + received["customId"])) % 100000
+                            message_hash = abs(hash(str(received["userid"]) + received["customId"])) % 100000000
+                            unique_id = "".join(random.choice("123456789") for _ in range(5))
 
                             self.updatable_messages_lock.acquire()
                             self.updatable_messages[message_hash] = {
@@ -356,12 +359,13 @@ class Client:
                                 "trip": tripcode,
                                 "nick": received["nick"],
                                 "color": color_to_use,
+                                "unique_id": unique_id
                             }
                             self.updatable_messages_lock.release()
 
                             self.print_msg("{}|{}| [{}] [{}] {}".format(termcolor.colored(packet_receive_time, self.args["timestamp_color"]),
                                                                         termcolor.colored(tripcode, color_to_use),
-                                                                        f"Updatable.ID: {message_hash}",
+                                                                        f"Updatable.ID: {unique_id}" if self.args["no_unicode"] else f"{chr(10711)} {unique_id}",
                                                                         termcolor.colored(received["nick"], color_to_use),
                                                                         termcolor.colored(received["text"], self.args["message_color"])))
 
@@ -372,7 +376,7 @@ class Client:
                                                                    termcolor.colored(received["text"], self.args["message_color"])))
 
                     case "updateMessage":
-                        message_hash = abs(hash(str(received["userid"]) + received["customId"])) % 100000
+                        message_hash = abs(hash(str(received["userid"]) + received["customId"])) % 100000000
                         self.updatable_messages_lock.acquire()
                         match received["mode"]:
                             case "overwrite":
@@ -390,10 +394,11 @@ class Client:
                             case "complete":
                                 if message_hash in self.updatable_messages:
                                     message = self.updatable_messages[message_hash]
+                                    unique_id = message["unique_id"]
 
                                     self.print_msg("{}|{}| [{}] [{}] {}".format(termcolor.colored(packet_receive_time, self.args["timestamp_color"]),
                                                                                 termcolor.colored(message["trip"], message["color"]),
-                                                                                "Completed.ID: {}".format(message_hash),
+                                                                                f"Completed.ID: {unique_id}" if self.args["no_unicode"] else f"{chr(10003)} {unique_id}",
                                                                                 termcolor.colored(message["nick"], message["color"]),
                                                                                 termcolor.colored(message["text"], self.args["message_color"])))
 
