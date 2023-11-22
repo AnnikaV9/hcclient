@@ -234,8 +234,7 @@ Install the [Termux:API](https://f-droid.org/en/packages/com.termux.api/) app an
 
 ## Updatable Messages <a name="updatable-messages"></a>
 
-hack.chat has support for updatable messages, which allows editing previously sent messages on the official web client.<br />
-This is usually used by bots to display streamed/delayed output.<br />
+hack.chat has support for updatable messages, which allows editing previously sent messages on the official web client. This is usually used by bots to display streamed/delayed output.<br />
 Since hcclient is a terminal client, editing messages that have been printed is not possible.<br />
 However, `updateMessage` events are still handled, just differently.
 
