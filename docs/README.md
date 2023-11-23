@@ -237,10 +237,10 @@ Install the [Termux:API](https://f-droid.org/en/packages/com.termux.api/) app an
 ## Updatable Messages <a name="updatable-messages"></a>
 
 hack.chat has support for updatable messages, which allows editing previously sent messages on the official web client. This is usually used by bots to display streamed/delayed output.<br />
-Since hcclient is a terminal client, editing messages that have been printed is not possible.<br />
+Since hcclient is a terminal client, editing messages that have been previously printed isn't possible.<br />
 However, `updateMessage` events are still handled, just differently.
 
-When an updatable message is received, it will be printed as per normal together but with an unique identifier. For example:
+When an updatable message is received, it will be printed as per normal but with an unique identifier. For example:
 ```
 23:06|jEuh/s| [⧗ 84263] [user] hi
 ```
@@ -251,7 +251,7 @@ Once the sender sends the `complete` status, the message will be printed again w
 ```
 23:08|jEuh/s| [✓ 84263] [user] hi guys!
 ```
-It's displayed as a new message, but it's actually just the same message.
+It's displayed as a new message, but it's just the previous message but edited.
 
 If no `complete` status is received in 3 minutes, the message will expire. All changes applied so far will be printed like normal, but with the `✗` icon instead.
 
