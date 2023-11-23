@@ -104,11 +104,11 @@ class Client:
         else:
             self.ws.connect(self.args["websocket_address"])
 
-        self.ws.send(json.dumps({
+        self.send({
             "cmd": "join",
             "channel": self.args["channel"],
             "nick": "{}#{}".format(self.nick, self.args["trip_password"])
-        }))
+        })
 
     def reconnect_to_server(self) -> None:
         """
@@ -181,12 +181,12 @@ class Client:
         if len(self.stdout_history) > 100:
             self.stdout_history.pop(0)
 
-    def send(self, packet: str) -> None:
+    def send(self, packet: dict) -> None:
         """
         Sends a packet to the server if connected, otherwise prints an error
         """
         if self.ws.connected:
-            self.ws.send(packet)
+            self.ws.send(json.dumps(packet))
 
         else:
             self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
@@ -647,13 +647,12 @@ class Client:
             match parsed_message[0]:
                 case "/raw":
                     try:
-                        json_to_send = json.loads(parsed_message[2])
-                        self.send(json.dumps(json_to_send))
+                        self.send(json.loads(parsed_message[2]))
 
                     except Exception as e:
                         self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
-                                                                              termcolor.colored("CLIENT", self.args["client_color"]),
-                                                                              termcolor.colored(f"Error sending json: {e}", self.args["client_color"])))
+                                                          termcolor.colored("CLIENT", self.args["client_color"]),
+                                                          termcolor.colored(f"Error sending json: {e}", self.args["client_color"])))
 
                 case "/list":
                     self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
@@ -679,7 +678,7 @@ class Client:
                 case "/nick":
                     if re.match("^[A-Za-z0-9_]*$", parsed_message[2]) and 0 < len(parsed_message[2]) < 25:
                         if self.ws.connected:
-                            self.send(json.dumps({"cmd": "changenick", "nick": parsed_message[2]}))
+                            self.send({"cmd": "changenick", "nick": parsed_message[2]})
 
                         self.nick = parsed_message[2]
                         self.args["nickname"] = parsed_message[2]
@@ -840,29 +839,29 @@ class Client:
 
                 case "/ban":
                     if self.args["is_mod"]:
-                        [self.send(json.dumps({"cmd": "ban", "nick": user.lstrip("@")})) for user in parsed_message[2].split(" ")]
+                        [self.send({"cmd": "ban", "nick": user.lstrip("@")}) for user in parsed_message[2].split(" ")]
 
                 case "/unban":
                     if self.args["is_mod"]:
-                        [self.send(json.dumps({"cmd": "unban", "hash": uhash})) for uhash in parsed_message[2].split(" ")]
+                        [self.send({"cmd": "unban", "hash": uhash}) for uhash in parsed_message[2].split(" ")]
 
                 case "/unbanall":
                     if self.args["is_mod"]:
-                        self.send(json.dumps({"cmd": "unbanall"}))
+                        self.send({"cmd": "unbanall"})
 
                 case "/dumb":
                     if self.args["is_mod"]:
-                        [self.send(json.dumps({"cmd": "dumb", "nick": user.lstrip("@")})) for user in parsed_message[2].split(" ")]
+                        [self.send({"cmd": "dumb", "nick": user.lstrip("@")}) for user in parsed_message[2].split(" ")]
 
                 case "/speak":
                     if self.args["is_mod"]:
-                        [self.send(json.dumps({"cmd": "speak", "nick": user.lstrip("@")})) for user in parsed_message[2].split(" ")]
+                        [self.send({"cmd": "speak", "nick": user.lstrip("@")}) for user in parsed_message[2].split(" ")]
 
                 case "/moveuser":
                     if self.args["is_mod"]:
                         message_args = parsed_message[2].split(" ")
                         if len(message_args) > 1:
-                            self.send(json.dumps({"cmd": "moveuser", "nick": message_args[0].lstrip("@"), "channel": message_args[1]}))
+                            self.send({"cmd": "moveuser", "nick": message_args[0].lstrip("@"), "channel": message_args[1]})
 
                         else:
                             self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
@@ -871,45 +870,45 @@ class Client:
 
                 case "/kick":
                     if self.args["is_mod"]:
-                        [self.send(json.dumps({"cmd": "kick", "nick": user.lstrip("@")})) for user in parsed_message[2].split(" ")]
+                        [self.send({"cmd": "kick", "nick": user.lstrip("@")}) for user in parsed_message[2].split(" ")]
 
                 case "/kickasone":
                     if self.args["is_mod"]:
-                        self.send(json.dumps({"cmd": "kick", "nick": [user.lstrip("@") for user in parsed_message[2].split(" ")]})) # supply a list so everyone gets banished to the same room
+                        self.send({"cmd": "kick", "nick": [user.lstrip("@") for user in parsed_message[2].split(" ")]}) # supply a list so everyone gets banished to the same room
 
                 case "/overflow":
                     if self.args["is_mod"]:
-                        [self.send(json.dumps({"cmd": "overflow", "nick": user.lstrip("@")})) for user in parsed_message[2].split(" ")]
+                        [self.send({"cmd": "overflow", "nick": user.lstrip("@")}) for user in parsed_message[2].split(" ")]
 
                 case "/authtrip":
                     if self.args["is_mod"]:
-                        [self.send(json.dumps({"cmd": "authtrip", "trip": trip})) for trip in parsed_message[2].split(" ")]
+                        [self.send({"cmd": "authtrip", "trip": trip}) for trip in parsed_message[2].split(" ")]
 
                 case "/deauthtrip":
                     if self.args["is_mod"]:
-                        [self.send(json.dumps({"cmd": "deauthtrip", "trip": trip})) for trip in parsed_message[2].split(" ")]
+                        [self.send({"cmd": "deauthtrip", "trip": trip}) for trip in parsed_message[2].split(" ")]
 
                 case "/enablecaptcha":
                     if self.args["is_mod"]:
-                        self.send(json.dumps({"cmd": "enablecaptcha"}))
+                        self.send({"cmd": "enablecaptcha"})
 
                 case "/disablecaptcha":
                     if self.args["is_mod"]:
-                        self.send(json.dumps({"cmd": "disablecaptcha"}))
+                        self.send({"cmd": "disablecaptcha"})
 
                 case "/lockroom":
                     if self.args["is_mod"]:
-                        self.send(json.dumps({"cmd": "lockroom"}))
+                        self.send({"cmd": "lockroom"})
 
                 case "/unlockroom":
                     if self.args["is_mod"]:
-                        self.send(json.dumps({"cmd": "unlockroom"}))
+                        self.send({"cmd": "unlockroom"})
 
                 case "/forcecolor":
                     if self.args["is_mod"]:
                         message_args = parsed_message[2].split(" ")
                         if len(message_args) > 1:
-                            self.send(json.dumps({"cmd": "forcecolor", "nick": message_args[0].lstrip("@"), "color": message_args[1]}))
+                            self.send({"cmd": "forcecolor", "nick": message_args[0].lstrip("@"), "color": message_args[1]})
 
                         else:
                             self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
@@ -918,11 +917,11 @@ class Client:
 
                 case "/anticmd":
                     if self.args["is_mod"]:
-                        self.send(json.dumps({"cmd": "anticmd"}))
+                        self.send({"cmd": "anticmd"})
 
                 case "/uwuify":
                     if self.args["is_mod"]:
-                        [self.send(json.dumps({"cmd": "uwuify", "nick": user.lstrip("@")})) for user in parsed_message[2].split(" ")]
+                        [self.send({"cmd": "uwuify", "nick": user.lstrip("@")}) for user in parsed_message[2].split(" ")]
 
                 case "/help":
                     if parsed_message[2] == "":
@@ -1010,10 +1009,10 @@ Client-based commands:
                                                           termcolor.colored("CLIENT", self.args["client_color"]),
                                                           termcolor.colored(display, self.args["client_color"])))
 
-                        self.send(json.dumps({"cmd": "help"}))
+                        self.send({"cmd": "help"})
 
                     else:
-                        self.send(json.dumps({"cmd": "help", "command": parsed_message[2]}))
+                        self.send({"cmd": "help", "command": parsed_message[2]})
 
                 case _:
                     if self.whisper_lock:
@@ -1023,7 +1022,7 @@ Client-based commands:
                                                               termcolor.colored("Whisper lock active, toggle it off to send messages", self.args["client_color"])))
                             return
 
-                    self.send(json.dumps({"cmd": "chat", "text": message}))
+                    self.send({"cmd": "chat", "text": message})
 
     def close(self, error: bool=False, thread: bool=True) -> None:
         """
