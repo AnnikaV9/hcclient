@@ -249,9 +249,13 @@ Here, `84263` is the message identifier.
 As the sender continues to update and edit the message, hcclient will track the changes in memory.<br />
 Once the sender sends the `complete` status, the message will be printed again with the same identifier and all changes applied:
 ```
+23:06|jEuh/s| [⧗ 84263] [user] hi
+...
+...
+...
 23:08|jEuh/s| [✓ 84263] [user] hi guys!
 ```
-It's displayed as a new message, but it's just the previous message but edited.
+It's displayed as a new message, but it's actually the previous message, edited.
 
 If no `complete` status is received in 3 minutes, the message will expire. All changes applied so far will be printed like normal, but with the `✗` icon instead.
 
