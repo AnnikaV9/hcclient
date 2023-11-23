@@ -24,7 +24,7 @@ import shutil
 import prompt_toolkit
 import notifypy
 import yaml
-import pydoc
+
 
 class Client:
     """
@@ -1007,7 +1007,18 @@ Client commands:
                         display = help_text + mod_help_text + footer_text if self.args["is_mod"] else help_text + footer_text
 
                         if shutil.which("less") and os.name != "nt":
-                            pydoc.pipepager(f"Press up/down arrows to scroll and q to return to hcclient.\n{display}", cmd="less")
+                            display = display.replace("Client commands", termcolor.colored("Client commands", attrs=["bold"]))
+                            display = display.replace("Moderator commands", termcolor.colored("Moderator commands", attrs=["bold"]))
+
+                            pager_proc = subprocess.Popen("less -R", shell=True, stdin=subprocess.PIPE, errors='backslashreplace')
+                            try:
+                                with pager_proc.stdin as pipe:
+                                    pipe.write(termcolor.colored("Use arrow keys to scroll and :q to return to hcclient\n", "black", "on_white", attrs=["bold"]) + display)
+
+                            except OSError:
+                                pass
+
+                            pager_proc.wait()
 
                         else:
                             self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
