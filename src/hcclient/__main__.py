@@ -24,6 +24,7 @@ import shutil
 import prompt_toolkit
 import notifypy
 import yaml
+import pydoc
 
 class Client:
     """
@@ -191,7 +192,7 @@ class Client:
         else:
             self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
                                               termcolor.colored("CLIENT", self.args["client_color"]),
-                                              termcolor.colored("Can't send packet, not connected to server. Run /reconnect", self.args["client_color"])))
+                                              termcolor.colored("Can't send packet, not connected to server. Run `/reconnect`", self.args["client_color"])))
 
     def manage_complete_list(self) -> None:
         """
@@ -482,7 +483,7 @@ class Client:
                         if received["text"].startswith("Nickname"):
                             self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
                                                               termcolor.colored("CLIENT", self.args["client_color"]),
-                                                              termcolor.colored("Try running /nick <newnick> and /reconnect", self.args["client_color"])))
+                                                              termcolor.colored("Try running `/nick <newnick>` and `/reconnect`", self.args["client_color"])))
 
         except Exception as e:
             self.online_users = []
@@ -503,7 +504,7 @@ class Client:
                                                   termcolor.colored(f"Disconnected from server: {e}", self.args["client_color"])))
                 self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
                                                   termcolor.colored("CLIENT", self.args["client_color"]),
-                                                  termcolor.colored("Reconnecting in 60 seconds, run /reconnect do it immediately", self.args["client_color"])))
+                                                  termcolor.colored("Reconnecting in 60 seconds, run `/reconnect` do it immediately", self.args["client_color"])))
                 self.timed_reconnect = threading.Timer(60, self.reconnect_to_server)
                 self.timed_reconnect.start()
                 self.close()
@@ -712,7 +713,7 @@ class Client:
 
                         self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
                                                           termcolor.colored("CLIENT", self.args["client_color"]),
-                                                          termcolor.colored("Ignoring trip '{}' and hash '{}', run /save to persist".format(trip_to_ignore, self.online_users_details[target]["Hash"]), self.args["client_color"])))
+                                                          termcolor.colored("Ignoring trip '{}' and hash '{}', run `/save` to persist".format(trip_to_ignore, self.online_users_details[target]["Hash"]), self.args["client_color"])))
 
                     else:
                         self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
@@ -725,7 +726,7 @@ class Client:
 
                     self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
                                                       termcolor.colored("CLIENT", self.args["client_color"]),
-                                                      termcolor.colored("Unignored all trips/hashes, run /save to persist", self.args["client_color"])))
+                                                      termcolor.colored("Unignored all trips/hashes, run `/save` to persist", self.args["client_color"])))
 
                 case "/reconnect":
                     self.timed_reconnect.cancel()
@@ -925,94 +926,100 @@ class Client:
 
                 case "/help":
                     if parsed_message[2] == "":
-                        help_text = """Help:
+                        help_text = """
 Input is multiline, so you can type, paste and edit code in the input field.
 Press enter to send, and esc+enter/alt+enter/ctrl+n to add a newline.
 Lines can be cleared with ctrl+u.
 The entire buffer can be cleared with ctrl+l.
 
-Client-based commands:
-/help [server-based command]
-  Displays this help message if no
-  command is specified, otherwise
-  displays information about the
-  specified server-based command.
-/raw <json>
-  Sends json directly to the server
-  without parsing.
-/list
-  Lists users in the channel.
-/profile <nick>
-  Prints a user's details.
-/clear
-  Clears the terminal.
-/wlock
-  Toggles whisper lock, which will
-  prevent sending any messages
-  other than whispers.
-/nick <newnick>
-  Changes your nickname.
-/ignore <nick>
-  Adds a user's trip and hash to
-  the ignore list.
-/unignoreall
-  Clears the ignore list.
-/reconnect
-  Disconnects forcefully and
-  reconnects to the server.
-/set <alias> <value>
-  Sets an alias. $alias will be
-  replaced with the value in your
-  messages.
-/unset <alias>
-  Unsets an alias.
-/configset <option> <value>
-  Sets a configuration option to a
-  value. Changed values will be in
-  effect immediately.
-/configdump
-  Prints the current configuration.
-/save
-  Saves the current configuration
-  to the loaded configuration file.
-  Will save aliases and ignored
-  trips/hashes.
-/reprint
-  Prints the last 100 lines of
-  output, even if they have been
-  cleared with /clear.
-/quit
-  Exits the client."""
-                        mod_help_text = """\n\nClient-based mod commands:
-/ban <nick> [nick2] [nick3]...
-/unban <hash> [hash2] [hash3]...
-/unbanall
-/dumb <nick> [nick2] [nick3]...
-/speak <nick> [nick2] [nick3]...
-/moveuser <nick> <channel>
-/kick <nick> [nick2] [nick3]...
-/kickasone <nick> [nick2] [nick3]...
-/overflow <nick> [nick2] [nick3]...
-/authtrip <trip> [trip2] [trip3]...
-/deauthtrip <trip> [trip2] [trip3]...
-/enablecaptcha
-/disablecaptcha
-/lockroom
-/unlockroom
-/forcecolor <nick> <color>
-/anticmd
-/uwuify <nick> [nick2] [nick3]..."""
-                        server_help_text = "\n\nServer-based commands should be displayed below:"
-                        display = help_text + mod_help_text + server_help_text if self.args["is_mod"] else help_text + server_help_text
+Client commands:
+  /help [server-based command]
+    Displays this help message if no
+    command is specified, otherwise
+    displays information about the
+    specified server-based command.
+  /raw <json>
+    Sends json directly to the server
+    without parsing.
+  /list
+    Lists users in the channel.
+  /profile <nick>
+    Prints a user's details.
+  /clear
+    Clears the terminal.
+  /wlock
+    Toggles whisper lock, which will
+    prevent sending any messages
+    other than whispers.
+  /nick <newnick>
+    Changes your nickname.
+  /ignore <nick>
+    Adds a user's trip and hash to
+    the ignore list.
+  /unignoreall
+    Clears the ignore list.
+  /reconnect
+    Disconnects forcefully and
+    reconnects to the server.
+  /set <alias> <value>
+    Sets an alias. $alias will be
+    replaced with the value in your
+    messages.
+  /unset <alias>
+    Unsets an alias.
+  /configset <option> <value>
+    Sets a configuration option to a
+    value. Changed values will be in
+    effect immediately.
+  /configdump
+    Prints the current configuration.
+  /save
+    Saves the current configuration
+    to the loaded configuration file.
+    Will save aliases and ignored
+    trips/hashes.
+  /reprint
+    Prints the last 100 lines of
+    output, even if they have been
+    cleared with /clear.
+  /quit
+    Exits the client."""
+                        mod_help_text = """\n\nModerator commands:
+  /ban <nick> [nick2] [nick3]...
+  /unban <hash> [hash2] [hash3]...
+  /unbanall
+  /dumb <nick> [nick2] [nick3]...
+  /speak <nick> [nick2] [nick3]...
+  /moveuser <nick> <channel>
+  /kick <nick> [nick2] [nick3]...
+  /kickasone <nick> [nick2] [nick3]...
+  /overflow <nick> [nick2] [nick3]...
+  /authtrip <trip> [trip2] [trip3]...
+  /deauthtrip <trip> [trip2] [trip3]...
+  /enablecaptcha
+  /disablecaptcha
+  /lockroom
+  /unlockroom
+  /forcecolor <nick> <color>
+  /anticmd
+  /uwuify <nick> [nick2] [nick3]..."""
+                        footer_text = "\n\nRun `/help server` to read the server help text."
+                        display = help_text + mod_help_text + footer_text if self.args["is_mod"] else help_text + footer_text
 
-                        self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
-                                                          termcolor.colored("CLIENT", self.args["client_color"]),
-                                                          termcolor.colored(display, self.args["client_color"])))
+                        if shutil.which("less") and os.name != "nt":
+                            pydoc.pipepager(f"Press up/down arrows to scroll and q to return to hcclient.\n{display}", cmd="less")
 
-                        self.send({"cmd": "help"})
+                        else:
+                            self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
+                                                              termcolor.colored("CLIENT", self.args["client_color"]),
+                                                              termcolor.colored(f"Help text:{display}", self.args["client_color"])))
 
                     else:
-                        self.send({"cmd": "help", "command": parsed_message[2]})
+                        if parsed_message[2] == "server":
+                            self.send({"cmd": "help"})
+
+                        else:
+                            self.send({"cmd": "help", "command": parsed_message[2]})
 
                 case _:
                     if self.whisper_lock:
