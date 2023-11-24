@@ -588,7 +588,7 @@ class Client:
             return self.args["prompt_string"]
 
         else:
-            return "> " if self.args["no_unicode"] else "❯ "
+            return "> " if self.args["no_unicode"] else f"{chr(10095)} "
 
     def create_completer(self) -> prompt_toolkit.completion.Completer | None:
         """
