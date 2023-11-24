@@ -2,7 +2,7 @@
 #
 # Author:    AnnikaV9
 # License:   Unlicense
-# Version:   1.14.1-git
+# Version:   1.14.2-git
 
 import json
 import threading
@@ -1205,7 +1205,7 @@ def main():
     command_group.add_argument("-h", "--help", help="display this help message", action="help")
     command_group.add_argument("--gen-config", help="generate a config file with provided arguments", action="store_true")
     command_group.add_argument("--colors", help="display a list of valid colors", action="store_true")
-    command_group.add_argument("--version", help="display version information", action="version", version="hcclient 1.14.1-git")
+    command_group.add_argument("--version", help="display version information", action="version", version="hcclient 1.14.2-git")
     command_group.set_defaults(gen_config=False, colors=False)
     required_group.add_argument("-c", "--channel", help="specify the channel to join")
     required_group.add_argument("-n", "--nickname", help="specify the nickname to use")
