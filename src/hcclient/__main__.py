@@ -1017,7 +1017,6 @@ Moderator commands:
                                 pass
 
                             pager_proc.wait()
-                            sys.stdout.flush()
 
                         else:
                             self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
