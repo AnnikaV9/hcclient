@@ -254,17 +254,15 @@ class Client:
         """
         while True:
             self.cleanup_updatables()
-            # more cleanup tasks here
+            # future cleanup tasks here
             threading.Event().wait(30)
 
-    def push_notification(self, message: str) -> None:
+    def push_notification(self, message: str, title: str="hcclient") -> None:
         """
         Sends a desktop/android notification if configured to do so
         """
         if self.args["no_notify"]:
             return
-
-        title = "hcclient"
 
         if shutil.which("termux-notification"):
             subprocess.Popen([
@@ -1019,6 +1017,7 @@ Moderator commands:
                                 pass
 
                             pager_proc.wait()
+                            sys.stdout.flush()
 
                         else:
                             self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
