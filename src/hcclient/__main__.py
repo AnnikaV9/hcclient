@@ -257,6 +257,31 @@ class Client:
             # more cleanup tasks here
             threading.Event().wait(30)
 
+    def push_notification(self, message: str) -> None:
+        """
+        Sends a desktop/android notification if configured to do so
+        """
+        if self.args["no_notify"]:
+            return
+
+        title = "hcclient"
+
+        if shutil.which("termux-notification"):
+            subprocess.Popen([
+                "termux-notification",
+                "-t", title,
+                "-c", message
+            ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+        else:
+            notification = notifypy.Notify()
+            notification.title = title
+            notification.message = message
+            if os.path.isfile(os.path.join(self.def_config_dir, "tone.wav")):
+                notification.audio = os.path.join(self.def_config_dir, "tone.wav")
+
+            notification.send(block=False)
+
     def recv_thread(self) -> None:
         """
         Receives packets from the server and handles them
@@ -318,22 +343,8 @@ class Client:
                             case _:
                                 color_to_use = self.args["nickname_color"] if self.nick != received["nick"] else self.args["self_nickname_color"]
 
-                        if f"@{self.nick}" in received["text"] and not self.args["no_notify"]:
-                            if shutil.which("termux-notification"):
-                                subprocess.Popen([
-                                    "termux-notification",
-                                    "-t", "hcclient",
-                                    "-c", "[{}] {}".format(received["nick"], received["text"])
-                                ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-
-                            else:
-                                notification = notifypy.Notify()
-                                notification.title = "hcclient"
-                                notification.message = "[{}] {}".format(received["nick"], received["text"])
-                                if os.path.isfile(os.path.join(self.def_config_dir, "tone.wav")):
-                                    notification.audio = os.path.join(self.def_config_dir, "tone.wav")
-
-                                notification.send(block=False)
+                        if f"@{self.nick}" in received["text"]:
+                            self.push_notification("[{}] {}".format(received["nick"], received["text"]))
 
                         if "customId" in received:
                             message_hash = abs(hash(str(received["userid"]) + received["customId"])) % 100000000
@@ -406,22 +417,8 @@ class Client:
                             else:
                                 tripcode = received.get("trip", "")
 
-                            if received["from"] in self.online_users and not self.args["no_notify"]:
-                                if shutil.which("termux-notification"):
-                                    subprocess.Popen([
-                                        "termux-notification",
-                                        "-t", "hcclient",
-                                        "-c", received["text"]
-                                    ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-
-                                else:
-                                    notification = notifypy.Notify()
-                                    notification.title = "hcclient"
-                                    notification.message = received["text"]
-                                    if os.path.isfile(os.path.join(self.def_config_dir, "tone.wav")):
-                                        notification.audio = os.path.join(self.def_config_dir, "tone.wav")
-
-                                    notification.send(block=False)
+                            if received["from"] in self.online_users:
+                                self.push_notification(received["text"])
 
                             self.print_msg("{}|{}| {}".format(termcolor.colored(packet_receive_time, self.args["timestamp_color"]),
                                                               termcolor.colored(tripcode, self.args["whisper_color"]),
