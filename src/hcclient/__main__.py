@@ -226,6 +226,8 @@ class Client:
     def cleanup_updatables(self) -> None:
         """
         Expires updatable messages if older than 3 minutes
+        We're being stricter than the official web client,
+        which expires messages after 6 minutes
         """
         self.updatable_messages_lock.acquire()
         hashes_to_remove = []
@@ -242,6 +244,9 @@ class Client:
                                                             termcolor.colored(message["text"], self.args["message_color"])))
 
                 hashes_to_remove.append(message_hash)
+
+            else:
+                break
 
         for message_hash in hashes_to_remove:
             self.updatable_messages.pop(message_hash)
