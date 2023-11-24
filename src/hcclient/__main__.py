@@ -927,10 +927,11 @@ class Client:
                 case "/help":
                     if parsed_message[2] == "":
                         help_text = """
-Input is multiline, so you can type, paste and edit code in the input field.
-Press enter to send, and esc+enter/alt+enter/ctrl+n to add a newline.
-Lines can be cleared with ctrl+u.
-The entire buffer can be cleared with ctrl+l.
+Keybindings:
+  enter     send
+  ctrl+n    add newline
+  ctrl+u    clear line
+  ctrl+l    clear buffer
 
 Client commands:
   /help [server-based command]
@@ -1007,13 +1008,14 @@ Client commands:
                         display = help_text + mod_help_text + footer_text if self.args["is_mod"] else help_text + footer_text
 
                         if shutil.which("less") and os.name != "nt":
+                            display = display.replace("Keybindings", termcolor.colored("Keybindings", attrs=["bold"]))
                             display = display.replace("Client commands", termcolor.colored("Client commands", attrs=["bold"]))
                             display = display.replace("Moderator commands", termcolor.colored("Moderator commands", attrs=["bold"]))
 
                             pager_proc = subprocess.Popen("less -R", shell=True, stdin=subprocess.PIPE, errors='backslashreplace')
                             try:
                                 with pager_proc.stdin as pipe:
-                                    pipe.write(termcolor.colored("Use arrow keys to scroll and :q to return to hcclient\n", "black", "on_white", attrs=["bold"]) + display)
+                                    pipe.write(termcolor.colored(":q to return to the chat \n", "black", "on_white", attrs=["bold"]) + display)
 
                             except OSError:
                                 pass
