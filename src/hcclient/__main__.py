@@ -985,7 +985,8 @@ Client commands:
     cleared with /clear.
   /quit
     Exits the client."""
-                        mod_help_text = """\n\nModerator commands:
+                        mod_help_text = """\n
+Moderator commands:
   /ban <nick> [nick2] [nick3]...
   /unban <hash> [hash2] [hash3]...
   /unbanall
@@ -1012,7 +1013,7 @@ Client commands:
                             display = display.replace("Client commands", termcolor.colored("Client commands", attrs=["bold"]))
                             display = display.replace("Moderator commands", termcolor.colored("Moderator commands", attrs=["bold"]))
 
-                            pager_proc = subprocess.Popen("less -R", shell=True, stdin=subprocess.PIPE, errors='backslashreplace')
+                            pager_proc = subprocess.Popen(["less", "-R"], stdin=subprocess.PIPE, errors='backslashreplace')
                             try:
                                 with pager_proc.stdin as pipe:
                                     pipe.write(termcolor.colored(":q to return to the chat \n", "black", "on_white", attrs=["bold"]) + display)
