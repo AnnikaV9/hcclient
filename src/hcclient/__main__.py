@@ -691,6 +691,7 @@ class Client:
 
                 case "/clear":
                     os.system("cls" if os.name == "nt" else "clear")
+                    print()
 
                 case "/wlock":
                     self.whisper_lock = not self.whisper_lock
