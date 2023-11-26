@@ -22,18 +22,24 @@ executable() {
      fi
    done
 
+   echo "==> Creating virtual environment and installing dependencies... (FOR EXECUTABLE)"
    python3 -m venv .venv &&
    source .venv/bin/activate &&
 
-   python3 -m pip install -r requirements.txt &&
-   python3 -m pip install pyinstaller staticx &&
+   python3 -m pip --disable-pip-version-check --no-color --quiet install -r requirements.txt &&
+   python3 -m pip --disable-pip-version-check --no-color --quiet install pyinstaller staticx &&
 
+   echo "==> Building dynamic executable..."
    pyinstaller --onefile \
                --clean \
                --name hcclient-$VERSION \
                src/hcclient/__main__.py &&
 
-   staticx --strip dist/hcclient-$VERSION dist/hcclient-$VERSION-static
+   if [[ -z "$NO_STATIC" ]]
+   then
+     echo "==> Creating static executable..."
+     staticx --loglevel INFO --strip dist/hcclient-$VERSION dist/hcclient-$VERSION-static
+   fi
 }
 
 wheel() {
@@ -43,11 +49,14 @@ wheel() {
      exit 1
    fi
 
+   echo "==> Creating virtual environment and installing dependencies... (FOR WHEEL)"
    python3 -m venv .venv &&
    source .venv/bin/activate &&
 
-   python3 -m pip install poetry &&
-   poetry build
+   python3 -m pip --disable-pip-version-check --no-color --quiet install poetry &&
+
+   echo "==> Building wheel..."
+   poetry --no-ansi build
 }
 
 container() {
@@ -57,6 +66,7 @@ container() {
      exit 1
    fi
 
+   echo "==> Building container image..."
    cp -r {src/hcclient,requirements.txt} docker/src &&
    cd docker &&
 
@@ -75,6 +85,7 @@ container() {
      exit 1
    fi &&
 
+   echo "==> Compressing container image..."
    xz --compress \
       --keep \
       --extreme \
@@ -90,6 +101,8 @@ arch() {
      echo "command 'tar' not found"
      exit 1
    fi
+
+   echo "==> Creating Arch Linux source tarball..."
    cp LICENSE dist/LICENSE &&
    tar -czvf dist/hcclient-$VERSION-arch.tar.gz -C dist hcclient-$VERSION LICENSE
 }
@@ -100,5 +113,5 @@ case "$1" in
    container) mkdir dist && prepare && container ;;
    arch) mkdir dist && prepare && executable && arch ;;
    all) mkdir dist && prepare && executable && arch && wheel && container ;;
-   *) echo "valid commands: executable, wheel, container, arch, all"; exit 1  ;;
+   *) echo "valid commands: executable, wheel, container, arch, all"; exit 1
 esac
