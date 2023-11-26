@@ -215,13 +215,13 @@ class Client:
         """
         match level:
             case 9999999:
-                return "admin"
+                return "Admin"
 
             case 999999:
-                return "mod"
+                return "Mod"
 
             case _:
-                return "user"
+                return "User"
 
     def cleanup_updatables(self) -> None:
         """
@@ -307,7 +307,11 @@ class Client:
                             self.online_users.append(nick)
 
                         for user_details in received["users"]:
-                            self.online_users_details[user_details["nick"]] = {"Trip": user_details["trip"], "Type": self.level_to_utype(user_details["level"]), "Hash": user_details["hash"]}
+                            self.online_users_details[user_details["nick"]] = {
+                                "Trip": user_details["trip"] if user_details["trip"] != "" else None,
+                                "Type": self.level_to_utype(user_details["level"]),
+                                "Hash": user_details["hash"]
+                            }
 
                             if self.online_users_details[user_details["nick"]]["Trip"] in self.args["ignored"]["trips"]:
                                 self.online_ignored_users.append(user_details["nick"])
@@ -334,11 +338,11 @@ class Client:
                             tripcode = received.get("trip", "")
 
                         match self.level_to_utype(received["level"]):
-                            case "mod":
+                            case "Mod":
                                 color_to_use = self.args["mod_nickname_color"] if self.nick != received["nick"] else self.args["self_nickname_color"]
                                 received["nick"] = "{} {}".format(chr(11088), received["nick"]) if not self.args["no_unicode"] else received["nick"]
 
-                            case "admin":
+                            case "Admin":
                                 color_to_use = self.args["admin_nickname_color"] if self.nick != received["nick"] else self.args["self_nickname_color"]
                                 received["nick"] = "{} {}".format(chr(11088), received["nick"]) if not self.args["no_unicode"] else received ["nick"]
                                 tripcode = "Admin"
@@ -434,7 +438,12 @@ class Client:
 
                     case "onlineAdd":
                         self.online_users.append(received["nick"])
-                        self.online_users_details[received["nick"]] = {"Trip": received["trip"], "Type": self.level_to_utype(received["level"]), "Hash": received["hash"]}
+
+                        self.online_users_details[received["nick"]] = {
+                            "Trip": received["trip"] if received["trip"] != "" else None,
+                            "Type": self.level_to_utype(received["level"]),
+                            "Hash": received["hash"]
+                        }
 
                         self.manage_complete_list()
 
@@ -704,17 +713,21 @@ class Client:
                     target = parsed_message[2].lstrip("@")
                     if target in self.online_users:
                         self.online_ignored_users.append(target)
-                        trip_to_ignore = self.online_users_details[target]["Trip"] if self.online_users_details[target]["Trip"] != "" else None
+                        target_trip = self.online_users_details[target]["Trip"]
+                        target_hash = self.online_users_details[target]["Hash"]
 
-                        if trip_to_ignore not in self.args["ignored"]["trips"] and trip_to_ignore is not None:
-                            self.args["ignored"]["trips"].append(trip_to_ignore)
+                        if target_trip not in self.args["ignored"]["trips"] and target_trip is not None:
+                            self.args["ignored"]["trips"].append(target_trip)
 
-                        if self.online_users_details[target]["Hash"] not in self.args["ignored"]["hashes"]:
-                            self.args["ignored"]["hashes"].append(self.online_users_details[target]["Hash"])
+                        if target_hash not in self.args["ignored"]["hashes"]:
+                            self.args["ignored"]["hashes"].append(target_hash)
+
+                        return_msg = "Ignoring trip '{}' and hash '{}'".format(target_trip, target_hash) if target_trip is not None else "Ignoring hash '{}'".format(target_hash)
+                        return_msg += ", run `/save` to persist"
 
                         self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
                                                           termcolor.colored("CLIENT", self.args["client_color"]),
-                                                          termcolor.colored("Ignoring trip '{}' and hash '{}', run `/save` to persist".format(trip_to_ignore, self.online_users_details[target]["Hash"]), self.args["client_color"])))
+                                                          termcolor.colored(return_msg, self.args["client_color"])))
 
                     else:
                         self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
