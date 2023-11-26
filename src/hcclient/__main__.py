@@ -761,10 +761,10 @@ class Client:
                                                           termcolor.colored("Alias '{}' isn't defined".format(parsed_message[2]), self.args["client_color"])))
 
                 case "/configset":
-                    message_args = parsed_message[2].lower().split(" ")
-                    if message_args[0] in self.args and message_args[0] not in ("config_file", "channel", "nickname", "aliases", "ignored"):
+                    message_args = parsed_message[2].split(" ")
+                    value, option = " ".join(message_args[1:]), message_args[0].lower()
 
-                        value, option = " ".join(message_args[1:]), message_args[0]
+                    if option in self.args and option not in ("config_file", "channel", "nickname", "aliases", "ignored"):
                         match value.lower():
                             case "false":
                                 value = False
@@ -794,11 +794,11 @@ class Client:
                                                               termcolor.colored("Error setting configuration: Invalid value '{}' for option '{}'".format(value, option), self.args["client_color"])))
 
                     else:
-                        problem = "Invalid" if message_args[0] not in self.args else "Read-only"
+                        problem = "Invalid" if option not in self.args else "Read-only"
 
                         self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
                                                           termcolor.colored("CLIENT", self.args["client_color"]),
-                                                          termcolor.colored("Error setting configuration: {} option '{}'".format(problem, message_args[0]), self.args["client_color"])))
+                                                          termcolor.colored("Error setting configuration: {} option '{}'".format(problem, option), self.args["client_color"])))
 
                 case "/configdump":
                     self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
