@@ -1277,7 +1277,7 @@ def main():
 
     if args.defaults:
         hidden_options = ("gen_config", "defaults", "colors", "version", "channel", "nickname", "config_file", "no_config")
-        print("Default configuration:\n" + "\n".join(f" - {option}: {value}" for option, value in vars(parser.parse_args()).items() if option not in hidden_options))
+        print("Default configuration:\n" + "\n".join(f" - {option}: {value}" for option, value in vars(args).items() if option not in hidden_options))
         print("\nDefault color scheme:\n" + "\n".join(f" - {option}: {value}" for option, value in default_colors.items()))
         sys.exit(0)
 
