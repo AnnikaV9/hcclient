@@ -299,7 +299,7 @@ class Client:
                 packet_receive_time = datetime.datetime.now().strftime(self.args["timestamp_format"])
 
                 if self.args["no_parse"]:
-                    self.print_msg("\n{}|{}".format(packet_receive_time, received))
+                    self.print_msg("\n{}|{}".format(packet_receive_time, json.dumps(received)))
                     continue
 
                 match received["cmd"]:
@@ -1143,19 +1143,7 @@ def initialize_config(args: argparse.Namespace, parser: argparse.ArgumentParser)
     """
     Initializes the configuration and returns a dictionary
     """
-    default_colors = {
-        "message_color": "white",
-        "whisper_color": "green",
-        "emote_color": "green",
-        "nickname_color": "blue",
-        "self_nickname_color": "magenta",
-        "warning_color": "yellow",
-        "server_color": "green",
-        "client_color": "green",
-        "timestamp_color": "white",
-        "mod_nickname_color": "cyan",
-        "admin_nickname_color": "red"
-    }
+
     for color in default_colors:
         args.__dict__[color] = default_colors[color]
 
@@ -1217,41 +1205,65 @@ def initialize_config(args: argparse.Namespace, parser: argparse.ArgumentParser)
 
     return config
 
+
+default_colors = {
+    "message_color": "white",
+    "whisper_color": "green",
+    "emote_color": "green",
+    "nickname_color": "blue",
+    "self_nickname_color": "magenta",
+    "warning_color": "yellow",
+    "server_color": "green",
+    "client_color": "green",
+    "timestamp_color": "white",
+    "mod_nickname_color": "cyan",
+    "admin_nickname_color": "red"
+}
+
+
 def main():
     """
     Entry point
     """
-    parser = argparse.ArgumentParser(description="terminal client for connecting to hack.chat", add_help=False)
-    command_group = parser.add_argument_group("commands")
-    required_group = parser.add_argument_group("required arguments")
-    optional_group = parser.add_argument_group("optional arguments")
-    command_group.add_argument("-h", "--help", help="display this help message", action="help")
-    command_group.add_argument("--gen-config", help="generate a config file with provided arguments", action="store_true")
-    command_group.add_argument("--colors", help="display a list of valid colors", action="store_true")
-    command_group.add_argument("--version", help="display version information", action="version", version="hcclient 1.14.3-git")
+    formatter = lambda prog: argparse.HelpFormatter(prog, max_help_position=45)
+    parser = argparse.ArgumentParser(description="Terminal client for connecting to hack.chat", add_help=False, formatter_class=formatter)
+    command_group = parser.add_argument_group("Commands")
+    required_group = parser.add_argument_group("Required arguments")
+    optional_group = parser.add_argument_group("Optional arguments")
+    command_group.add_argument("-h", "--help", help="Display this help message", action="help")
+    command_group.add_argument("--gen-config", help="Generate a config file", action="store_true")
+    command_group.add_argument("--defaults", help="Display default configuration", action="store_true")
+    command_group.add_argument("--colors", help="Display a list of valid colors", action="store_true")
+    command_group.add_argument("--version", help="Display version information", action="version", version="hcclient 1.14.3-git")
     command_group.set_defaults(gen_config=False, colors=False)
-    required_group.add_argument("-c", "--channel", help="specify the channel to join")
-    required_group.add_argument("-n", "--nickname", help="specify the nickname to use")
-    optional_group.add_argument("-t", "--trip-password", help="specify a tripcode password to use when joining")
-    optional_group.add_argument("-w", "--websocket-address", help="specify the websocket address to connect to (default: wss://hack-chat/chat-ws)")
-    optional_group.add_argument("-l", "--load-config", help="specify a config file to load", dest="config_file")
-    optional_group.add_argument("--no-config", help="disable loading of the default config file", action="store_true")
-    optional_group.add_argument("--no-parse", help="log received packets without parsing", action="store_true")
-    optional_group.add_argument("--clear", help="clear the terminal before joining", action="store_true")
-    optional_group.add_argument("--is-mod", help="enable moderator commands", action="store_true")
-    optional_group.add_argument("--no-unicode", help="disable unicode characters in ui elements", action="store_true")
-    optional_group.add_argument("--no-notify", help="disable desktop notifications", action="store_true")
-    optional_group.add_argument("--prompt-string", help="set the prompt string (default: '❯ ' or '> ' if --no-unicode)")
-    optional_group.add_argument("--timestamp-format", help="set the timestamp format (default: %%H:%%M)")
-    optional_group.add_argument("--suggest-aggr", help="set the suggestion aggressiveness (default: 1)", type=int, choices=[0, 1, 2, 3])
-    optional_group.add_argument("--proxy", help="specify a proxy to use (format: TYPE:HOST:PORT) (default: None)")
+    required_group.add_argument("-c", "--channel", help="Set the channel to join", metavar="CHANNEL")
+    required_group.add_argument("-n", "--nickname", help="Set the nickname to use", metavar="NICKNAME")
+    optional_group.add_argument("-t", "--trip-password", help="Set a tripcode password", metavar="PASSWORD")
+    optional_group.add_argument("-w", "--websocket-address", help="Use an alternate websocket", metavar="ADDRESS")
+    optional_group.add_argument("-l", "--load-config", help="Specify a config file to load", dest="config_file", metavar="PATH")
+    optional_group.add_argument("--no-config", help="Don't load global config file", action="store_true")
+    optional_group.add_argument("--no-parse", help="Log received packets as JSON", action="store_true")
+    optional_group.add_argument("--clear", help="Clear the console before joining", action="store_true")
+    optional_group.add_argument("--is-mod", help="Enable moderator commands", action="store_true")
+    optional_group.add_argument("--no-unicode", help="Disable unicode UI elements", action="store_true")
+    optional_group.add_argument("--no-notify", help="Disable desktop notifications", action="store_true")
+    optional_group.add_argument("--prompt-string", help="Set a custom prompt string", metavar="STRING")
+    optional_group.add_argument("--timestamp-format", help="Set the timestamp format", metavar="FORMAT")
+    optional_group.add_argument("--suggest-aggr", help="Set the suggestion aggressiveness", type=int, choices=[0, 1, 2, 3])
+    optional_group.add_argument("--proxy", help="Specify a proxy to use", metavar="TYPE:HOST:PORT")
     optional_group.set_defaults(config_file=None, no_config=False, no_parse=False, clear=False,
                                 is_mod=False, no_unicode=False, no_notify=False, prompt_string="default",
                                 timestamp_format="%H:%M", suggest_aggr=1, trip_password="",
                                 websocket_address="wss://hack.chat/chat-ws", proxy=False)
 
     if parser.parse_args().colors:
-        print("Valid colors: \n{}".format("\n".join(termcolor.COLORS)))
+        print("Valid colors:\n" + "\n".join(f" - {color}" for color in termcolor.COLORS))
+        sys.exit(0)
+
+    if parser.parse_args().defaults:
+        hidden_options = ("gen_config", "defaults", "colors", "version", "channel", "nickname", "config_file", "no_config")
+        print("Default configuration:\n" + "\n".join(f" - {option}: {value}" for option, value in vars(parser.parse_args()).items() if option not in hidden_options))
+        print("\nDefault color scheme:\n" + "\n".join(f" - {option}: {value}" for option, value in default_colors.items()))
         sys.exit(0)
 
     client = Client(initialize_config(parser.parse_args(), parser))
