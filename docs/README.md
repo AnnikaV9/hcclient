@@ -69,10 +69,10 @@ On Arch Linux, install the [source AUR package](https://aur.archlinux.org/packag
 On other x86_64 Linux distributions:
 ```bash
 # Download the latest binary
-wget -O hcclient https://github.com/AnnikaV9/hcclient/releases/download/v1.14.3/hcclient-1.14.3-linux-x86-64
+wget -O hcclient https://github.com/AnnikaV9/hcclient/releases/download/v1.14.4/hcclient-1.14.4-linux-x86-64
 
 # Or the statically linked binary if the above one doesn't work
-wget -O hcclient https://github.com/AnnikaV9/hcclient/releases/download/v1.14.3/hcclient-1.14.3-linux-x86-64-static
+wget -O hcclient https://github.com/AnnikaV9/hcclient/releases/download/v1.14.4/hcclient-1.14.4-linux-x86-64-static
 
 # Make the binary executable
 chmod +x hcclient
@@ -86,10 +86,10 @@ hcclient --help
 As a container:
 ```bash
 # Download the latest image
-wget https://github.com/AnnikaV9/hcclient/releases/download/v1.14.3/hcclient-1.14.3-image.tar.xz
+wget https://github.com/AnnikaV9/hcclient/releases/download/v1.14.4/hcclient-1.14.4-image.tar.xz
 
 # Install the image
-docker/podman load -i hcclient-1.14.3-image.tar.xz
+docker/podman load -i hcclient-1.14.4-image.tar.xz
 
 # Run hcclient
 docker/podman run --rm -it hcclient --help
@@ -100,50 +100,41 @@ docker/podman run --rm -it hcclient --help
 ```
 $ hcclient --help
 
-usage: hcclient [-h] [--gen-config] [--colors] [--version] [-c CHANNEL]
-                [-n NICKNAME] [-t TRIP_PASSWORD] [-w WEBSOCKET_ADDRESS]
-                [-l CONFIG_FILE] [--no-config] [--no-parse] [--clear]
-                [--is-mod] [--no-unicode] [--no-notify]
-                [--prompt-string PROMPT_STRING] [--suggest-aggr {0,1,2,3}]
-                [--proxy PROXY]
+usage: hcclient [-h] [-v] [--gen-config] [--defaults] [--colors]
+                [-c CHANNEL] [-n NICKNAME] [-p PASSWORD]
+                [-w ADDRESS] [-l FILE] [--no-config] [--no-parse]
+                [--clear] [--is-mod] [--no-unicode] [--no-notify]
+                [--prompt-string STRING]
+                [--timestamp-format FORMAT] [--suggest-aggr 0-3]
+                [--proxy TYPE:HOST:PORT]
 
 terminal client for connecting to hack.chat
 
 commands:
-  -h, --help            display this help message
-  --gen-config          generate a config file with provided arguments
-  --colors              display a list of valid colors
-  --version             display version information
+  -h, --help                        display this help message
+  -v, --version                     display version information
+  --gen-config                      generate config file
+  --defaults                        display default config values
+  --colors                          display valid color values
 
 required arguments:
-  -c CHANNEL, --channel CHANNEL
-                        specify the channel to join
-  -n NICKNAME, --nickname NICKNAME
-                        specify the nickname to use
+  -c CHANNEL, --channel CHANNEL     set channel to join
+  -n NICKNAME, --nickname NICKNAME  set nickname to use
 
 optional arguments:
-  -t TRIP_PASSWORD, --trip-password TRIP_PASSWORD
-                        specify a tripcode password to use when joining
-  -w WEBSOCKET_ADDRESS, --websocket-address WEBSOCKET_ADDRESS
-                        specify the websocket address to connect to
-                        (default: wss://hack-chat/chat-ws)
-  -l CONFIG_FILE, --load-config CONFIG_FILE
-                        specify a config file to load
-  --no-config           disable loading of the default config file
-  --no-parse            log received packets without parsing
-  --clear               clear the terminal before joining
-  --is-mod              enable moderator commands
-  --no-unicode          disable unicode characters in ui elements
-  --no-notify           disable desktop notifications
-  --prompt-string PROMPT_STRING
-                        set the prompt string (default: '❯ ' or '> ' if
-                        --no-unicode)
-  --timestamp-format TIMESTAMP_FORMAT
-                        set the timestamp format (default: %H:%M)
-  --suggest-aggr {0,1,2,3}
-                        set the suggestion aggressiveness (default: 1)
-  --proxy PROXY         specify a proxy to use (format: TYPE:HOST:PORT)
-                        (default: None)
+  -p PASSWORD, --password PASSWORD  specify tripcode password
+  -w ADDRESS, --websocket ADDRESS   specify alternate websocket
+  -l FILE, --load-config FILE       specify config file to load
+  --no-config                       ignore global config file
+  --no-parse                        log received packets as JSON
+  --clear                           clear console before joining
+  --is-mod                          enable moderator commands
+  --no-unicode                      disable unicode UI elements
+  --no-notify                       disable desktop notifications
+  --prompt-string STRING            set custom prompt string
+  --timestamp-format FORMAT         set timestamp format
+  --suggest-aggr 0-3                set suggestion aggressiveness
+  --proxy TYPE:HOST:PORT            specify proxy to use
 ```
 
 <br />
@@ -156,23 +147,23 @@ A list of valid colors can be viewed with `--colors`.
 $ hcclient --colors
 
 Valid colors:
-black
-grey
-red
-green
-yellow
-blue
-magenta
-cyan
-light_grey
-dark_grey
-light_red
-light_green
-light_yellow
-light_blue
-light_magenta
-light_cyan
-white
+ - black
+ - grey
+ - red
+ - green
+ - yellow
+ - blue
+ - magenta
+ - cyan
+ - light_grey
+ - dark_grey
+ - light_red
+ - light_green
+ - light_yellow
+ - light_blue
+ - light_magenta
+ - light_cyan
+ - white
 ```
 
 <br />

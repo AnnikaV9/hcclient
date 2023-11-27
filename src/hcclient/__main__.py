@@ -2,7 +2,7 @@
 #
 # Author:    AnnikaV9
 # License:   Unlicense
-# Version:   1.14.3-git
+# Version:   1.14.4-git
 
 import json
 import threading
@@ -1241,7 +1241,7 @@ def main():
     optional_group = parser.add_argument_group("optional arguments")
 
     command_group.add_argument("-h", "--help", help="display this help message", action="help")
-    command_group.add_argument("-v", "--version", help="display version information", action="version", version="hcclient 1.14.3-git")
+    command_group.add_argument("-v", "--version", help="display version information", action="version", version="hcclient 1.14.4-git")
     command_group.add_argument("--gen-config", help="generate config file", action="store_true")
     command_group.add_argument("--defaults", help="display default config values", action="store_true")
     command_group.add_argument("--colors", help="display valid color values", action="store_true")
