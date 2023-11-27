@@ -1166,8 +1166,7 @@ def initialize_config(args: argparse.Namespace, parser: argparse.ArgumentParser)
 
     if not args.channel or not args.nickname:
         parser.print_usage()
-        print("hcclient: error: the following arguments are required: -c/--channel, -n/--nickname")
-        sys.exit(1)
+        sys.exit("{}: error: the following arguments are required: -c/--channel, -n/--nickname".format(sys.argv[0]))
 
     if args.no_config:
         args.config_file = None
@@ -1179,7 +1178,7 @@ def initialize_config(args: argparse.Namespace, parser: argparse.ArgumentParser)
         config["config_file"] = args.config_file
         for option in config:
             if not Client.validate_config(option, config[option]):
-                sys.exit("{}: error: Invalid configuration value for option '{}'".format(sys.argv[0], option))
+                sys.exit("{}: error: invalid configuration value for option '{}'".format(sys.argv[0], option))
 
     else:
         loaded_config = False
@@ -1197,7 +1196,7 @@ def initialize_config(args: argparse.Namespace, parser: argparse.ArgumentParser)
                     config["config_file"] = def_config_file
                     for option in config:
                         if not Client.validate_config(option, config[option]):
-                            sys.exit("{}: error: Invalid configuration value for option '{}'".format(sys.argv[0], option))
+                            sys.exit("{}: error: invalid configuration value for option '{}'".format(sys.argv[0], option))
                     loaded_config = True
                     break
 
@@ -1210,7 +1209,7 @@ def initialize_config(args: argparse.Namespace, parser: argparse.ArgumentParser)
             config.pop("colors")
             for option in config:
                 if not Client.validate_config(option, config[option]):
-                    sys.exit("{}: error: Invalid configuration value for option '{}'".format(sys.argv[0], option))
+                    sys.exit("{}: error: invalid configuration value for option '{}'".format(sys.argv[0], option))
 
     return config
 
@@ -1243,26 +1242,26 @@ def main():
 
     command_group.add_argument("-h", "--help", help="display this help message", action="help")
     command_group.add_argument("-v", "--version", help="display version information", action="version", version="hcclient 1.14.3-git")
-    command_group.add_argument("--gen-config", help="generate a config file", action="store_true")
-    command_group.add_argument("--defaults", help="display default configuration", action="store_true")
-    command_group.add_argument("--colors", help="display a list of valid colors", action="store_true")
+    command_group.add_argument("--gen-config", help="generate config file", action="store_true")
+    command_group.add_argument("--defaults", help="display default config values", action="store_true")
+    command_group.add_argument("--colors", help="display valid color values", action="store_true")
     command_group.set_defaults(gen_config=False, colors=False)
 
-    required_group.add_argument("-c", "--channel", help="set the channel to join", metavar="CHANNEL")
-    required_group.add_argument("-n", "--nickname", help="set the nickname to use", metavar="NICKNAME")
-    optional_group.add_argument("-t", "--trip-password", help="set a tripcode password", metavar="PASSWORD")
-    optional_group.add_argument("-w", "--websocket-address", help="use an alternate websocket", metavar="ADDRESS")
-    optional_group.add_argument("-l", "--load-config", help="specify a config file to load", dest="config_file", metavar="PATH")
-    optional_group.add_argument("--no-config", help="don't load global config file", action="store_true")
+    required_group.add_argument("-c", "--channel", help="set channel to join", metavar="CHANNEL")
+    required_group.add_argument("-n", "--nickname", help="set nickname to use", metavar="NICKNAME")
+    optional_group.add_argument("-t", "--trip-password", help="specify tripcode password", metavar="PASSWORD")
+    optional_group.add_argument("-w", "--websocket-address", help="specify alternate websocket", metavar="ADDRESS")
+    optional_group.add_argument("-l", "--load-config", help="specify config file to load", dest="config_file", metavar="PATH")
+    optional_group.add_argument("--no-config", help="ignore global config file", action="store_true")
     optional_group.add_argument("--no-parse", help="log received packets as JSON", action="store_true")
-    optional_group.add_argument("--clear", help="clear the console before joining", action="store_true")
+    optional_group.add_argument("--clear", help="clear console before joining", action="store_true")
     optional_group.add_argument("--is-mod", help="enable moderator commands", action="store_true")
     optional_group.add_argument("--no-unicode", help="disable unicode UI elements", action="store_true")
     optional_group.add_argument("--no-notify", help="disable desktop notifications", action="store_true")
-    optional_group.add_argument("--prompt-string", help="set a custom prompt string", metavar="STRING")
-    optional_group.add_argument("--timestamp-format", help="set the timestamp format", metavar="FORMAT")
-    optional_group.add_argument("--suggest-aggr", help="set the suggestion aggressiveness", type=int, choices=[0, 1, 2, 3])
-    optional_group.add_argument("--proxy", help="specify a proxy to use", metavar="TYPE:HOST:PORT")
+    optional_group.add_argument("--prompt-string", help="set custom prompt string", metavar="STRING")
+    optional_group.add_argument("--timestamp-format", help="set timestamp format", metavar="FORMAT")
+    optional_group.add_argument("--suggest-aggr", help="set suggestion aggressiveness", type=int, choices=range(4), metavar="0-3")
+    optional_group.add_argument("--proxy", help="specify proxy to use", metavar="TYPE:HOST:PORT")
     optional_group.set_defaults(config_file=None, no_config=False, no_parse=False, clear=False,
                                 is_mod=False, no_unicode=False, no_notify=False, prompt_string="default",
                                 timestamp_format="%H:%M", suggest_aggr=1, trip_password="",
