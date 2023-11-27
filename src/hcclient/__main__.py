@@ -1250,6 +1250,7 @@ def main():
 
     required_group.add_argument("-c", "--channel", help="set channel to join", metavar="CHANNEL")
     required_group.add_argument("-n", "--nickname", help="set nickname to use", metavar="NICKNAME")
+
     optional_group.add_argument("-p", "--password", help="specify tripcode password", dest="trip_password", metavar="PASSWORD")
     optional_group.add_argument("-w", "--websocket", help="specify alternate websocket", dest="websocket_address", metavar="ADDRESS")
     optional_group.add_argument("-l", "--load-config", help="specify config file to load", dest="config_file", metavar="FILE")
@@ -1268,17 +1269,19 @@ def main():
                                 timestamp_format="%H:%M", suggest_aggr=1, trip_password="",
                                 websocket_address="wss://hack.chat/chat-ws", proxy=False)
 
-    if parser.parse_args().colors:
+    args = parser.parse_args()
+
+    if args.colors:
         print("Valid colors:\n" + "\n".join(f" - {color}" for color in termcolor.COLORS))
         sys.exit(0)
 
-    if parser.parse_args().defaults:
+    if args.defaults:
         hidden_options = ("gen_config", "defaults", "colors", "version", "channel", "nickname", "config_file", "no_config")
         print("Default configuration:\n" + "\n".join(f" - {option}: {value}" for option, value in vars(parser.parse_args()).items() if option not in hidden_options))
         print("\nDefault color scheme:\n" + "\n".join(f" - {option}: {value}" for option, value in default_colors.items()))
         sys.exit(0)
 
-    client = Client(initialize_config(parser.parse_args(), parser))
+    client = Client(initialize_config(args, parser))
     client.run()
 
 
