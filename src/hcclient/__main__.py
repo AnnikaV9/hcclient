@@ -1082,6 +1082,15 @@ Moderator commands:
         else:
             sys.exit(0)
 
+    def run(self) -> None:
+        """
+        Start threads and run the input manager
+        """
+        for thread in (self.thread_ping, self.thread_recv, self.thread_cleanup):
+            thread.start()
+
+        self.input_manager()
+
 
 def generate_config(config: argparse.Namespace) -> None:
     """
@@ -1267,10 +1276,7 @@ def main():
         sys.exit(0)
 
     client = Client(initialize_config(parser.parse_args(), parser))
-    client.thread_ping.start()
-    client.thread_recv.start()
-    client.thread_cleanup.start()
-    client.input_manager()
+    client.run()
 
 
 if __name__ == "__main__":
