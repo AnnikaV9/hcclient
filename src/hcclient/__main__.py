@@ -1249,9 +1249,9 @@ def main():
 
     required_group.add_argument("-c", "--channel", help="set channel to join", metavar="CHANNEL")
     required_group.add_argument("-n", "--nickname", help="set nickname to use", metavar="NICKNAME")
-    optional_group.add_argument("-t", "--trip-password", help="specify tripcode password", metavar="PASSWORD")
-    optional_group.add_argument("-w", "--websocket-address", help="specify alternate websocket", metavar="ADDRESS")
-    optional_group.add_argument("-l", "--load-config", help="specify config file to load", dest="config_file", metavar="PATH")
+    optional_group.add_argument("-p", "--password", help="specify tripcode password", dest="trip_password", metavar="PASSWORD")
+    optional_group.add_argument("-w", "--websocket", help="specify alternate websocket", dest="websocket_address", metavar="ADDRESS")
+    optional_group.add_argument("-l", "--load-config", help="specify config file to load", dest="config_file", metavar="FILE")
     optional_group.add_argument("--no-config", help="ignore global config file", action="store_true")
     optional_group.add_argument("--no-parse", help="log received packets as JSON", action="store_true")
     optional_group.add_argument("--clear", help="clear console before joining", action="store_true")
