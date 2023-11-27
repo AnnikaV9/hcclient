@@ -172,15 +172,16 @@ class Client:
 
         return True
 
-    def print_msg(self, message: str) -> None:
+    def print_msg(self, message: str, hist: bool=True) -> None:
         """
         Prints a message to the terminal and adds it to the stdout history
         """
         print(message)
 
-        self.stdout_history.append(message)
-        if len(self.stdout_history) > 100:
-            self.stdout_history.pop(0)
+        if hist:
+            self.stdout_history.append(message)
+            if len(self.stdout_history) > 100:
+                self.stdout_history.pop(0)
 
     def send(self, packet: dict) -> None:
         """
@@ -700,7 +701,10 @@ class Client:
 
                 case "/clear":
                     os.system("cls" if os.name == "nt" else "clear")
-                    print()
+                    self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
+                                                      termcolor.colored("CLIENT", self.args["client_color"]),
+                                                      termcolor.colored("Console cleared, run `/reprint` to undo", self.args["client_color"])),
+                                                      hist=False)
 
                 case "/wlock":
                     self.whisper_lock = not self.whisper_lock
@@ -847,6 +851,11 @@ class Client:
                                                           termcolor.colored("Unable to save configuration without a loaded config file, use --load-config", self.args["client_color"])))
 
                 case "/reprint":
+                    self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
+                                                      termcolor.colored("CLIENT", self.args["client_color"]),
+                                                      termcolor.colored(f"Re-printing {len(self.stdout_history)} messages...", self.args["client_color"])),
+                                                      hist=False)
+
                     print("\n".join(self.stdout_history))
 
                 case "/quit":
