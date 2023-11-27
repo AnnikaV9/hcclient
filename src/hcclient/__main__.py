@@ -93,7 +93,7 @@ class Client:
         Connects to the websocket server and send the join packet
         Uses a proxy if specified
         """
-        connect_status = "Connecting to {}...".format(self.args["websocket_address"]) if not self.args["proxy"] else "Connecting to {} through proxy {}...".format(self.args["websocket_address"], self.args["proxy"])
+        connect_status = f"Connecting to {self.args['websocket_address']}..." if not self.args["proxy"] else f"Connecting to {self.args['websocket_address']} through proxy {self.args['proxy']}..."
 
         self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
                                           termcolor.colored("CLIENT", self.args["client_color"]),
@@ -108,7 +108,7 @@ class Client:
         self.send({
             "cmd": "join",
             "channel": self.args["channel"],
-            "nick": "{}#{}".format(self.nick, self.args["trip_password"])
+            "nick": f"{self.nick}#{self.args['trip_password']}"
         })
 
     def reconnect_to_server(self) -> None:
@@ -208,7 +208,7 @@ class Client:
 
         for prefix in ("", "/whisper ", "/profile ", "/ignore "):
             for user in self.online_users:
-                self.auto_complete_list.append("{}@{}".format(prefix, user))
+                self.auto_complete_list.append(f"{prefix}@{user}")
 
     def level_to_utype(self, level: int) -> str:
         """
@@ -326,7 +326,7 @@ class Client:
 
                         self.print_msg("{}|{}| {}".format(termcolor.colored(packet_receive_time, self.args["timestamp_color"]),
                                                           termcolor.colored("SERVER", self.args["server_color"]),
-                                                          termcolor.colored("Channel: {} - Users: {}".format(self.channel, ", ".join(self.online_users)), self.args["server_color"])))
+                                                          termcolor.colored(f"Channel: {self.channel} - Users: {', '.join(self.online_users)}", self.args["server_color"])))
 
                     case "chat":
                         if received["nick"] in self.online_ignored_users:
@@ -341,18 +341,18 @@ class Client:
                         match self.level_to_utype(received["level"]):
                             case "Mod":
                                 color_to_use = self.args["mod_nickname_color"] if self.nick != received["nick"] else self.args["self_nickname_color"]
-                                received["nick"] = "{} {}".format(chr(11088), received["nick"]) if not self.args["no_unicode"] else received["nick"]
+                                received["nick"] = f"{chr(11088)} {received['nick']}" if not self.args["no_unicode"] else received["nick"]
 
                             case "Admin":
                                 color_to_use = self.args["admin_nickname_color"] if self.nick != received["nick"] else self.args["self_nickname_color"]
-                                received["nick"] = "{} {}".format(chr(11088), received["nick"]) if not self.args["no_unicode"] else received ["nick"]
+                                received["nick"] = f"{chr(11088)} {received['nick']}" if not self.args["no_unicode"] else received ["nick"]
                                 tripcode = "Admin"
 
                             case _:
                                 color_to_use = self.args["nickname_color"] if self.nick != received["nick"] else self.args["self_nickname_color"]
 
                         if f"@{self.nick}" in received["text"]:
-                            self.push_notification("[{}] {}".format(received["nick"], received["text"]))
+                            self.push_notification(f"[{received['nick']}] {received['text']}")
 
                         if "customId" in received:
                             message_hash = abs(hash(str(received["userid"]) + received["customId"])) % 100000000
@@ -668,13 +668,13 @@ class Client:
                 case "/list":
                     self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
                                                       termcolor.colored("CLIENT", self.args["client_color"]),
-                                                      termcolor.colored("Channel: {} - Users: {}".format(self.channel, ", ".join(self.online_users)), self.args["client_color"])))
+                                                      termcolor.colored(f"Channel: {self.channel} - Users: {', '.join(self.online_users)}", self.args["client_color"])))
 
                 case "/profile":
                     target = parsed_message[2].lstrip("@")
                     if target in self.online_users:
                         ignored = "Yes" if target in self.online_ignored_users else "No"
-                        profile = "{}'s profile:\n".format(target) + "\n".join("{}: {}".format(option, value) for option, value in self.online_users_details[target].items()) + "\nIgnored: {}".format(ignored)
+                        profile = f"{target}'s profile:\n" + "\n".join(f"{option}: {value}" for option, value in self.online_users_details[target].items()) + f"\nIgnored: {ignored}"
 
                         self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
                                                           termcolor.colored("CLIENT", self.args["client_color"]),
@@ -684,7 +684,7 @@ class Client:
                     else:
                         self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
                                                           termcolor.colored("CLIENT", self.args["client_color"]),
-                                                          termcolor.colored("No such user: '{}'".format(target), self.args["client_color"])))
+                                                          termcolor.colored(f"No such user: '{target}'", self.args["client_color"])))
 
                 case "/nick":
                     if re.match("^[A-Za-z0-9_]*$", parsed_message[2]) and 0 < len(parsed_message[2]) < 25:
@@ -711,7 +711,7 @@ class Client:
 
                     self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
                                                       termcolor.colored("CLIENT", self.args["client_color"]),
-                                                      termcolor.colored("Toggled whisper lock to {}".format(self.whisper_lock), self.args["client_color"])))
+                                                      termcolor.colored(f"Toggled whisper lock to {self.whisper_lock}", self.args["client_color"])))
 
                 case "/ignore":
                     target = parsed_message[2].lstrip("@")
@@ -726,7 +726,7 @@ class Client:
                         if target_hash not in self.args["ignored"]["hashes"]:
                             self.args["ignored"]["hashes"].append(target_hash)
 
-                        return_msg = "Ignoring trip '{}' and hash '{}'".format(target_trip, target_hash) if target_trip is not None else "Ignoring hash '{}'".format(target_hash)
+                        return_msg = f"Ignoring trip '{target_trip}' and hash '{target_hash}'" if target_trip is not None else f"Ignoring hash '{target_hash}'"
                         return_msg += ", run `/save` to persist"
 
                         self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
@@ -736,7 +736,7 @@ class Client:
                     else:
                         self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
                                                           termcolor.colored("CLIENT", self.args["client_color"]),
-                                                          termcolor.colored("No such user: '{}'".format(target), self.args["client_color"])))
+                                                          termcolor.colored(f"No such user: '{target}'", self.args["client_color"])))
 
                 case "/unignoreall":
                     self.online_ignored_users = []
@@ -762,7 +762,7 @@ class Client:
 
                         self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
                                                           termcolor.colored("CLIENT", self.args["client_color"]),
-                                                          termcolor.colored("Set alias '{}' = '{}'".format(message_args[0], self.args["aliases"][message_args[0]]), self.args["client_color"])))
+                                                          termcolor.colored(f"Set alias '{message_args[0]}' = '{self.args['aliases'][message_args[0]]}'", self.args["client_color"])))
 
                 case "/unset":
                     try:
@@ -770,12 +770,12 @@ class Client:
 
                         self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
                                                           termcolor.colored("CLIENT", self.args["client_color"]),
-                                                          termcolor.colored("Unset alias '{}'".format(parsed_message[2]), self.args["client_color"])))
+                                                          termcolor.colored(f"Unset alias '{parsed_message[2]}'", self.args["client_color"])))
 
                     except KeyError:
                         self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
                                                           termcolor.colored("CLIENT", self.args["client_color"]),
-                                                          termcolor.colored("Alias '{}' isn't defined".format(parsed_message[2]), self.args["client_color"])))
+                                                          termcolor.colored(f"Alias '{parsed_message[2]}' isn't defined", self.args["client_color"])))
 
                 case "/configset":
                     message_args = parsed_message[2].split(" ")
@@ -803,24 +803,24 @@ class Client:
 
                             self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
                                                               termcolor.colored("CLIENT", self.args["client_color"]),
-                                                              termcolor.colored("Set configuration option '{}' to '{}'".format(option, value), self.args["client_color"])))
+                                                              termcolor.colored(f"Set configuration option '{option}' to '{value}'", self.args["client_color"])))
 
                         else:
                             self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
                                                               termcolor.colored("CLIENT", self.args["client_color"]),
-                                                              termcolor.colored("Error setting configuration: Invalid value '{}' for option '{}'".format(value, option), self.args["client_color"])))
+                                                              termcolor.colored(f"Error setting configuration: Invalid value '{value}' for option '{option}'", self.args["client_color"])))
 
                     else:
                         problem = "Invalid" if option not in self.args else "Read-only"
 
                         self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
                                                           termcolor.colored("CLIENT", self.args["client_color"]),
-                                                          termcolor.colored("Error setting configuration: {} option '{}'".format(problem, option), self.args["client_color"])))
+                                                          termcolor.colored(f"Error setting configuration: {problem} option '{option}'", self.args["client_color"])))
 
                 case "/configdump":
                     self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
                                                       termcolor.colored("CLIENT", self.args["client_color"]),
-                                                      termcolor.colored("Active configuration:\n" + "\n".join("{}: {}".format(option, value) for option, value in self.args.items()), self.args["client_color"])))
+                                                      termcolor.colored("Active configuration:\n" + "\n".join(f"{option}: {value}" for option, value in self.args.items()), self.args["client_color"])))
 
                 case "/save":
                     if self.args["config_file"]:
@@ -838,7 +838,7 @@ class Client:
 
                                 self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
                                                                   termcolor.colored("CLIENT", self.args["client_color"]),
-                                                                  termcolor.colored("Configuration saved to {}".format(self.args["config_file"]), self.args["client_color"])))
+                                                                  termcolor.colored(f"Configuration saved to {self.args['config_file']}", self.args["client_color"])))
 
                         except Exception as e:
                             self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
@@ -1112,7 +1112,7 @@ def generate_config(config: argparse.Namespace) -> None:
                 print("Configuration written to config.json")
 
     except Exception as e:
-        sys.exit("{}: error: {}".format(sys.argv[0], e))
+        sys.exit(f"{sys.argv[0]}: error: {e}")
 
 
 def load_config(filepath: str) -> dict:
@@ -1140,12 +1140,12 @@ def load_config(filepath: str) -> dict:
                     missing_args.append(key)
 
             if len(missing_args) > 0:
-                raise ValueError("{} is missing the following option(s): {}".format(filepath, ", ".join(missing_args)))
+                raise ValueError(f"{filepath} is missing the following option(s): {', '.join(missing_args)}")
 
             return config
 
     except Exception as e:
-        sys.exit("{}: error: {}".format(sys.argv[0], e))
+        sys.exit(f"{sys.argv[0]}: error: {e}")
 
 
 def initialize_config(args: argparse.Namespace, parser: argparse.ArgumentParser) -> dict:
@@ -1166,7 +1166,7 @@ def initialize_config(args: argparse.Namespace, parser: argparse.ArgumentParser)
 
     if not args.channel or not args.nickname:
         parser.print_usage()
-        sys.exit("{}: error: the following arguments are required: -c/--channel, -n/--nickname".format(sys.argv[0]))
+        sys.exit(f"{sys.argv[0]}: error: the following arguments are required: -c/--channel, -n/--nickname")
 
     if args.no_config:
         args.config_file = None
@@ -1178,7 +1178,7 @@ def initialize_config(args: argparse.Namespace, parser: argparse.ArgumentParser)
         config["config_file"] = args.config_file
         for option in config:
             if not Client.validate_config(option, config[option]):
-                sys.exit("{}: error: invalid configuration value for option '{}'".format(sys.argv[0], option))
+                sys.exit(f"{sys.argv[0]}: error: invalid configuration value for option '{option}'")
 
     else:
         loaded_config = False
@@ -1196,7 +1196,7 @@ def initialize_config(args: argparse.Namespace, parser: argparse.ArgumentParser)
                     config["config_file"] = def_config_file
                     for option in config:
                         if not Client.validate_config(option, config[option]):
-                            sys.exit("{}: error: invalid configuration value for option '{}'".format(sys.argv[0], option))
+                            sys.exit(f"{sys.argv[0]}: error: invalid configuration value for option '{option}'")
                     loaded_config = True
                     break
 
@@ -1209,7 +1209,7 @@ def initialize_config(args: argparse.Namespace, parser: argparse.ArgumentParser)
             config.pop("colors")
             for option in config:
                 if not Client.validate_config(option, config[option]):
-                    sys.exit("{}: error: invalid configuration value for option '{}'".format(sys.argv[0], option))
+                    sys.exit(f"{sys.argv[0]}: error: invalid configuration value for option '{option}'")
 
     return config
 
