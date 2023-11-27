@@ -100,7 +100,8 @@ class Client:
                                           termcolor.colored(connect_status, self.args["client_color"])))
 
         if self.args["proxy"]:
-            self.ws.connect(self.args["websocket_address"], http_proxy_host=self.args["proxy"].split(":")[1], http_proxy_port=self.args["proxy"].split(":")[2], proxy_type=self.args["proxy"].split(":")[0].lower())
+            proxy_opt = self.args["proxy"].split(":")
+            self.ws.connect(self.args["websocket_address"], http_proxy_host=proxy_opt[1], http_proxy_port=proxy_opt[2], proxy_type=proxy_opt[0].lower())
 
         else:
             self.ws.connect(self.args["websocket_address"])
