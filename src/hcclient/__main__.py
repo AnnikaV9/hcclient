@@ -1149,11 +1149,10 @@ def load_config(filepath: str) -> dict:
         sys.exit(f"{sys.argv[0]}: error: {e}")
 
 
-def initialize_config(args: argparse.Namespace, parser: argparse.ArgumentParser) -> dict:
+def initialize_config(args: argparse.Namespace, parser: argparse.ArgumentParser, default_colors: dict) -> dict:
     """
     Initializes the configuration and returns a dictionary
     """
-
     for color in default_colors:
         args.__dict__[color] = default_colors[color]
 
@@ -1215,21 +1214,6 @@ def initialize_config(args: argparse.Namespace, parser: argparse.ArgumentParser)
     return config
 
 
-default_colors = {
-    "message_color": "white",
-    "whisper_color": "green",
-    "emote_color": "green",
-    "nickname_color": "blue",
-    "self_nickname_color": "magenta",
-    "warning_color": "yellow",
-    "server_color": "green",
-    "client_color": "green",
-    "timestamp_color": "white",
-    "mod_nickname_color": "cyan",
-    "admin_nickname_color": "red"
-}
-
-
 def main():
     """
     Entry point
@@ -1271,6 +1255,20 @@ def main():
 
     args = parser.parse_args()
 
+    default_colors = {
+        "message_color": "white",
+        "whisper_color": "green",
+        "emote_color": "green",
+        "nickname_color": "blue",
+        "self_nickname_color": "magenta",
+        "warning_color": "yellow",
+        "server_color": "green",
+        "client_color": "green",
+        "timestamp_color": "white",
+        "mod_nickname_color": "cyan",
+        "admin_nickname_color": "red"
+    }
+
     if args.colors:
         print("Valid colors:\n" + "\n".join(f" - {color}" for color in termcolor.COLORS))
         sys.exit(0)
@@ -1281,7 +1279,7 @@ def main():
         print("\nDefault color scheme:\n" + "\n".join(f" - {option}: {value}" for option, value in default_colors.items()))
         sys.exit(0)
 
-    client = Client(initialize_config(args, parser))
+    client = Client(initialize_config(args, parser, default_colors))
     client.run()
 
 
