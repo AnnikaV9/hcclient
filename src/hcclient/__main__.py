@@ -849,7 +849,10 @@ class Client:
                     else:
                         self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
                                                           termcolor.colored("CLIENT", self.args["client_color"]),
-                                                          termcolor.colored("Unable to save configuration without a loaded config file, use --load-config", self.args["client_color"])))
+                                                          termcolor.colored(f"Unable to save configuration without a loaded config file", self.args["client_color"])))
+                        self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
+                                                          termcolor.colored("CLIENT", self.args["client_color"]),
+                                                          termcolor.colored(f"Load a config file with `--load-config` or place `config.yml` in {self.def_config_dir}", self.args["client_color"])))
 
                 case "/reprint":
                     self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
@@ -1093,13 +1096,11 @@ Moderator commands:
         self.input_manager()
 
 
-def generate_config(config: argparse.Namespace) -> None:
+def generate_config(config: dict) -> None:
     """
     Generates a config file from the specified arguments
     """
-    config = vars(config)
-    for arg in ("gen_config", "config_file", "no_config", "channel", "nickname", "colors"):
-            config.pop(arg)
+    config.pop("config_file")
 
     try:
         if not os.path.isfile("config.yml"):
@@ -1128,20 +1129,20 @@ def load_config(filepath: str) -> dict:
             else:
                 config = yaml.safe_load(config_file)
 
-            missing_args = []
-            for key in ("trip_password", "websocket_address", "no_parse",
-                       "clear", "is_mod", "no_unicode", "no_notify",
-                       "prompt_string", "timestamp_format", "message_color",
-                       "whisper_color", "emote_color", "nickname_color",
-                       "self_nickname_color", "warning_color", "server_color",
-                       "client_color", "timestamp_color", "mod_nickname_color",
-                       "suggest_aggr", "admin_nickname_color", "ignored",
-                       "aliases", "proxy"):
-                if key not in config:
-                    missing_args.append(key)
+            unknown_args = []
+            for option in config:
+                if option not in ("trip_password", "websocket_address", "no_parse",
+                                  "clear", "is_mod", "no_unicode", "no_notify",
+                                  "prompt_string", "timestamp_format", "message_color",
+                                  "whisper_color", "emote_color", "nickname_color",
+                                  "self_nickname_color", "warning_color", "server_color",
+                                  "client_color", "timestamp_color", "mod_nickname_color",
+                                  "suggest_aggr", "admin_nickname_color", "ignored",
+                                  "aliases", "proxy"):
+                    unknown_args.append(option)
 
-            if len(missing_args) > 0:
-                raise ValueError(f"{filepath} is missing the following option(s): {', '.join(missing_args)}")
+            if len(unknown_args) > 0:
+                raise ValueError(f"{filepath}: unknown option(s): {', '.join(unknown_args)}")
 
             return config
 
@@ -1149,30 +1150,35 @@ def load_config(filepath: str) -> dict:
         sys.exit(f"{sys.argv[0]}: error: {e}")
 
 
-def initialize_config(args: argparse.Namespace, parser: argparse.ArgumentParser, default_colors: dict) -> dict:
+def initialize_config(args: argparse.Namespace, parser: argparse.ArgumentParser) -> dict:
     """
     Initializes the configuration and returns a dictionary
     """
-    for color in default_colors:
-        args.__dict__[color] = default_colors[color]
+    config = default_config
 
     if args.gen_config:
-        args.aliases = {"example": "example"}
-        args.ignored = {"trips": ["example"], "hashes": ["example"]}
-        if not args.prompt_string:
-            args.prompt_string = "default"
-        generate_config(args)
+        for option in vars(args):
+            if option in config:
+                config[option] = vars(args)[option]
+
+        config["aliases"] = {"example": "example"}
+        config["ignored"] = {"trips": ["example"], "hashes": ["example"]}
+        generate_config(config)
         sys.exit(0)
 
     if not args.channel or not args.nickname:
         parser.print_usage()
         sys.exit(f"{sys.argv[0]}: error: the following arguments are required: -c/--channel, -n/--nickname")
 
-    if args.no_config:
-        args.config_file = None
-
     if args.config_file:
-        config = load_config(args.config_file)
+        file_config = load_config(args.config_file)
+        for option in file_config:
+            config[option] = file_config[option]
+
+        for arg in vars(args):
+            if arg in config:
+                config[arg] = vars(args)[arg]
+
         config["nickname"] = args.nickname
         config["channel"] = args.channel
         config["config_file"] = args.config_file
@@ -1191,27 +1197,61 @@ def initialize_config(args: argparse.Namespace, parser: argparse.ArgumentParser,
                 if os.path.isfile(os.path.join(def_config_dir, config_file)):
                     def_config_file = os.path.join(def_config_dir, config_file)
                     config = load_config(def_config_file)
+                    for arg in vars(args):
+                        if arg in config:
+                            config[arg] = vars(args)[arg]
+
                     config["nickname"] = args.nickname
                     config["channel"] = args.channel
                     config["config_file"] = def_config_file
                     for option in config:
                         if not Client.validate_config(option, config[option]):
                             sys.exit(f"{sys.argv[0]}: error: invalid configuration value for option '{option}'")
+
                     loaded_config = True
                     break
 
         if not loaded_config:
-            config = vars(args)
-            config["aliases"] = {}
-            config["ignored"] = {"trips": [], "hashes": []}
-            config.pop("gen_config")
-            config.pop("no_config")
-            config.pop("colors")
+            for option in vars(args):
+                if option in config:
+                    config[option] = vars(args)[option]
+
+            config["nickname"] = args.nickname
+            config["channel"] = args.channel
             for option in config:
                 if not Client.validate_config(option, config[option]):
                     sys.exit(f"{sys.argv[0]}: error: invalid configuration value for option '{option}'")
 
     return config
+
+
+default_config = {
+    "trip_password": "",
+    "websocket_address": "wss://hack.chat/chat-ws",
+    "no_parse": False,
+    "clear": False,
+    "is_mod": False,
+    "no_unicode": False,
+    "no_notify": False,
+    "prompt_string": "default",
+    "timestamp_format": "%H:%M",
+    "suggest_aggr": 1,
+    "proxy": False,
+    "config_file": None,
+    "message_color": "white",
+    "whisper_color": "green",
+    "emote_color": "green",
+    "nickname_color": "blue",
+    "self_nickname_color": "magenta",
+    "warning_color": "yellow",
+    "server_color": "green",
+    "client_color": "green",
+    "timestamp_color": "white",
+    "mod_nickname_color": "cyan",
+    "admin_nickname_color": "red",
+    "ignored": {"trips": [], "hashes": []},
+    "aliases": {},
+}
 
 
 def main():
@@ -1235,51 +1275,31 @@ def main():
     required_group.add_argument("-c", "--channel", help="set channel to join", metavar="CHANNEL")
     required_group.add_argument("-n", "--nickname", help="set nickname to use", metavar="NICKNAME")
 
-    optional_group.add_argument("-p", "--password", help="specify tripcode password", dest="trip_password", metavar="PASSWORD")
-    optional_group.add_argument("-w", "--websocket", help="specify alternate websocket", dest="websocket_address", metavar="ADDRESS")
-    optional_group.add_argument("-l", "--load-config", help="specify config file to load", dest="config_file", metavar="FILE")
-    optional_group.add_argument("--no-config", help="ignore global config file", action="store_true")
-    optional_group.add_argument("--no-parse", help="log received packets as JSON", action="store_true")
-    optional_group.add_argument("--clear", help="clear console before joining", action="store_true")
-    optional_group.add_argument("--is-mod", help="enable moderator commands", action="store_true")
-    optional_group.add_argument("--no-unicode", help="disable unicode UI elements", action="store_true")
-    optional_group.add_argument("--no-notify", help="disable desktop notifications", action="store_true")
-    optional_group.add_argument("--prompt-string", help="set custom prompt string", metavar="STRING")
-    optional_group.add_argument("--timestamp-format", help="set timestamp format", metavar="FORMAT")
-    optional_group.add_argument("--suggest-aggr", help="set suggestion aggressiveness", type=int, choices=range(4), metavar="0-3")
-    optional_group.add_argument("--proxy", help="specify proxy to use", metavar="TYPE:HOST:PORT")
-    optional_group.set_defaults(config_file=None, no_config=False, no_parse=False, clear=False,
-                                is_mod=False, no_unicode=False, no_notify=False, prompt_string="default",
-                                timestamp_format="%H:%M", suggest_aggr=1, trip_password="",
-                                websocket_address="wss://hack.chat/chat-ws", proxy=False)
+    optional_group.add_argument("-p", "--password", help="specify tripcode password", dest="trip_password", metavar="PASSWORD", default=argparse.SUPPRESS)
+    optional_group.add_argument("-w", "--websocket", help="specify alternate websocket", dest="websocket_address", metavar="ADDRESS", default=argparse.SUPPRESS)
+    optional_group.add_argument("-l", "--load-config", help="specify config file to load", dest="config_file", metavar="FILE", default=None)
+    optional_group.add_argument("--no-config", help="ignore global config file", action="store_true", default=False)
+    optional_group.add_argument("--no-parse", help="log received packets as JSON", action="store_true", default=argparse.SUPPRESS)
+    optional_group.add_argument("--clear", help="clear console before joining", action="store_true", default=argparse.SUPPRESS)
+    optional_group.add_argument("--is-mod", help="enable moderator commands", action="store_true", default=argparse.SUPPRESS)
+    optional_group.add_argument("--no-unicode", help="disable unicode UI elements", action="store_true", default=argparse.SUPPRESS)
+    optional_group.add_argument("--no-notify", help="disable desktop notifications", action="store_true", default=argparse.SUPPRESS)
+    optional_group.add_argument("--prompt-string", help="set custom prompt string", metavar="STRING", default=argparse.SUPPRESS)
+    optional_group.add_argument("--timestamp-format", help="set timestamp format", metavar="FORMAT", default=argparse.SUPPRESS)
+    optional_group.add_argument("--suggest-aggr", help="set suggestion aggressiveness", type=int, choices=range(4), metavar="0-3", default=argparse.SUPPRESS)
+    optional_group.add_argument("--proxy", help="specify proxy to use", metavar="TYPE:HOST:PORT", default=argparse.SUPPRESS)
 
     args = parser.parse_args()
-
-    default_colors = {
-        "message_color": "white",
-        "whisper_color": "green",
-        "emote_color": "green",
-        "nickname_color": "blue",
-        "self_nickname_color": "magenta",
-        "warning_color": "yellow",
-        "server_color": "green",
-        "client_color": "green",
-        "timestamp_color": "white",
-        "mod_nickname_color": "cyan",
-        "admin_nickname_color": "red"
-    }
 
     if args.colors:
         print("Valid colors:\n" + "\n".join(f" - {color}" for color in termcolor.COLORS))
         sys.exit(0)
 
     if args.defaults:
-        hidden_options = ("gen_config", "defaults", "colors", "version", "channel", "nickname", "config_file", "no_config")
-        print("Default configuration:\n" + "\n".join(f" - {option}: {value}" for option, value in vars(args).items() if option not in hidden_options))
-        print("\nDefault color scheme:\n" + "\n".join(f" - {option}: {value}" for option, value in default_colors.items()))
+        print("Default configuration:\n" + "\n".join(f" - {option}: {value}" for option, value in default_config.items()))
         sys.exit(0)
 
-    client = Client(initialize_config(args, parser, default_colors))
+    client = Client(initialize_config(args, parser))
     client.run()
 
 
