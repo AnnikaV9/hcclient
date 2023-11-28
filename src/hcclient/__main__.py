@@ -1275,7 +1275,9 @@ def main():
     required_group.add_argument("-n", "--nickname", help="set nickname to use", metavar="NICKNAME")
 
     optional_group.add_argument("-p", "--password", help="specify tripcode password", dest="trip_password", metavar="PASSWORD", default=argparse.SUPPRESS)
+    optional_group.add_argument("-t", "--trip-password", help=argparse.SUPPRESS, dest="trip_password", default=argparse.SUPPRESS) # deprecated
     optional_group.add_argument("-w", "--websocket", help="specify alternate websocket", dest="websocket_address", metavar="ADDRESS", default=argparse.SUPPRESS)
+    optional_group.add_argument("--websocket-address", help=argparse.SUPPRESS, dest="websocket_address", default=argparse.SUPPRESS) # deprecated
     optional_group.add_argument("-l", "--load-config", help="specify config file to load", dest="config_file", metavar="FILE", default=None)
     optional_group.add_argument("--no-config", help="ignore global config file", action="store_true", default=False)
     optional_group.add_argument("--no-parse", help="log received packets as JSON", action="store_true", default=argparse.SUPPRESS)
