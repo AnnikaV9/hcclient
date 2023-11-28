@@ -1155,11 +1155,12 @@ def initialize_config(args: argparse.Namespace, parser: argparse.ArgumentParser)
     Initializes the configuration and returns a dictionary
     """
     config = default_config
+    args_dict = vars(args)
 
     if args.gen_config:
-        for option in vars(args):
-            if option in config:
-                config[option] = vars(args)[option]
+        for arg in args_dict:
+            if arg in config:
+                config[arg] = args_dict[arg]
 
         config["aliases"] = {"example": "example"}
         config["ignored"] = {"trips": ["example"], "hashes": ["example"]}
@@ -1175,9 +1176,9 @@ def initialize_config(args: argparse.Namespace, parser: argparse.ArgumentParser)
         for option in file_config:
             config[option] = file_config[option]
 
-        for arg in vars(args):
+        for arg in args_dict:
             if arg in config:
-                config[arg] = vars(args)[arg]
+                config[arg] = args_dict[arg]
 
         config["nickname"] = args.nickname
         config["channel"] = args.channel
@@ -1197,9 +1198,9 @@ def initialize_config(args: argparse.Namespace, parser: argparse.ArgumentParser)
                 if os.path.isfile(os.path.join(def_config_dir, config_file)):
                     def_config_file = os.path.join(def_config_dir, config_file)
                     config = load_config(def_config_file)
-                    for arg in vars(args):
+                    for arg in args_dict:
                         if arg in config:
-                            config[arg] = vars(args)[arg]
+                            config[arg] = args_dict[arg]
 
                     config["nickname"] = args.nickname
                     config["channel"] = args.channel
@@ -1212,9 +1213,9 @@ def initialize_config(args: argparse.Namespace, parser: argparse.ArgumentParser)
                     break
 
         if not loaded_config:
-            for option in vars(args):
-                if option in config:
-                    config[option] = vars(args)[option]
+            for arg in args_dict:
+                if arg in config:
+                    config[arg] = args_dict[arg]
 
             config["nickname"] = args.nickname
             config["channel"] = args.channel
