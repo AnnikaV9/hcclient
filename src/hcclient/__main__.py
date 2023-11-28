@@ -7,23 +7,23 @@
 import json
 import threading
 import ssl
-import websocket
 import sys
 import re
 import os
 import subprocess
 import copy
 import argparse
-import colorama
 import contextlib
 import datetime
 import time
 import random
-import termcolor
 import shutil
+import termcolor
+import colorama
 import prompt_toolkit
 import notifypy
 import yaml
+import websocket
 
 
 class Client:
@@ -42,6 +42,7 @@ class Client:
             os.system("cls" if os.name == "nt" else "clear")
 
         self.nick = self.args["nickname"]
+        self.channel = None
         self.online_users = []
         self.online_users_details = {}
         self.online_ignored_users = []
@@ -93,7 +94,8 @@ class Client:
         Connects to the websocket server and send the join packet
         Uses a proxy if specified
         """
-        connect_status = f"Connecting to {self.args['websocket_address']}..." if not self.args["proxy"] else f"Connecting to {self.args['websocket_address']} through proxy {self.args['proxy']}..."
+        connect_status = (f"Connecting to {self.args['websocket_address']}..." if not self.args["proxy"]
+                          else f"Connecting to {self.args['websocket_address']} through proxy {self.args['proxy']}...")
 
         self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
                                           termcolor.colored("CLIENT", self.args["client_color"]),
@@ -136,42 +138,45 @@ class Client:
         Validates a configuration option and its value
         Returns True if valid, False if not
         """
+        passed = True
+
         if option in ("timestamp_color", "client_color", "server_color", "nickname_color",
                       "self_nickname_color", "mod_nickname_color", "admin_nickname_color",
                       "message_color", "emote_color", "whisper_color", "warning_color"):
-            return value in termcolor.COLORS
+            passed = value in termcolor.COLORS
 
         elif option in ("no_unicode", "no_notify", "no_parse", "clear", "is_mod"):
-            return isinstance(value, bool)
+            passed = isinstance(value, bool)
 
         elif option in ("websocket_address", "trip_password", "prompt_string", "timestamp_format"):
-            return isinstance(value, str)
+            passed = isinstance(value, str)
 
         elif option in ("aliases", "ignored"):
             if not isinstance(value, dict):
-                return False
+                passed = False
 
-            match option:
-                case "aliases":
-                    for alias, replacement in value.items():
-                        if not isinstance(alias, str) or not isinstance(replacement, str):
-                            return False
+            else:
+                match option:
+                    case "aliases":
+                        for alias, replacement in value.items():
+                            if not isinstance(alias, str) or not isinstance(replacement, str):
+                                passed = False
 
-                case "ignored":
-                    if "trips" not in value or "hashes" not in value:
-                        return False
+                    case "ignored":
+                        if "trips" not in value or "hashes" not in value:
+                            passed = False
 
-                    if not isinstance(value["trips"], list) or not isinstance(value["hashes"], list):
-                        return False
+                        if not isinstance(value["trips"], list) or not isinstance(value["hashes"], list):
+                            passed = False
 
         elif option == "proxy":
             if value and not isinstance(value, str):
-                return False
+                passed = False
 
         elif option == "suggest_aggr":
-            return value in range(4)
+            passed = value in range(4)
 
-        return True
+        return passed
 
     def print_msg(self, message: str, hist: bool=True) -> None:
         """
@@ -231,29 +236,26 @@ class Client:
         We're being stricter than the official web client,
         which expires messages after 6 minutes
         """
-        self.updatable_messages_lock.acquire()
-        hashes_to_remove = []
-        for message_hash in self.updatable_messages:
-            if time.time() - self.updatable_messages[message_hash]["sent"] > 3 * 60:
-                message = self.updatable_messages[message_hash]
-                unique_id = message["unique_id"]
-                timestamp = datetime.datetime.now().strftime("%H:%M")
+        with self.updatable_messages_lock:
+            hashes_to_remove = []
+            for message_hash, message in self.updatable_messages.items():
+                if time.time() - message["sent"] > 3 * 60:
+                    unique_id = message["unique_id"]
+                    timestamp = datetime.datetime.now().strftime("%H:%M")
 
-                self.print_msg("{}|{}| [{}] [{}] {}".format(termcolor.colored(timestamp, self.args["timestamp_color"]),
-                                                            termcolor.colored(message["trip"], message["color"]),
-                                                            f"Expired.ID: {unique_id}" if self.args["no_unicode"] else f"{chr(10007)} {unique_id}",
-                                                            termcolor.colored(message["nick"], message["color"]),
-                                                            termcolor.colored(message["text"], self.args["message_color"])))
+                    self.print_msg("{}|{}| [{}] [{}] {}".format(termcolor.colored(timestamp, self.args["timestamp_color"]),
+                                                                termcolor.colored(message["trip"], message["color"]),
+                                                                f"Expired.ID: {unique_id}" if self.args["no_unicode"] else f"{chr(10007)} {unique_id}",
+                                                                termcolor.colored(message["nick"], message["color"]),
+                                                                termcolor.colored(message["text"], self.args["message_color"])))
 
-                hashes_to_remove.append(message_hash)
+                    hashes_to_remove.append(message_hash)
 
-            else:
-                break
+                else:
+                    break
 
-        for message_hash in hashes_to_remove:
-            self.updatable_messages.pop(message_hash)
-
-        self.updatable_messages_lock.release()
+            for message_hash in hashes_to_remove:
+                self.updatable_messages.pop(message_hash)
 
     def cleanup_thread(self) -> None:
         """
@@ -359,18 +361,17 @@ class Client:
                             message_hash = abs(hash(str(received["userid"]) + received["customId"])) % 100000000
                             unique_id = "".join(random.choice("123456789") for _ in range(5))
 
-                            self.updatable_messages_lock.acquire()
-                            self.updatable_messages[message_hash] = {
-                                "customId": received["customId"],
-                                "userid": received["userid"],
-                                "text": received["text"],
-                                "sent": time.time(),
-                                "trip": tripcode,
-                                "nick": received["nick"],
-                                "color": color_to_use,
-                                "unique_id": unique_id
-                            }
-                            self.updatable_messages_lock.release()
+                            with self.updatable_messages_lock:
+                                self.updatable_messages[message_hash] = {
+                                    "customId": received["customId"],
+                                    "userid": received["userid"],
+                                    "text": received["text"],
+                                    "sent": time.time(),
+                                    "trip": tripcode,
+                                    "nick": received["nick"],
+                                    "color": color_to_use,
+                                    "unique_id": unique_id
+                                }
 
                             self.print_msg("{}|{}| [{}] [{}] {}".format(termcolor.colored(packet_receive_time, self.args["timestamp_color"]),
                                                                         termcolor.colored(tripcode, color_to_use),
@@ -386,34 +387,32 @@ class Client:
 
                     case "updateMessage":
                         message_hash = abs(hash(str(received["userid"]) + received["customId"])) % 100000000
-                        self.updatable_messages_lock.acquire()
-                        match received["mode"]:
-                            case "overwrite":
-                                if message_hash in self.updatable_messages:
-                                    self.updatable_messages[message_hash]["text"] = received["text"]
+                        with self.updatable_messages_lock:
+                            match received["mode"]:
+                                case "overwrite":
+                                    if message_hash in self.updatable_messages:
+                                        self.updatable_messages[message_hash]["text"] = received["text"]
 
-                            case "append":
-                                if message_hash in self.updatable_messages:
-                                    self.updatable_messages[message_hash]["text"] += received["text"]
+                                case "append":
+                                    if message_hash in self.updatable_messages:
+                                        self.updatable_messages[message_hash]["text"] += received["text"]
 
-                            case "prepend":
-                                if message_hash in self.updatable_messages:
-                                    self.updatable_messages[message_hash]["text"] = received["text"] + self.updatable_messages[message_hash]["text"]
+                                case "prepend":
+                                    if message_hash in self.updatable_messages:
+                                        self.updatable_messages[message_hash]["text"] = received["text"] + self.updatable_messages[message_hash]["text"]
 
-                            case "complete":
-                                if message_hash in self.updatable_messages:
-                                    message = self.updatable_messages[message_hash]
-                                    unique_id = message["unique_id"]
+                                case "complete":
+                                    if message_hash in self.updatable_messages:
+                                        message = self.updatable_messages[message_hash]
+                                        unique_id = message["unique_id"]
 
-                                    self.print_msg("{}|{}| [{}] [{}] {}".format(termcolor.colored(packet_receive_time, self.args["timestamp_color"]),
-                                                                                termcolor.colored(message["trip"], message["color"]),
-                                                                                f"Completed.ID: {unique_id}" if self.args["no_unicode"] else f"{chr(10003)} {unique_id}",
-                                                                                termcolor.colored(message["nick"], message["color"]),
-                                                                                termcolor.colored(message["text"], self.args["message_color"])))
+                                        self.print_msg("{}|{}| [{}] [{}] {}".format(termcolor.colored(packet_receive_time, self.args["timestamp_color"]),
+                                                                                    termcolor.colored(message["trip"], message["color"]),
+                                                                                    f"Completed.ID: {unique_id}" if self.args["no_unicode"] else f"{chr(10003)} {unique_id}",
+                                                                                    termcolor.colored(message["nick"], message["color"]),
+                                                                                    termcolor.colored(message["text"], self.args["message_color"])))
 
-                                    self.updatable_messages.pop(message_hash)
-
-                        self.updatable_messages_lock.release()
+                                        self.updatable_messages.pop(message_hash)
 
                     case "info":
                         if received.get("type") is not None and received.get("type") == "whisper":
@@ -497,6 +496,7 @@ class Client:
                                                               termcolor.colored("Try running `/nick <newnick>` and `/reconnect`", self.args["client_color"])))
 
         except Exception as e:
+            self.channel = None
             self.online_users = []
             self.online_users_details = {}
             self.online_ignored_users = []
@@ -538,11 +538,10 @@ class Client:
         """
         event.current_buffer.insert_text(" ")
         no_chars = len(event.current_buffer.text)
+
         word_list = event.current_buffer.text.split(" ")
-
-        for alias in self.args["aliases"]:
-            word_list[:] = [part if part != f"${alias}" else self.args["aliases"][alias] for part in word_list]
-
+        for alias, value in self.args["aliases"].items():
+            word_list[:] = [word if word != f"${alias}" else value for word in word_list]
         processed_text = " ".join(word_list)
         no_added = len(processed_text) - no_chars
 
@@ -571,11 +570,10 @@ class Client:
         if self.exit_attempted:
             raise KeyboardInterrupt
 
-        else:
-            self.exit_attempted = True
-            self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
-                                              termcolor.colored("CLIENT", self.args["client_color"]),
-                                              termcolor.colored("Press ctrl+c again to exit", self.args["client_color"])))
+        self.exit_attempted = True
+        self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
+                                            termcolor.colored("CLIENT", self.args["client_color"]),
+                                            termcolor.colored("Press ctrl+c again to exit", self.args["client_color"])))
 
     def buffer_handle_send(self, event: prompt_toolkit.key_binding.KeyPressEvent) -> None:
         """
@@ -598,8 +596,7 @@ class Client:
         if self.args["prompt_string"] and self.args["prompt_string"] != "default":
             return self.args["prompt_string"]
 
-        else:
-            return "> " if self.args["no_unicode"] else f"{chr(10095)} "
+        return "> " if self.args["no_unicode"] else f"{chr(10095)} "
 
     def create_completer(self) -> prompt_toolkit.completion.Completer | None:
         """
@@ -607,7 +604,7 @@ class Client:
         """
         base_completer = prompt_toolkit.completion.WordCompleter(
             self.auto_complete_list,
-            match_middle=False if self.args["suggest_aggr"] == 1 else True,
+            match_middle=False if self.args["suggest_aggr"] < 2 else True,
             ignore_case=True,
             sentence=True
         )
@@ -650,10 +647,10 @@ class Client:
         Handles input received from the prompt
         """
         if len(message) > 0:
-            split_message = message.split(" ")
-            for alias in self.args["aliases"]:
-                split_message[:] = [part if part != f"${alias}" else self.args["aliases"][alias] for part in split_message]
-            message = " ".join(split_message)
+            word_list = message.split(" ")
+            for alias, value in self.args["aliases"].items():
+                word_list[:] = [word if word != f"${alias}" else value for word in word_list]
+            message = " ".join(word_list)
 
             parsed_message = message.partition(" ")
             match parsed_message[0]:
@@ -830,7 +827,7 @@ class Client:
                             config.pop(arg)
 
                         try:
-                            with open(self.args["config_file"], "w") as config_file:
+                            with open(self.args["config_file"], "w", encoding="utf8") as config_file:
                                 if self.args["config_file"].endswith(".json"):
                                     json.dump(config, config_file, indent=2)
 
@@ -849,7 +846,7 @@ class Client:
                     else:
                         self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
                                                           termcolor.colored("CLIENT", self.args["client_color"]),
-                                                          termcolor.colored(f"Unable to save configuration without a loaded config file", self.args["client_color"])))
+                                                          termcolor.colored("Unable to save configuration without a loaded config file", self.args["client_color"])))
                         self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
                                                           termcolor.colored("CLIENT", self.args["client_color"]),
                                                           termcolor.colored(f"Load a config file with `--load-config` or place `config.yml` in {self.def_config_dir}", self.args["client_color"])))
@@ -1040,15 +1037,15 @@ Moderator commands:
                             display = display.replace("Client commands", termcolor.colored("Client commands", attrs=["bold"]))
                             display = display.replace("Moderator commands", termcolor.colored("Moderator commands", attrs=["bold"]))
 
-                            pager_proc = subprocess.Popen(["less", "-R"], stdin=subprocess.PIPE, errors="backslashreplace")
-                            try:
-                                with pager_proc.stdin as pipe:
-                                    pipe.write(termcolor.colored(":q to return to the chat \n", "black", "on_white", attrs=["bold"]) + display)
+                            with subprocess.Popen(["less", "-R"], stdin=subprocess.PIPE, errors="backslashreplace") as pager_proc:
+                                try:
+                                    with pager_proc.stdin as pipe:
+                                        pipe.write(termcolor.colored(":q to return to the chat \n", "black", "on_white", attrs=["bold"]) + display)
 
-                            except OSError:
-                                pass
+                                except OSError:
+                                    pass
 
-                            pager_proc.wait()
+                                pager_proc.wait()
 
                         else:
                             self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
@@ -1104,12 +1101,12 @@ def generate_config(config: dict) -> None:
 
     try:
         if not os.path.isfile("config.yml"):
-            with open("config.yml", "x") as config_file:
+            with open("config.yml", "x", encoding="utf8") as config_file:
                 yaml.dump(config, config_file, sort_keys=False, default_flow_style=False)
                 print("Configuration written to config.yml")
 
         else:
-            with open("config.json", "x") as config_file:
+            with open("config.json", "x", encoding="utf8") as config_file:
                 json.dump(config, config_file, indent=2)
                 print("Configuration written to config.json")
 
@@ -1122,7 +1119,7 @@ def load_config(filepath: str) -> dict:
     Loads a config file from the specified path
     """
     try:
-        with open(filepath, "r") as config_file:
+        with open(filepath, "r", encoding="utf8") as config_file:
             if filepath.endswith(".json"):
                 config = json.load(config_file)
 
@@ -1158,9 +1155,9 @@ def initialize_config(args: argparse.Namespace, parser: argparse.ArgumentParser)
     args_dict = vars(args)
 
     if args.gen_config:
-        for arg in args_dict:
+        for arg, value in args_dict.items():
             if arg in config:
-                config[arg] = args_dict[arg]
+                config[arg] = value
 
         config["aliases"] = {"example": "example"}
         config["ignored"] = {"trips": ["example"], "hashes": ["example"]}
@@ -1173,18 +1170,18 @@ def initialize_config(args: argparse.Namespace, parser: argparse.ArgumentParser)
 
     if args.config_file:
         file_config = load_config(args.config_file)
-        for option in file_config:
-            config[option] = file_config[option]
+        for option, value in file_config.items():
+            config[option] = value
 
-        for arg in args_dict:
+        for arg, value in args_dict.items():
             if arg in config:
-                config[arg] = args_dict[arg]
+                config[arg] = value
 
         config["nickname"] = args.nickname
         config["channel"] = args.channel
         config["config_file"] = args.config_file
-        for option in config:
-            if not Client.validate_config(option, config[option]):
+        for option, value in config.items():
+            if not Client.validate_config(option, value):
                 sys.exit(f"{sys.argv[0]}: error: invalid configuration value for option '{option}'")
 
     else:
@@ -1198,29 +1195,29 @@ def initialize_config(args: argparse.Namespace, parser: argparse.ArgumentParser)
                 if os.path.isfile(os.path.join(def_config_dir, config_file)):
                     def_config_file = os.path.join(def_config_dir, config_file)
                     config = load_config(def_config_file)
-                    for arg in args_dict:
+                    for arg, value in args_dict.items():
                         if arg in config:
-                            config[arg] = args_dict[arg]
+                            config[arg] = value
 
                     config["nickname"] = args.nickname
                     config["channel"] = args.channel
                     config["config_file"] = def_config_file
-                    for option in config:
-                        if not Client.validate_config(option, config[option]):
+                    for option, value in config.items():
+                        if not Client.validate_config(option, value):
                             sys.exit(f"{sys.argv[0]}: error: invalid configuration value for option '{option}'")
 
                     loaded_config = True
                     break
 
         if not loaded_config:
-            for arg in args_dict:
+            for arg, value in args_dict.items():
                 if arg in config:
-                    config[arg] = args_dict[arg]
+                    config[arg] = value
 
             config["nickname"] = args.nickname
             config["channel"] = args.channel
-            for option in config:
-                if not Client.validate_config(option, config[option]):
+            for option, value in config.items():
+                if not Client.validate_config(option, value):
                     sys.exit(f"{sys.argv[0]}: error: invalid configuration value for option '{option}'")
 
     return config
@@ -1259,8 +1256,9 @@ def main():
     """
     Entry point
     """
-    formatter = lambda prog: argparse.HelpFormatter(prog, max_help_position=45)
-    parser = argparse.ArgumentParser(description="terminal client for connecting to hack.chat", add_help=False, formatter_class=formatter)
+    parser = argparse.ArgumentParser(description="terminal client for connecting to hack.chat",
+                                     add_help=False,
+                                     formatter_class=lambda prog: argparse.HelpFormatter(prog, max_help_position=45))
 
     command_group = parser.add_argument_group("commands")
     required_group = parser.add_argument_group("required arguments")
