@@ -5,7 +5,7 @@ A cross-platform terminal client for <a href="https://hack.chat">hack.chat</a>
 <br />
 <br />
 
-![Showcase GIF](https://github.com/AnnikaV9/hcclient/assets/68383195/fa7b28da-d24b-4267-9258-9de6ece0f2f6)
+![Demo](https://github.com/AnnikaV9/hcclient/assets/68383195/0945c900-362e-4c7a-9b85-c85e62ce9e96)
 
 <br />
 
@@ -36,6 +36,7 @@ hcclient is a configurable and feature-rich cross-platform terminal client for c
 Some of the features hcclient has to offer:
 - **Cross-platform:** &nbsp;Tested to work on Windows, Linux, macOS and Android. See [Prerequisites](#prerequisites) for more information.
 - **Suggestions:** &nbsp;Starting your message with `@` or `/` will bring up a menu with a list of online users or commands. Cycle through them with arrow keys or continue typing to filter the suggestions even more. Suggestion aggressiveness can be set with `--suggest-aggr`.
+- **Syntax highlighting:** &nbsp;Code blocks are highlighted with user specified languages or auto-detection. Themes and lexers are provided by [Pygments](https://pygments.org).
 - **Configuration:** &nbsp;Generate and load YAML/JSON configuration files with no editing required. Change configuration options from within the client with commands, modifying behaviour and colors without having to restart. See [Configuration](#configuration) for more information.
 - **Desktop notifications:** &nbsp;Receive notifications whenever someone mentions you or sends you a whisper. Android notifications are supported when running on [Termux](https://termux.dev/). See [Notifications](#notifications) for more information.
 - **Aliases:** &nbsp;Set aliases for messages and phrases you send often, because why wouldn't you?
