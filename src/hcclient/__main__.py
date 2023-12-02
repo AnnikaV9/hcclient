@@ -25,8 +25,8 @@ import notifypy
 import yaml
 import websocket
 import pygments.lexers
-import rich.syntax
-import rich.console
+import pygments.styles
+import pygments.formatters
 
 
 class Client:
@@ -69,6 +69,7 @@ class Client:
         self.auto_complete_list = []
         self.manage_complete_list()
 
+        self.codeblock_pattern = re.compile(r"```(?P<lang>\w+)?\n(?P<code>.*?)\n```", re.DOTALL)
         self.stdout_history = []
         self.updatable_messages = {}
         self.updatable_messages_lock = threading.Lock()
@@ -81,9 +82,6 @@ class Client:
 
         self.whisper_lock = False
         self.prompt_session = prompt_toolkit.PromptSession(reserve_space_for_menu=4)
-
-        self.rich_console = rich.console.Console()
-        self.codeblock_pattern = re.compile(r"```(?P<lang>\w+)?\n(?P<code>.*?)\n```", re.DOTALL)
 
         self.thread_ping = threading.Thread(target=self.ping_thread, daemon=True)
         self.thread_recv = threading.Thread(target=self.recv_thread, daemon=True)
@@ -204,7 +202,8 @@ class Client:
     def highlight(self, text: str) -> str:
         """
         Highlights all codeblocks in a string with a specified language
-        If no language is specified, uses pygments.lexers.guess_lexer()
+        If no language or an invalid language is specified,
+        uses pygments.lexers.guess_lexer() to guess the language
         """
         matches = self.codeblock_pattern.finditer(text)
 
@@ -212,11 +211,13 @@ class Client:
             code = match.group("code")
             lang = match.group("lang") or pygments.lexers.guess_lexer(code).name
 
-            syntax = rich.syntax.Syntax(code, lang, background_color="default", theme=self.args["highlight_theme"])
-            with rich.console.Capture(self.rich_console) as capture:
-                self.rich_console.print(syntax)
+            try:
+                lexer = pygments.lexers.get_lexer_by_name(lang)
 
-            highlighted = capture.get().strip("\n")
+            except pygments.util.ClassNotFound:
+                lexer = pygments.lexers.guess_lexer(code)
+
+            highlighted = pygments.highlight(code, lexer, pygments.formatters.Terminal256Formatter(style=self.args["highlight_theme"])).strip("\n")
             text = text.replace(code, highlighted, 1)
 
         return text
