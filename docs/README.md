@@ -9,7 +9,6 @@ A cross-platform terminal client for <a href="https://hack.chat">hack.chat</a>
 
 <br />
 
-## Table of Contents
 - [Introduction](#introduction)
 - [Features](#features)
 - [Prerequisites](#prerequisites)
@@ -28,21 +27,21 @@ A cross-platform terminal client for <a href="https://hack.chat">hack.chat</a>
 
 hcclient is a configurable and feature-rich cross-platform terminal client for connecting to [hack.chat](https://hack.chat).
 
-**Note:** &nbsp;This client is written to be compatible with the official live instance running at https://hack.chat. Compatibility with your own self-hosted instance or other alternate instances is not guaranteed.
+**Note:** This client is written to be compatible with the official live instance running at https://hack.chat. Compatibility with your own self-hosted instance or other alternate instances is not guaranteed.
 
 <br />
 
 ## Features <a name="features"></a>
 Some of the features hcclient has to offer:
-- **Cross-platform:** &nbsp;Tested to work on Windows, Linux, macOS and Android. See [Prerequisites](#prerequisites) for more information.
-- **Suggestions:** &nbsp;Starting your message with `@` or `/` will bring up a menu with a list of online users or commands. Cycle through them with arrow keys or continue typing to filter the suggestions even more. Suggestion aggressiveness can be set with `--suggest-aggr`.
-- **Syntax highlighting:** &nbsp;Code blocks are highlighted with user specified languages or auto-detection. Themes and lexers are provided by [Pygments](https://pygments.org).
-- **Configuration:** &nbsp;Generate and load YAML/JSON configuration files with no editing required. Change configuration options from within the client with commands, modifying behaviour and colors without having to restart. See [Configuration](#configuration) for more information.
-- **Desktop notifications:** &nbsp;Receive notifications whenever someone mentions you or sends you a whisper. Android notifications are supported when running on [Termux](https://termux.dev/). See [Notifications](#notifications) for more information.
-- **Aliases:** &nbsp;Set aliases for messages and phrases you send often, because why wouldn't you?
-- **Whisper locking:** &nbsp;Lock the client with a command to send only whispers, preventing accidental information leaks.
-- **Ignore list:** &nbsp;Message blocking using tripcodes and connection hashes.
-- **Proxy support:** &nbsp;Connect through SOCKS4, SOCKS5 or HTTP proxies. Tested to work with Tor.
+- **Cross-platform:** Tested to work on Windows, Linux, macOS and Android. See [Prerequisites](#prerequisites) for more information.
+- **Suggestions:** Starting your message with `@` or `/` will bring up a menu with a list of online users or commands. Cycle through them with arrow keys or continue typing to filter the suggestions even more. Suggestion aggressiveness can be set with `--suggest-aggr`.
+- **Syntax highlighting:** Code blocks in messages are highlighted with user specified languages or language guessing. See [Colors & Themes](#colors) for more information.
+- **Configuration:** Generate and load YAML/JSON configuration files with no editing required. Change configuration options from within the client with commands, modifying behaviour and colors without having to restart. See [Configuration](#configuration) for more information.
+- **Desktop notifications:** Receive notifications whenever someone mentions you or sends you a whisper. Android notifications are supported when running on [Termux](https://termux.dev/). See [Notifications](#notifications) for more information.
+- **Aliases:** Set aliases for messages and phrases you send often, because why wouldn't you?
+- **Whisper locking:** Lock the client with a command to send only whispers, preventing accidental information leaks.
+- **Ignore list:** Message blocking using tripcodes and connection hashes.
+- **Proxy support:** Connect through SOCKS4, SOCKS5 or HTTP proxies. Tested to work with Tor.
 
 <br />
 
@@ -148,13 +147,12 @@ The default color scheme can be overidden with a configuration file. See [Config
 A list of valid colors can be viewed with `--colors`.
 
 Syntax highlighting is enabled by default. It can be disabled with `--no-highlight` or `/configset no_highlight true`<br />
-Highlighting is provided by [pygments](https://pygments.org/), which supports a wide range of languages and themes.<br />
 Themes can be listed with `--themes` and set with `--highlight-theme <theme_name>` or `/configset highlight_theme <theme_name>`<br />
 
-Language is chosen from text that trails triple backticks starting a code block.
-If the language is not specified or is invalid, it will be guessed.<br />
+Language is chosen from text that trails the triple backticks starting a code block.<br />
+If a language is not specified or is invalid, it will be guessed.
 
-**Note:** &nbsp; Any line inside a code block that starts with triple backticks will break the highlighting. This might be fixed in the future.
+**Note:** Any line inside a code block that starts with triple backticks will break the highlighting. This might be fixed in the future.
 
 <br />
 
@@ -212,7 +210,7 @@ On Linux, libnotify and aplay are required for notifications to work.
 On Android, notifications are supported when running on [Termux](https://termux.dev/).<br />
 Install the [Termux:API](https://f-droid.org/en/packages/com.termux.api/) app and termux-api package and notifications will just work.
 
-**Note:** &nbsp; Notifications are not supported in container mode.
+**Note:** Notifications are not supported in container mode.
 
 <br />
 
@@ -241,7 +239,7 @@ It's displayed as a new message, but it's actually the previous message, edited.
 
 If no `complete` status is received in 3 minutes, the message will expire. All changes applied so far will be printed like normal, but with the `✗` icon instead.
 
-**Note:** &nbsp; If `no_unicode` is enabled, the `⧗`, `✓` and `✗` icons will be replaced with `Updatable.ID:`, `Completed.ID:` and `Expired.ID:` respectively.
+**Note:** If `no_unicode` is enabled, the `⧗`, `✓` and `✗` icons will be replaced with `Updatable.ID:`, `Completed.ID:` and `Expired.ID:` respectively.
 
 
 <br />
