@@ -1227,7 +1227,10 @@ def initialize_config(args: argparse.Namespace, parser: argparse.ArgumentParser)
             for config_file in file_options:
                 if os.path.isfile(os.path.join(def_config_dir, config_file)):
                     def_config_file = os.path.join(def_config_dir, config_file)
-                    config = load_config(def_config_file)
+                    file_config = load_config(def_config_file)
+                    for option, value in file_config.items():
+                        config[option] = value
+
                     for arg, value in args_dict.items():
                         if arg in config:
                             config[arg] = value
