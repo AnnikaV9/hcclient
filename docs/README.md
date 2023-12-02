@@ -150,9 +150,8 @@ Syntax highlighting is enabled by default. It can be disabled with `--no-highlig
 Highlighting is provided by [pygments](https://pygments.org/), which supports a wide range of languages and themes.<br />
 Themes can be listed with `--themes` and set with `--highlight-theme <theme_name>` or `/configset highlight_theme <theme_name>`<br />
 
-Language is chosen from text that trails triple backticks starting a code block.<br />
+Language is chosen from text that trails triple backticks starting a code block.
 If the language is not specified or is invalid, it will be guessed.<br />
-Highlighting multiple code blocks in a single message is supported.
 
 **Note:** &nbsp; Any line inside a code block that starts with triple backticks will break the highlighting. This might be fixed in the future.
 
