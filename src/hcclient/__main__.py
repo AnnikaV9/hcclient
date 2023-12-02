@@ -24,6 +24,9 @@ import prompt_toolkit
 import notifypy
 import yaml
 import websocket
+import pygments.lexers
+import rich.syntax
+import rich.console
 
 
 class Client:
@@ -78,6 +81,9 @@ class Client:
 
         self.whisper_lock = False
         self.prompt_session = prompt_toolkit.PromptSession(reserve_space_for_menu=4)
+
+        self.rich_console = rich.console.Console()
+        self.codeblock_pattern = re.compile(r"```(?P<lang>\w+)?\n(?P<code>.*?)\n```", re.DOTALL)
 
         self.thread_ping = threading.Thread(target=self.ping_thread, daemon=True)
         self.thread_recv = threading.Thread(target=self.recv_thread, daemon=True)
@@ -145,7 +151,7 @@ class Client:
                       "message_color", "emote_color", "whisper_color", "warning_color"):
             passed = value in termcolor.COLORS
 
-        elif option in ("no_unicode", "no_notify", "no_parse", "clear", "is_mod"):
+        elif option in ("no_unicode", "no_highlight", "no_notify", "no_parse", "clear", "is_mod"):
             passed = isinstance(value, bool)
 
         elif option in ("websocket_address", "trip_password", "prompt_string", "timestamp_format"):
@@ -176,18 +182,44 @@ class Client:
         elif option == "suggest_aggr":
             passed = value in range(4)
 
+        elif option == "highlight_theme":
+            passed = value in pygments.styles.get_all_styles()
+
         return passed
 
     def print_msg(self, message: str, hist: bool=True) -> None:
         """
         Prints a message to the terminal and adds it to the stdout history
         """
+        if not self.args["no_highlight"]:
+            message = self.highlight(message)
+
         print(message)
 
         if hist:
             self.stdout_history.append(message)
             if len(self.stdout_history) > 100:
                 self.stdout_history.pop(0)
+
+    def highlight(self, text: str) -> str:
+        """
+        Highlights all codeblocks in a string with a specified language
+        If no language is specified, uses pygments.lexers.guess_lexer()
+        """
+        matches = self.codeblock_pattern.finditer(text)
+
+        for match in matches:
+            code = match.group("code")
+            lang = match.group("lang") or pygments.lexers.guess_lexer(code).name
+
+            syntax = rich.syntax.Syntax(code, lang, background_color="default", theme=self.args["highlight_theme"])
+            with rich.console.Capture(self.rich_console) as capture:
+                self.rich_console.print(syntax)
+
+            highlighted = capture.get().strip("\n")
+            text = text.replace(code, highlighted, 1)
+
+        return text
 
     def send(self, packet: dict) -> None:
         """
@@ -1129,13 +1161,13 @@ def load_config(filepath: str) -> dict:
             unknown_args = []
             for option in config:
                 if option not in ("trip_password", "websocket_address", "no_parse",
-                                  "clear", "is_mod", "no_unicode", "no_notify",
-                                  "prompt_string", "timestamp_format", "message_color",
-                                  "whisper_color", "emote_color", "nickname_color",
-                                  "self_nickname_color", "warning_color", "server_color",
-                                  "client_color", "timestamp_color", "mod_nickname_color",
-                                  "suggest_aggr", "admin_nickname_color", "ignored",
-                                  "aliases", "proxy"):
+                                  "clear", "is_mod", "no_unicode", "no_highlight",
+                                  "highlight_theme", "no_notify", "prompt_string",
+                                  "timestamp_format", "message_color", "whisper_color",
+                                  "emote_color", "nickname_color", "self_nickname_color",
+                                  "warning_color", "server_color", "client_color",
+                                  "timestamp_color", "mod_nickname_color", "suggest_aggr",
+                                  "admin_nickname_color", "ignored", "aliases", "proxy"):
                     unknown_args.append(option)
 
             if len(unknown_args) > 0:
@@ -1230,6 +1262,8 @@ default_config = {
     "clear": False,
     "is_mod": False,
     "no_unicode": False,
+    "no_highlight": False,
+    "highlight_theme": "monokai",
     "no_notify": False,
     "prompt_string": "default",
     "timestamp_format": "%H:%M",
@@ -1269,6 +1303,7 @@ def main():
     command_group.add_argument("--gen-config", help="generate config file", action="store_true")
     command_group.add_argument("--defaults", help="display default config values", action="store_true")
     command_group.add_argument("--colors", help="display valid color values", action="store_true")
+    command_group.add_argument("--themes", help="display valid highlight themes", action="store_true")
     command_group.set_defaults(gen_config=False, colors=False)
 
     required_group.add_argument("-c", "--channel", help="set channel to join", metavar="CHANNEL")
@@ -1284,6 +1319,8 @@ def main():
     optional_group.add_argument("--clear", help="clear console before joining", action="store_true", default=argparse.SUPPRESS)
     optional_group.add_argument("--is-mod", help="enable moderator commands", action="store_true", default=argparse.SUPPRESS)
     optional_group.add_argument("--no-unicode", help="disable unicode UI elements", action="store_true", default=argparse.SUPPRESS)
+    optional_group.add_argument("--no-highlight", help="disable syntax highlighting", action="store_true", default=argparse.SUPPRESS)
+    optional_group.add_argument("--highlight-theme", help="set highlight theme", metavar="THEME", default=argparse.SUPPRESS)
     optional_group.add_argument("--no-notify", help="disable desktop notifications", action="store_true", default=argparse.SUPPRESS)
     optional_group.add_argument("--prompt-string", help="set custom prompt string", metavar="STRING", default=argparse.SUPPRESS)
     optional_group.add_argument("--timestamp-format", help="set timestamp format", metavar="FORMAT", default=argparse.SUPPRESS)
@@ -1298,6 +1335,10 @@ def main():
 
     if args.defaults:
         print("Default configuration:\n" + "\n".join(f" - {option}: {value}" for option, value in default_config.items()))
+        sys.exit(0)
+
+    if args.themes:
+        print("Valid themes:\n" + "\n".join(f" - {theme}" for theme in pygments.styles.get_all_styles()))
         sys.exit(0)
 
     client = Client(initialize_config(args, parser))
