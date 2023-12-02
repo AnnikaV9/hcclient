@@ -15,7 +15,7 @@ A cross-platform terminal client for <a href="https://hack.chat">hack.chat</a>
 - [Prerequisites](#prerequisites)
 - [Installation](#installation)
 - [Usage](#usage)
-- [Colors](#colors)
+- [Colors & Themes](#colors)
 - [Configuration](#configuration)
 - [Notifications](#notifications)
 - [Updatable Messages](#updatable-messages)
@@ -69,10 +69,10 @@ On Arch Linux, install the [source AUR package](https://aur.archlinux.org/packag
 On other x86_64 Linux distributions:
 ```bash
 # Download the latest binary
-wget -O hcclient https://github.com/AnnikaV9/hcclient/releases/download/v1.14.5/hcclient-1.14.5-linux-x86-64
+wget -O hcclient https://github.com/AnnikaV9/hcclient/releases/download/v1.15.0/hcclient-1.15.0-linux-x86-64
 
 # Or the statically linked binary if the above one doesn't work
-wget -O hcclient https://github.com/AnnikaV9/hcclient/releases/download/v1.14.5/hcclient-1.14.5-linux-x86-64-static
+wget -O hcclient https://github.com/AnnikaV9/hcclient/releases/download/v1.15.0/hcclient-1.15.0-linux-x86-64-static
 
 # Make the binary executable
 chmod +x hcclient
@@ -86,10 +86,10 @@ hcclient --help
 As a container:
 ```bash
 # Download the latest image
-wget https://github.com/AnnikaV9/hcclient/releases/download/v1.14.5/hcclient-1.14.5-image.tar.xz
+wget https://github.com/AnnikaV9/hcclient/releases/download/v1.15.0/hcclient-1.15.0-image.tar.xz
 
 # Install the image
-docker/podman load -i hcclient-1.14.5-image.tar.xz
+docker/podman load -i hcclient-1.15.0-image.tar.xz
 
 # Run hcclient
 docker/podman run --rm -it hcclient --help
@@ -101,12 +101,12 @@ docker/podman run --rm -it hcclient --help
 $ hcclient --help
 
 usage: hcclient [-h] [-v] [--gen-config] [--defaults] [--colors]
-                [-c CHANNEL] [-n NICKNAME] [-p PASSWORD]
+                [--themes] [-c CHANNEL] [-n NICKNAME] [-p PASSWORD]
                 [-w ADDRESS] [-l FILE] [--no-config] [--no-parse]
-                [--clear] [--is-mod] [--no-unicode] [--no-notify]
-                [--prompt-string STRING]
-                [--timestamp-format FORMAT] [--suggest-aggr 0-3]
-                [--proxy TYPE:HOST:PORT]
+                [--clear] [--is-mod] [--no-unicode] [--no-highlight]
+                [--highlight-theme THEME] [--no-notify]
+                [--prompt-string STRING] [--timestamp-format FORMAT]
+                [--suggest-aggr 0-3] [--proxy TYPE:HOST:PORT]
 
 terminal client for connecting to hack.chat
 
@@ -116,6 +116,7 @@ commands:
   --gen-config                      generate config file
   --defaults                        display default config values
   --colors                          display valid color values
+  --themes                          display valid highlight themes
 
 required arguments:
   -c CHANNEL, --channel CHANNEL     set channel to join
@@ -130,6 +131,8 @@ optional arguments:
   --clear                           clear console before joining
   --is-mod                          enable moderator commands
   --no-unicode                      disable unicode UI elements
+  --no-highlight                    disable syntax highlighting
+  --highlight-theme THEME           set highlight theme
   --no-notify                       disable desktop notifications
   --prompt-string STRING            set custom prompt string
   --timestamp-format FORMAT         set timestamp format
@@ -139,32 +142,19 @@ optional arguments:
 
 <br />
 
-## Colors <a name="colors"></a>
+## Colors & Themes <a name="colors"></a>
 The default color scheme can be overidden with a configuration file. See [Configuration](#configuration) for more information.<br />
 A list of valid colors can be viewed with `--colors`.
 
-```
-$ hcclient --colors
+Syntax highlighting is enabled by default. It can be disabled with `--no-highlight` or `/configset no_highlight true`<br />
+Highlighting is provided by [pygments](https://pygments.org/), which supports a wide range of languages and themes.<br />
+Themes can be listed with `--themes` and set with `--highlight-theme <theme_name>` or `/configset highlight_theme <theme_name>`<br />
 
-Valid colors:
- - black
- - grey
- - red
- - green
- - yellow
- - blue
- - magenta
- - cyan
- - light_grey
- - dark_grey
- - light_red
- - light_green
- - light_yellow
- - light_blue
- - light_magenta
- - light_cyan
- - white
-```
+Language is chosen from text that trails triple backticks starting a code block.<br />
+If the language is not specified or is invalid, it will be guessed.<br />
+Highlighting multiple code blocks in a single message is supported.
+
+**Note:** &nbsp; Any line inside a code block that starts with triple backticks will break the highlighting. This might be fixed in the future.
 
 <br />
 

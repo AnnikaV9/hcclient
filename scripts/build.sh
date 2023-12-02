@@ -2,7 +2,7 @@
 #
 # Requires ldd and binutils
 
-VERSION="1.14.5-git"
+VERSION="1.15.0-git"
 
 echo_bold() {
   if [[ "$NO_ANSI" ]]
