@@ -69,7 +69,7 @@ class Client:
         self.auto_complete_list = []
         self.manage_complete_list()
 
-        self.codeblock_pattern = re.compile(r"```(?P<lang>[^\s\n]+)?\s*\n(?P<code>.*?)(?:\n```(?!\w+)|$)", re.DOTALL)
+        self.codeblock_pattern = re.compile(r"(?<!\\)`{3}(?P<lang>[^\s\n]+)?\s*\n(?P<code>.*?)(?:\n`{3}(?!\w+)|$)", re.DOTALL)
         self.ansi_escape_pattern = re.compile(r"\x1b[^m]*m")
 
         self.stdout_history = []
@@ -187,11 +187,11 @@ class Client:
 
         return passed
 
-    def print_msg(self, message: str, hist: bool=True) -> None:
+    def print_msg(self, message: str, hist: bool=True, highlight_text: bool=False) -> None:
         """
         Prints a message to the terminal and adds it to the stdout history
         """
-        if not self.args["no_highlight"]:
+        if highlight_text and not self.args["no_highlight"]:
             message = self.highlight(message)
 
         print(message)
@@ -293,7 +293,7 @@ class Client:
                                                                 termcolor.colored(message["trip"], message["color"]),
                                                                 f"Expired.ID: {unique_id}" if self.args["no_unicode"] else f"{chr(10007)} {unique_id}",
                                                                 termcolor.colored(message["nick"], message["color"]),
-                                                                termcolor.colored(message["text"], self.args["message_color"])))
+                                                                termcolor.colored(message["text"], self.args["message_color"])), highlight_text=True)
 
                     hashes_to_remove.append(message_hash)
 
@@ -423,13 +423,13 @@ class Client:
                                                                         termcolor.colored(tripcode, color_to_use),
                                                                         f"Updatable.ID: {unique_id}" if self.args["no_unicode"] else f"{chr(10711)} {unique_id}",
                                                                         termcolor.colored(received["nick"], color_to_use),
-                                                                        termcolor.colored(received["text"], self.args["message_color"])))
+                                                                        termcolor.colored(received["text"], self.args["message_color"])), highlight_text=True)
 
                         else:
                             self.print_msg("{}|{}| [{}] {}".format(termcolor.colored(packet_receive_time, self.args["timestamp_color"]),
                                                                    termcolor.colored(tripcode, color_to_use),
                                                                    termcolor.colored(received["nick"], color_to_use),
-                                                                   termcolor.colored(received["text"], self.args["message_color"])))
+                                                                   termcolor.colored(received["text"], self.args["message_color"])), highlight_text=True)
 
                     case "updateMessage":
                         message_hash = abs(hash(str(received["userid"]) + received["customId"])) % 100000000
@@ -456,7 +456,7 @@ class Client:
                                                                                     termcolor.colored(message["trip"], message["color"]),
                                                                                     f"Completed.ID: {unique_id}" if self.args["no_unicode"] else f"{chr(10003)} {unique_id}",
                                                                                     termcolor.colored(message["nick"], message["color"]),
-                                                                                    termcolor.colored(message["text"], self.args["message_color"])))
+                                                                                    termcolor.colored(message["text"], self.args["message_color"])), highlight_text=True)
 
                                         self.updatable_messages.pop(message_hash)
 
@@ -476,7 +476,7 @@ class Client:
 
                             self.print_msg("{}|{}| {}".format(termcolor.colored(packet_receive_time, self.args["timestamp_color"]),
                                                               termcolor.colored(tripcode, self.args["whisper_color"]),
-                                                              termcolor.colored(received["text"], self.args["whisper_color"])))
+                                                              termcolor.colored(received["text"], self.args["whisper_color"])), highlight_text=True)
 
                         else:
                             self.print_msg("{}|{}| {}".format(termcolor.colored(packet_receive_time, self.args["timestamp_color"]),
@@ -529,7 +529,7 @@ class Client:
 
                         self.print_msg("{}|{}| {}".format(termcolor.colored(packet_receive_time, self.args["timestamp_color"]),
                                                           termcolor.colored(tripcode, self.args["emote_color"]),
-                                                          termcolor.colored(received["text"], self.args["emote_color"])))
+                                                          termcolor.colored(received["text"], self.args["emote_color"])), highlight_text=True)
 
                     case "warn":
                         self.print_msg("{}|{}| {}".format(termcolor.colored(packet_receive_time, self.args["timestamp_color"]),
