@@ -69,7 +69,9 @@ class Client:
         self.auto_complete_list = []
         self.manage_complete_list()
 
-        self.codeblock_pattern = re.compile(r"```(?P<lang>\w+)?\n(?P<code>.*?)\n```", re.DOTALL)
+        self.codeblock_pattern = re.compile(r"```(?P<lang>[^\s\n]+)?\s*\n(?P<code>.*?)(?:\n```(?!\w+)|$)", re.DOTALL)
+        self.ansi_escape_pattern = re.compile(r"\x1b[^m]*m")
+
         self.stdout_history = []
         self.updatable_messages = {}
         self.updatable_messages_lock = threading.Lock()
@@ -208,17 +210,28 @@ class Client:
         matches = self.codeblock_pattern.finditer(text)
 
         for match in matches:
-            code = match.group("code")
-            lang = match.group("lang") or pygments.lexers.guess_lexer(code).name
+            code = self.ansi_escape_pattern.sub("", match.group("code"))
+            lang = match.group("lang")
 
             try:
                 lexer = pygments.lexers.get_lexer_by_name(lang)
+                guess_tag = ""
 
             except pygments.util.ClassNotFound:
                 lexer = pygments.lexers.guess_lexer(code)
+                guess_tag = "(guessed) "
 
             highlighted = pygments.highlight(code, lexer, pygments.formatters.Terminal256Formatter(style=self.args["highlight_theme"])).strip("\n")
-            text = text.replace(code, highlighted, 1)
+
+            block = match.group()
+            close_tag = ""
+            if not block.endswith("```"):
+                close_tag = " unclosed "
+
+            text = text.replace(block, (termcolor.colored(f"--- {lexer.name.lower()} {guess_tag}---\n", self.args["client_color"]) +
+                                        highlighted +
+                                        termcolor.colored(f"\n---{close_tag}---", self.args["client_color"])),
+                                1)
 
         return text
 
