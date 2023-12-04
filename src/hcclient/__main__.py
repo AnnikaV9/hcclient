@@ -3,6 +3,18 @@
 # Author:    AnnikaV9
 # License:   Unlicense
 # Version:   1.15.1-git
+#
+# Everything is thrown into one file for now, as I'm not sure how
+# to structure this project yet while keeping support for multiple
+# distribution methods (PyPI, PyInstaller, Local)
+# Will be restructured properly in the future (hopefully)
+#
+# Two classes are defined in this file:
+#   - Client (L46): The main client class
+#   - TextFormatter (L1128): Handles syntax highlighting, markup, links
+#                            and other future formatting options
+#
+
 
 import json
 import threading
@@ -151,7 +163,8 @@ class Client:
                       "message_color", "emote_color", "whisper_color", "warning_color"):
             passed = value in termcolor.COLORS
 
-        elif option in ("no_unicode", "no_highlight", "no_notify", "no_parse", "clear", "is_mod", "markup"):
+        elif option in ("no_unicode", "no_highlight", "no_notify", "no_parse", "clear", "is_mod",
+                        "no_markup", "no_links"):
             passed = isinstance(value, bool)
 
         elif option in ("websocket_address", "trip_password", "prompt_string", "timestamp_format"):
@@ -203,7 +216,9 @@ class Client:
         Formats a string with the TextFormatter class,
         providing syntax highlighting and markup
         """
-        return self.formatter.format(text, not self.args["no_highlight"], self.args["highlight_theme"], self.args["client_color"], self.args["message_color"], self.args["markup"])
+        return self.formatter.format(text, not self.args["no_highlight"], self.args["highlight_theme"],
+                                     self.args["client_color"], self.args["message_color"],
+                                     not self.args["no_markup"], not self.args["no_links"])
 
     def send(self, packet: dict) -> None:
         """
@@ -1112,7 +1127,7 @@ Moderator commands:
 
 class TextFormatter:
     """
-    Handles syntax highlighting and markup
+    Handles syntax highlighting, markup and links
     """
     def __init__(self) -> None:
         """
@@ -1121,13 +1136,15 @@ class TextFormatter:
         self.codeblock_pattern = re.compile(r"(?<!\S)`{3}(?P<lang>[^\s\n]+)?\s*\n(?P<code>.*?)(?:\n`{3}(?!\w+)|$)", re.DOTALL)
         self.ansi_escape_pattern = re.compile(r"\x1b[^m]*m")
 
+        self.link_pattern = re.compile(r"(?<!\\)\[.*?(?<!\\)\](?<!\\)\((.*?)(?<!\\)\)|https?://\S+")
+
         self.markup_patterns = {}
-        self.markup_patterns[re.compile(r"(?<!\\)\*{3}(\S.*?\S)(?<!\\)\*{3}")] = r"\033[1;3m\1\033[0m"
-        self.markup_patterns[re.compile(r"(?<!\\)_{3}(\S.*?\S)(?<!\\)_{3}")] = r"\033[1;3m\1\033[0m"
-        self.markup_patterns[re.compile(r"(?<!\\)\*{2}(\S.*?\S)(?<!\\)\*{2}")] = r"\033[1m\1\033[0m"
-        self.markup_patterns[re.compile(r"(?<!\\)_{2}(\S.*?\S)(?<!\\)_{2}")] = r"\033[1m\1\033[0m"
-        self.markup_patterns[re.compile(r"(?<!\\)\*(\S.*?\S)(?<!\\)\*")] = r"\033[3m\1\033[0m"
-        self.markup_patterns[re.compile(r"(?<!\\)_(\S.*?\S)(?<!\\)_")] = r"\033[3m\1\033[0m"
+        self.markup_patterns[re.compile(r"(?<!\\)\*{3}(?!\*)(?!_)(\S.*?\S|\S)(?<!\\)\*{3}")] = r"\033[1;3m\1\033[0m"    # ***bold-italic***
+        self.markup_patterns[re.compile(r"(?<!\\)\b_{3}(?!\*)(?!_)(\S.*?\S|\S)(?<!\\)_{3}\b")] = r"\033[1;3m\1\033[0m"  # ___bold-italic___
+        self.markup_patterns[re.compile(r"(?<!\\)\*{2}(?!\*)(?!_)(\S.*?\S|\S)(?<!\\)\*{2}")] = r"\033[1m\1\033[0m"      # **bold**
+        self.markup_patterns[re.compile(r"(?<!\\)\b_{2}(?!\*)(?!_)(\S.*?\S|\S)(?<!\\)_{2}\b")] = r"\033[1m\1\033[0m"    # __bold__
+        self.markup_patterns[re.compile(r"(?<!\\)\*(?!\*)(?!_)(\S.*?\S|\S)(?<!\\)\*")] = r"\033[3m\1\033[0m"            # *italic*
+        self.markup_patterns[re.compile(r"(?<!\\)\b_(?!\*)(?!_)(\S.*?\S|\S)(?<!\\)_\b")] = r"\033[3m\1\033[0m"          # _italic_
         self.markup_escape_pattern = re.compile(r"\\([^a-zA-Z0-9\s])")
 
     def markup(self, text: str) -> str:
@@ -1138,6 +1155,12 @@ class TextFormatter:
             text = pattern.sub(replacement, text)
 
         return self.markup_escape_pattern.sub(r"\1", text)
+
+    def links(self, text: str) -> str:
+        """
+        Formats links in a string
+        """
+        return self.link_pattern.sub(lambda match: "\033[4m" + match.group(1) + "\033[0m" if match.group(1) else "\033[4m" + match.group(0) + "\033[0m", text)
 
     def get_highlights(self, text: str, highlight_theme: str, client_color: str, message_color: str) -> str:
         """
@@ -1188,13 +1211,16 @@ class TextFormatter:
 
         return text
 
-    def format(self, text: str, highlight: bool, highlight_theme: str, client_color: str, message_color: str, markup: bool) -> str:
+    def format(self, text: str, highlight: bool, highlight_theme: str, client_color: str, message_color: str, markup: bool, links: bool) -> str:
         """
-        Formats text with both get_highlights() and markup()
+        Formats with the specified options
         """
         blocks = []
         if highlight:
             text, blocks = self.get_highlights(text, highlight_theme, client_color, message_color)
+
+        if links:
+            text = self.links(text)
 
         if markup:
             text = self.markup(text)
@@ -1245,7 +1271,7 @@ def load_config(filepath: str) -> dict:
                                   "warning_color", "server_color", "client_color",
                                   "timestamp_color", "mod_nickname_color", "suggest_aggr",
                                   "admin_nickname_color", "ignored", "aliases", "proxy",
-                                  "markup"):
+                                  "no_markup", "no_links"):
                     unknown_args.append(option)
 
             if len(unknown_args) > 0:
@@ -1345,7 +1371,8 @@ default_config = {
     "no_unicode": False,
     "no_highlight": False,
     "highlight_theme": "monokai",
-    "markup": False,
+    "no_markup": False,
+    "no_links": False,
     "no_notify": False,
     "prompt_string": "default",
     "timestamp_format": "%H:%M",
@@ -1403,7 +1430,8 @@ def main():
     optional_group.add_argument("--no-unicode", help="disable unicode UI elements", action="store_true", default=argparse.SUPPRESS)
     optional_group.add_argument("--no-highlight", help="disable syntax highlighting", action="store_true", default=argparse.SUPPRESS)
     optional_group.add_argument("--highlight-theme", help="set highlight theme", metavar="THEME", default=argparse.SUPPRESS)
-    optional_group.add_argument("--markup", help="enable experimental markup", action="store_true", default=argparse.SUPPRESS)
+    optional_group.add_argument("--no-markup", help="disable markup formatting", action="store_true", default=argparse.SUPPRESS)
+    optional_group.add_argument("--no-links", help="disable link formatting", action="store_true", default=argparse.SUPPRESS)
     optional_group.add_argument("--no-notify", help="disable desktop notifications", action="store_true", default=argparse.SUPPRESS)
     optional_group.add_argument("--prompt-string", help="set custom prompt string", metavar="STRING", default=argparse.SUPPRESS)
     optional_group.add_argument("--timestamp-format", help="set timestamp format", metavar="FORMAT", default=argparse.SUPPRESS)
