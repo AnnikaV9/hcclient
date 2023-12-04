@@ -1128,6 +1128,7 @@ class TextFormatter:
         self.markup_patterns[re.compile(r"(?<!\\)_{2}(\S.*?\S)(?<!\\)_{2}")] = r"\033[1m\1\033[0m"
         self.markup_patterns[re.compile(r"(?<!\\)\*(\S.*?\S)(?<!\\)\*")] = r"\033[3m\1\033[0m"
         self.markup_patterns[re.compile(r"(?<!\\)_(\S.*?\S)(?<!\\)_")] = r"\033[3m\1\033[0m"
+        self.markup_escape_pattern = re.compile(r"\\([^a-zA-Z0-9\s])")
 
     def markup(self, text: str) -> str:
         """
@@ -1136,9 +1137,7 @@ class TextFormatter:
         for pattern, replacement in self.markup_patterns.items():
             text = pattern.sub(replacement, text)
 
-        text = text.replace("\*", "*").replace("\_", "_")
-
-        return text
+        return self.markup_escape_pattern.sub(r"\1", text)
 
     def get_highlights(self, text: str, highlight_theme: str, client_color: str, message_color: str) -> str:
         """
