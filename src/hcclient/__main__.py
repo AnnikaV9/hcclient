@@ -1146,21 +1146,21 @@ class TextFormatter:
         Formats text with basic markdown
         """
         parsed = self.parser.render(text)
-        message_color = "\033[%dm" % (termcolor.COLORS[message_color])
+        message_color_open = "\033[%dm" % (termcolor.COLORS[message_color])
 
         parsed = parsed.replace("<p>", "").replace("</p>", "\n")
-        parsed = parsed.replace("<em>", "\033[3m").replace("</em>", "\033[0m" + message_color)
-        parsed = parsed.replace("<strong>", "\033[1m").replace("</strong>", "\033[0m" + message_color)
-        parsed = parsed.replace("<s>", "\033[9m").replace("</s>", "\033[0m" + message_color)
+        parsed = parsed.replace("<em>", "\033[3m").replace("</em>", "\033[0m" + message_color_open)
+        parsed = parsed.replace("<strong>", "\033[1m").replace("</strong>", "\033[0m" + message_color_open)
+        parsed = parsed.replace("<s>", "\033[9m").replace("</s>", "\033[0m" + message_color_open)
 
-        parsed = self.link_pattern.sub("\033[4m\\g<url>\033[0m" + message_color, parsed)
-        parsed = self.image_pattern.sub("\033[4m\\g<url>\033[0m" + message_color, parsed)
+        parsed = self.link_pattern.sub("\033[4m\\g<url>\033[0m" + message_color_open, parsed)
+        parsed = self.image_pattern.sub("\033[4m\\g<url>\033[0m" + message_color_open, parsed)
 
-        parsed = self.highlight_blocks(parsed, highlight_theme, client_color, message_color)
+        parsed = self.highlight_blocks(parsed, highlight_theme, client_color, message_color_open)
 
         return html.unescape(parsed.strip("\n"))
 
-    def highlight_blocks(self, text: str, highlight_theme: str, client_color: str, message_color: str) -> str:
+    def highlight_blocks(self, text: str, highlight_theme: str, client_color: str, message_color_open: str) -> str:
         """
         Highlights code blocks with pygments
         """
@@ -1182,7 +1182,7 @@ class TextFormatter:
             text = text.replace(match.group(), termcolor.colored(f"--- {lexer.name.lower()} {guess_tag}---\n", client_color) +
                                                highlighted +
                                                termcolor.colored("\n------", client_color) +
-                                               message_color)
+                                               message_color_open)
 
         return text
 
