@@ -1137,9 +1137,7 @@ class TextFormatter:
         self.parser = markdown_it.MarkdownIt("zero")
         self.parser.enable(["emphasis", "escape", "strikethrough", "link", "image", "fence"])
 
-        self.codeblock_pattern = re.compile(r"<pre><code class=\"(?P<lang>[^\s\n]+)?\">(?P<code>.*?)</code></pre>", re.DOTALL)
-        self.codeblock_pattern_nolang = re.compile(r"<pre><code>(?P<code>.*?)</code></pre>", re.DOTALL)
-
+        self.codeblock_pattern = re.compile(r"<pre><code(?: class=\"(?P<lang>[^\s\n]+)\")?>(?P<code>.*?)</code></pre>", re.DOTALL)
         self.link_pattern = re.compile(r"<a href=\"(?P<url>.*?)\">(.*?)</a>")
         self.image_pattern = re.compile(r"<img src=\"(?P<url>.*?)\" alt=\"(.*?)\">")
 
@@ -1148,12 +1146,15 @@ class TextFormatter:
         Formats text with basic markdown
         """
         parsed = self.parser.render(text)
+
         parsed = parsed.replace("<p>", "").replace("</p>", "\n")
         parsed = parsed.replace("<em>", "\033[3m").replace("</em>", "\033[0m")
         parsed = parsed.replace("<strong>", "\033[1m").replace("</strong>", "\033[0m")
         parsed = parsed.replace("<s>", "\033[9m").replace("</s>", "\033[0m")
+
         parsed = self.link_pattern.sub("\033[4m\\g<url>\033[0m", parsed)
         parsed = self.image_pattern.sub("\033[4m\\g<url>\033[0m", parsed)
+
         parsed = self.highlight_blocks(parsed, highlight_theme, client_color, message_color)
 
         return html.unescape(parsed.strip("\n"))
@@ -1165,7 +1166,7 @@ class TextFormatter:
         matches = self.codeblock_pattern.finditer(text)
         for match in matches:
             code = match.group("code")
-            lang = match.group("lang").lstrip("language-")
+            lang = (match.group("lang") or "guess").replace("language-", "")
 
             try:
                 lexer = pygments.lexers.get_lexer_by_name(lang)
@@ -1181,18 +1182,6 @@ class TextFormatter:
                                                 termcolor.colored(f"--- {lexer.name.lower()} {guess_tag}---\n", client_color) +
                                                 highlighted +
                                                 termcolor.colored("\n--- ---", client_color) +
-                                                "\033[%dm" % (termcolor.COLORS[message_color]))
-
-        matches = self.codeblock_pattern_nolang.finditer(text)
-        for match in matches:
-            code = match.group("code")
-            lexer = pygments.lexers.guess_lexer(code)
-            highlighted = pygments.highlight(code, lexer, pygments.formatters.Terminal256Formatter(style=highlight_theme)).strip("\n")
-
-            text = text.replace(match.group(), "\033[0m" +
-                                                termcolor.colored(f"--- {lexer.name.lower()} (guessed) ---\n", client_color) +
-                                                highlighted +
-                                                termcolor.colored("\n------", client_color) +
                                                 "\033[%dm" % (termcolor.COLORS[message_color]))
 
         return text
