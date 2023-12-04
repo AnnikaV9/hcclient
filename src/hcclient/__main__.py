@@ -1185,7 +1185,7 @@ class TextFormatter:
 
         matches = self.codeblock_pattern_nolang.finditer(text)
         for match in matches:
-            code = self.ansi_escape_pattern.sub("", match.group("code"))
+            code = match.group("code")
             lexer = pygments.lexers.guess_lexer(code)
             highlighted = pygments.highlight(code, lexer, pygments.formatters.Terminal256Formatter(style=highlight_theme)).strip("\n")
 
