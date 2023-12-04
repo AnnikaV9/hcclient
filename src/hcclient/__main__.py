@@ -9,6 +9,7 @@ import threading
 import ssl
 import sys
 import re
+import string
 import os
 import subprocess
 import copy
@@ -24,6 +25,7 @@ import prompt_toolkit
 import notifypy
 import yaml
 import websocket
+import pygments.util
 import pygments.lexers
 import pygments.styles
 import pygments.formatters
@@ -69,9 +71,7 @@ class Client:
         self.auto_complete_list = []
         self.manage_complete_list()
 
-        self.codeblock_pattern = re.compile(r"(?<!\\)`{3}(?P<lang>[^\s\n]+)?\s*\n(?P<code>.*?)(?:\n`{3}(?!\w+)|$)", re.DOTALL)
-        self.ansi_escape_pattern = re.compile(r"\x1b[^m]*m")
-
+        self.formatter = TextFormatter()
         self.stdout_history = []
         self.updatable_messages = {}
         self.updatable_messages_lock = threading.Lock()
@@ -151,7 +151,7 @@ class Client:
                       "message_color", "emote_color", "whisper_color", "warning_color"):
             passed = value in termcolor.COLORS
 
-        elif option in ("no_unicode", "no_highlight", "no_notify", "no_parse", "clear", "is_mod"):
+        elif option in ("no_unicode", "no_highlight", "no_notify", "no_parse", "clear", "is_mod", "markup"):
             passed = isinstance(value, bool)
 
         elif option in ("websocket_address", "trip_password", "prompt_string", "timestamp_format"):
@@ -187,13 +187,10 @@ class Client:
 
         return passed
 
-    def print_msg(self, message: str, hist: bool=True, highlight_text: bool=False) -> None:
+    def print_msg(self, message: str, hist: bool=True) -> None:
         """
         Prints a message to the terminal and adds it to the stdout history
         """
-        if highlight_text and not self.args["no_highlight"]:
-            message = self.highlight(message)
-
         print(message)
 
         if hist:
@@ -201,39 +198,12 @@ class Client:
             if len(self.stdout_history) > 100:
                 self.stdout_history.pop(0)
 
-    def highlight(self, text: str) -> str:
+    def format(self, text: str) -> str:
         """
-        Highlights all codeblocks in a string with a specified language
-        If no language or an invalid language is specified,
-        uses pygments.lexers.guess_lexer() to guess the language
+        Formats a string with the TextFormatter class,
+        providing syntax highlighting and markup
         """
-        matches = self.codeblock_pattern.finditer(text)
-
-        for match in matches:
-            code = self.ansi_escape_pattern.sub("", match.group("code"))
-            lang = match.group("lang")
-
-            try:
-                lexer = pygments.lexers.get_lexer_by_name(lang)
-                guess_tag = ""
-
-            except pygments.util.ClassNotFound:
-                lexer = pygments.lexers.guess_lexer(code)
-                guess_tag = "(guessed) "
-
-            highlighted = pygments.highlight(code, lexer, pygments.formatters.Terminal256Formatter(style=self.args["highlight_theme"])).strip("\n")
-
-            block = match.group()
-            close_tag = ""
-            if not block.endswith("```"):
-                close_tag = " unclosed "
-
-            text = text.replace(block, (termcolor.colored(f"--- {lexer.name.lower()} {guess_tag}---\n", self.args["client_color"]) +
-                                        highlighted +
-                                        termcolor.colored(f"\n---{close_tag}---", self.args["client_color"])),
-                                1)
-
-        return text
+        return self.formatter.format(text, not self.args["no_highlight"], self.args["highlight_theme"], self.args["client_color"], self.args["message_color"], self.args["markup"])
 
     def send(self, packet: dict) -> None:
         """
@@ -293,7 +263,7 @@ class Client:
                                                                 termcolor.colored(message["trip"], message["color"]),
                                                                 f"Expired.ID: {unique_id}" if self.args["no_unicode"] else f"{chr(10007)} {unique_id}",
                                                                 termcolor.colored(message["nick"], message["color"]),
-                                                                termcolor.colored(message["text"], self.args["message_color"])), highlight_text=True)
+                                                                termcolor.colored(self.format(message["text"]), self.args["message_color"])))
 
                     hashes_to_remove.append(message_hash)
 
@@ -405,7 +375,7 @@ class Client:
 
                         if "customId" in received:
                             message_hash = abs(hash(str(received["userid"]) + received["customId"])) % 100000000
-                            unique_id = "".join(random.choice("123456789") for _ in range(5))
+                            unique_id = "".join(random.choice(string.digits[1:]) for _ in range(5))
 
                             with self.updatable_messages_lock:
                                 self.updatable_messages[message_hash] = {
@@ -423,13 +393,13 @@ class Client:
                                                                         termcolor.colored(tripcode, color_to_use),
                                                                         f"Updatable.ID: {unique_id}" if self.args["no_unicode"] else f"{chr(10711)} {unique_id}",
                                                                         termcolor.colored(received["nick"], color_to_use),
-                                                                        termcolor.colored(received["text"], self.args["message_color"])), highlight_text=True)
+                                                                        termcolor.colored(self.format(received["text"]), self.args["message_color"])))
 
                         else:
                             self.print_msg("{}|{}| [{}] {}".format(termcolor.colored(packet_receive_time, self.args["timestamp_color"]),
                                                                    termcolor.colored(tripcode, color_to_use),
                                                                    termcolor.colored(received["nick"], color_to_use),
-                                                                   termcolor.colored(received["text"], self.args["message_color"])), highlight_text=True)
+                                                                   termcolor.colored(self.format(received["text"]), self.args["message_color"])))
 
                     case "updateMessage":
                         message_hash = abs(hash(str(received["userid"]) + received["customId"])) % 100000000
@@ -456,13 +426,14 @@ class Client:
                                                                                     termcolor.colored(message["trip"], message["color"]),
                                                                                     f"Completed.ID: {unique_id}" if self.args["no_unicode"] else f"{chr(10003)} {unique_id}",
                                                                                     termcolor.colored(message["nick"], message["color"]),
-                                                                                    termcolor.colored(message["text"], self.args["message_color"])), highlight_text=True)
+                                                                                    termcolor.colored(self.format(message["text"]), self.args["message_color"])))
 
                                         self.updatable_messages.pop(message_hash)
 
                     case "info":
                         if received.get("type") is not None and received.get("type") == "whisper":
-                            if received["from"] in self.online_ignored_users:
+                            sender = received["from"]
+                            if sender in self.online_ignored_users:
                                 continue
 
                             if len(received.get("trip", "")) < 6:
@@ -471,12 +442,12 @@ class Client:
                             else:
                                 tripcode = received.get("trip", "")
 
-                            if received["from"] in self.online_users:
+                            if sender in self.online_users:
                                 self.push_notification(received["text"])
 
                             self.print_msg("{}|{}| {}".format(termcolor.colored(packet_receive_time, self.args["timestamp_color"]),
                                                               termcolor.colored(tripcode, self.args["whisper_color"]),
-                                                              termcolor.colored(received["text"], self.args["whisper_color"])), highlight_text=True)
+                                                              termcolor.colored(self.format(received["text"]), self.args["whisper_color"])))
 
                         else:
                             self.print_msg("{}|{}| {}".format(termcolor.colored(packet_receive_time, self.args["timestamp_color"]),
@@ -529,7 +500,7 @@ class Client:
 
                         self.print_msg("{}|{}| {}".format(termcolor.colored(packet_receive_time, self.args["timestamp_color"]),
                                                           termcolor.colored(tripcode, self.args["emote_color"]),
-                                                          termcolor.colored(received["text"], self.args["emote_color"])), highlight_text=True)
+                                                          termcolor.colored(self.format(received["text"]), self.args["emote_color"])))
 
                     case "warn":
                         self.print_msg("{}|{}| {}".format(termcolor.colored(packet_receive_time, self.args["timestamp_color"]),
@@ -1139,6 +1110,99 @@ Moderator commands:
         self.input_manager()
 
 
+class TextFormatter:
+    """
+    Handles syntax highlighting and markup
+    """
+    def __init__(self) -> None:
+        """
+        Compiles regex patterns
+        """
+        self.codeblock_pattern = re.compile(r"(?<!\S)`{3}(?P<lang>[^\s\n]+)?\s*\n(?P<code>.*?)(?:\n`{3}(?!\w+)|$)", re.DOTALL)
+        self.ansi_escape_pattern = re.compile(r"\x1b[^m]*m")
+
+        self.markup_patterns = {}
+        self.markup_patterns[re.compile(r"(?<!\\)\*{3}(\S.*?\S)(?<!\\)\*{3}")] = r"\033[1;3m\1\033[0m"
+        self.markup_patterns[re.compile(r"(?<!\\)_{3}(\S.*?\S)(?<!\\)_{3}")] = r"\033[1;3m\1\033[0m"
+        self.markup_patterns[re.compile(r"(?<!\\)\*{2}(\S.*?\S)(?<!\\)\*{2}")] = r"\033[1m\1\033[0m"
+        self.markup_patterns[re.compile(r"(?<!\\)_{2}(\S.*?\S)(?<!\\)_{2}")] = r"\033[1m\1\033[0m"
+        self.markup_patterns[re.compile(r"(?<!\\)\*(\S.*?\S)(?<!\\)\*")] = r"\033[3m\1\033[0m"
+        self.markup_patterns[re.compile(r"(?<!\\)_(\S.*?\S)(?<!\\)_")] = r"\033[3m\1\033[0m"
+
+    def markup(self, text: str) -> str:
+        """
+        Formats text with italic, bold, and bold-italic (*, **, ***, _, __, ___)
+        """
+        for pattern, replacement in self.markup_patterns.items():
+            text = pattern.sub(replacement, text)
+
+        text = text.replace("\*", "*").replace("\_", "_")
+
+        return text
+
+    def get_highlights(self, text: str, highlight_theme: str, client_color: str, message_color: str) -> str:
+        """
+        Highlights all codeblocks in a string with a specified language
+        If no language or an invalid language is specified,
+        uses pygments.lexers.guess_lexer() to guess the language.
+        Blocks are returned separately so they don't get formatted by markup()
+        """
+        matches = self.codeblock_pattern.finditer(text)
+        blocks = []
+        for match in matches:
+            code = self.ansi_escape_pattern.sub("", match.group("code"))
+            lang = match.group("lang")
+
+            try:
+                lexer = pygments.lexers.get_lexer_by_name(lang)
+                guess_tag = ""
+
+            except pygments.util.ClassNotFound:
+                lexer = pygments.lexers.guess_lexer(code)
+                guess_tag = "(guessed) "
+
+            highlighted = pygments.highlight(code, lexer, pygments.formatters.Terminal256Formatter(style=highlight_theme)).strip("\n")
+
+            block = match.group()
+            close_tag = ""
+            if not block.endswith("```"):
+                close_tag = " unclosed "
+
+            block_key = "".join(random.choices(string.ascii_letters + string.digits, k=16))
+            blocks.append({"key": block_key,
+                           "block": "\033[0m" +
+                                    termcolor.colored(f"--- {lexer.name.lower()} {guess_tag}---\n", client_color) +
+                                    highlighted +
+                                    termcolor.colored(f"\n---{close_tag}---", client_color) +
+                                    "\033[%dm" % (termcolor.COLORS[message_color])})
+
+            text = text.replace(block, block_key)
+
+        return text, blocks
+
+    def merge_highlights(self, text: str, blocks: list) -> str:
+        """
+        Replaces codeblock placeholders with their respective codeblocks
+        """
+        for block in blocks:
+            text = text.replace(block["key"], block["block"])
+
+        return text
+
+    def format(self, text: str, highlight: bool, highlight_theme: str, client_color: str, message_color: str, markup: bool) -> str:
+        """
+        Formats text with both get_highlights() and markup()
+        """
+        blocks = []
+        if highlight:
+            text, blocks = self.get_highlights(text, highlight_theme, client_color, message_color)
+
+        if markup:
+            text = self.markup(text)
+
+        return self.merge_highlights(text, blocks)
+
+
 def generate_config(config: dict) -> None:
     """
     Generates a config file from the specified arguments
@@ -1181,7 +1245,8 @@ def load_config(filepath: str) -> dict:
                                   "emote_color", "nickname_color", "self_nickname_color",
                                   "warning_color", "server_color", "client_color",
                                   "timestamp_color", "mod_nickname_color", "suggest_aggr",
-                                  "admin_nickname_color", "ignored", "aliases", "proxy"):
+                                  "admin_nickname_color", "ignored", "aliases", "proxy",
+                                  "markup"):
                     unknown_args.append(option)
 
             if len(unknown_args) > 0:
@@ -1281,6 +1346,7 @@ default_config = {
     "no_unicode": False,
     "no_highlight": False,
     "highlight_theme": "monokai",
+    "markup": False,
     "no_notify": False,
     "prompt_string": "default",
     "timestamp_format": "%H:%M",
@@ -1338,6 +1404,7 @@ def main():
     optional_group.add_argument("--no-unicode", help="disable unicode UI elements", action="store_true", default=argparse.SUPPRESS)
     optional_group.add_argument("--no-highlight", help="disable syntax highlighting", action="store_true", default=argparse.SUPPRESS)
     optional_group.add_argument("--highlight-theme", help="set highlight theme", metavar="THEME", default=argparse.SUPPRESS)
+    optional_group.add_argument("--markup", help="enable experimental markup", action="store_true", default=argparse.SUPPRESS)
     optional_group.add_argument("--no-notify", help="disable desktop notifications", action="store_true", default=argparse.SUPPRESS)
     optional_group.add_argument("--prompt-string", help="set custom prompt string", metavar="STRING", default=argparse.SUPPRESS)
     optional_group.add_argument("--timestamp-format", help="set timestamp format", metavar="FORMAT", default=argparse.SUPPRESS)
