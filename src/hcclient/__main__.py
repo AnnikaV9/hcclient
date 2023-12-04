@@ -11,7 +11,7 @@
 #
 # Two classes are defined in this file:
 #   - Client:          The main client class
-#   - TextFormatter:   Handles markdown and syntax highlighting
+#   - TextFormatter:   Handles markdown parsing and code highlighting
 #
 
 
@@ -1128,7 +1128,7 @@ Moderator commands:
 
 class TextFormatter:
     """
-    Handles syntax highlighting, markdown and links
+    Handles markdown parsing and code highlighting
     """
     def __init__(self) -> None:
         """
@@ -1161,7 +1161,7 @@ class TextFormatter:
 
     def highlight_blocks(self, text: str, highlight_theme: str, client_color: str, message_color: str) -> str:
         """
-        Replaces highlighted blocks with their original text
+        Highlights code blocks with pygments
         """
         matches = self.codeblock_pattern.finditer(text)
         for match in matches:
