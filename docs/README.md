@@ -25,7 +25,7 @@ A cross-platform terminal client for <a href="https://hack.chat">hack.chat</a>
 ## Introduction <a name="introduction"></a>
 *"hack.chat is a minimal, distraction-free, accountless, logless, disappearing chat service which is easily deployable as your own service."* - [hack.chat](https://github.com/hack-chat/main)
 
-hcclient is a configurable and feature-rich cross-platform terminal client for connecting to [hack.chat](https://hack.chat), with markdown and syntax highlighting.
+hcclient is a configurable and feature-rich cross-platform terminal client for connecting to [hack.chat](https://hack.chat)
 
 **Note:** This client is written to be compatible with the official live instance running at https://hack.chat. Compatibility with your own self-hosted instance or other alternate instances is not guaranteed.
 
