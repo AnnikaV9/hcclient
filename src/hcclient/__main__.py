@@ -1165,7 +1165,7 @@ class TextFormatter:
         """
         matches = self.codeblock_pattern.finditer(text)
         for match in matches:
-            code = match.group("code")
+            code = html.unescape(match.group("code"))
             lang = (match.group("lang") or "guess").replace("language-", "")
 
             try:
@@ -1181,7 +1181,7 @@ class TextFormatter:
             text = text.replace(match.group(), "\033[0m" +
                                                 termcolor.colored(f"--- {lexer.name.lower()} {guess_tag}---\n", client_color) +
                                                 highlighted +
-                                                termcolor.colored("\n--- ---", client_color) +
+                                                termcolor.colored("\n------", client_color) +
                                                 "\033[%dm" % (termcolor.COLORS[message_color]))
 
         return text
