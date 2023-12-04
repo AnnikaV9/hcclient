@@ -29,6 +29,8 @@ python-socks = "2.4.3"
 PyYAML = "6.0.1"
 wcwidth = "0.2.12"
 Pygments = "2.17.2"
+markdown-it-py = "3.0.0"
+mdurl = "0.1.2"
 
 [tool.poetry.scripts]
 hcclient = "hcclient.__main__:main"

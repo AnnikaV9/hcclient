@@ -10,9 +10,8 @@
 # Will be restructured properly in the future (hopefully)
 #
 # Two classes are defined in this file:
-#   - Client (L46): The main client class
-#   - TextFormatter (L1128): Handles syntax highlighting, markup, links
-#                            and other future formatting options
+#   - Client:          The main client class
+#   - TextFormatter:   Handles markdown and syntax highlighting
 #
 
 
@@ -37,6 +36,8 @@ import prompt_toolkit
 import notifypy
 import yaml
 import websocket
+import html
+import markdown_it
 import pygments.util
 import pygments.lexers
 import pygments.styles
@@ -163,8 +164,7 @@ class Client:
                       "message_color", "emote_color", "whisper_color", "warning_color"):
             passed = value in termcolor.COLORS
 
-        elif option in ("no_unicode", "no_highlight", "no_notify", "no_parse", "clear", "is_mod",
-                        "no_markup", "no_links"):
+        elif option in ("no_unicode", "no_notify", "no_parse", "clear", "is_mod", "no_markdown"):
             passed = isinstance(value, bool)
 
         elif option in ("websocket_address", "trip_password", "prompt_string", "timestamp_format"):
@@ -214,11 +214,12 @@ class Client:
     def format(self, text: str) -> str:
         """
         Formats a string with the TextFormatter class,
-        providing syntax highlighting and markup
+        providing syntax highlighting and markdown
         """
-        return self.formatter.format(text, not self.args["no_highlight"], self.args["highlight_theme"],
-                                     self.args["client_color"], self.args["message_color"],
-                                     not self.args["no_markup"], not self.args["no_links"])
+        if not self.args["no_markdown"]:
+            text = self.formatter.markdown(text, self.args["highlight_theme"], self.args["client_color"], self.args["message_color"])
+
+        return text
 
     def send(self, packet: dict) -> None:
         """
@@ -1127,59 +1128,44 @@ Moderator commands:
 
 class TextFormatter:
     """
-    Handles syntax highlighting, markup and links
-
-    NOTE: Markup is done with regex, not with a proper parser.
-    It's not spec compliant and will format incorrectly in
-    some edge cases. It's good enough for most common use
-    cases while chatting.
+    Handles syntax highlighting, markdown and links
     """
     def __init__(self) -> None:
         """
-        Compiles regex patterns
+        Initializes the markdown parser and compiles regex patterns
         """
-        self.codeblock_pattern = re.compile(r"(?<!\S)`{3}(?P<lang>[^\s\n]+)?\s*\n(?P<code>.*?)(?:\n`{3}(?!\w+)|$)", re.DOTALL)
-        self.ansi_escape_pattern = re.compile(r"\x1b[^m]*m")
+        self.parser = markdown_it.MarkdownIt("zero")
+        self.parser.enable(["emphasis", "escape", "strikethrough", "link", "image", "fence"])
 
-        self.link_pattern = re.compile(r"(?<!\\)\[.*?(?<!\\)\](?<!\\)\((.*?)(?<!\\)\)|https?://\S+")
+        self.codeblock_pattern = re.compile(r"<pre><code class=\"(?P<lang>[^\s\n]+)?\">(?P<code>.*?)</code></pre>", re.DOTALL)
+        self.codeblock_pattern_nolang = re.compile(r"<pre><code>(?P<code>.*?)</code></pre>", re.DOTALL)
 
-        self.markup_patterns = {}
-        self.markup_patterns[re.compile(r"(?<!\\)\*{3}(?!\*)(?!_)(\S.*?\S|\S)(?<!\\)\*{3}")] = r"\033[1;3m\1\033[0m"    # ***bold-italic***
-        self.markup_patterns[re.compile(r"(?<!\\)\b_{3}(?!\*)(?!_)(\S.*?\S|\S)(?<!\\)_{3}\b")] = r"\033[1;3m\1\033[0m"  # ___bold-italic___
-        self.markup_patterns[re.compile(r"(?<!\\)\*{2}(?!\*)(?!_)(\S.*?\S|\S)(?<!\\)\*{2}")] = r"\033[1m\1\033[0m"      # **bold**
-        self.markup_patterns[re.compile(r"(?<!\\)\b_{2}(?!\*)(?!_)(\S.*?\S|\S)(?<!\\)_{2}\b")] = r"\033[1m\1\033[0m"    # __bold__
-        self.markup_patterns[re.compile(r"(?<!\\)\*(?!\*)(?!_)(\S.*?\S|\S)(?<!\\)\*")] = r"\033[3m\1\033[0m"            # *italic*
-        self.markup_patterns[re.compile(r"(?<!\\)\b_(?!\*)(?!_)(\S.*?\S|\S)(?<!\\)_\b")] = r"\033[3m\1\033[0m"          # _italic_
-        self.markup_escape_pattern = re.compile(r"\\([^a-zA-Z0-9\s])")
+        self.link_pattern = re.compile(r"<a href=\"(?P<url>.*?)\">(.*?)</a>")
+        self.image_pattern = re.compile(r"<img src=\"(?P<url>.*?)\" alt=\"(.*?)\">")
 
-    def markup(self, text: str) -> str:
+    def markdown(self, text: str, highlight_theme: str, client_color: str, message_color: str) -> str:
         """
-        Formats text with italic, bold, and bold-italic (*, **, ***, _, __, ___)
+        Formats text with basic markdown
         """
-        for pattern, replacement in self.markup_patterns.items():
-            text = pattern.sub(replacement, text)
+        parsed = self.parser.render(text)
+        parsed = parsed.replace("<p>", "").replace("</p>", "\n")
+        parsed = parsed.replace("<em>", "\033[3m").replace("</em>", "\033[0m")
+        parsed = parsed.replace("<strong>", "\033[1m").replace("</strong>", "\033[0m")
+        parsed = parsed.replace("<s>", "\033[9m").replace("</s>", "\033[0m")
+        parsed = self.link_pattern.sub("\033[4m\\g<url>\033[0m", parsed)
+        parsed = self.image_pattern.sub("\033[4m\\g<url>\033[0m", parsed)
+        parsed = self.highlight_blocks(parsed, highlight_theme, client_color, message_color)
 
-        return self.markup_escape_pattern.sub(r"\1", text)
+        return html.unescape(parsed.strip("\n"))
 
-    def links(self, text: str) -> str:
+    def highlight_blocks(self, text: str, highlight_theme: str, client_color: str, message_color: str) -> str:
         """
-        Formats links in a string with underline
-        Title and brackets are removed from []() / ![]()
-        """
-        return self.link_pattern.sub(lambda match: "\033[4m" + match.group(1) + "\033[0m" if match.group(1) else "\033[4m" + match.group(0) + "\033[0m", text)
-
-    def get_highlights(self, text: str, highlight_theme: str, client_color: str, message_color: str) -> str:
-        """
-        Highlights all codeblocks in a string with a specified language
-        If no language or an invalid language is specified,
-        uses pygments.lexers.guess_lexer() to guess the language.
-        Blocks are returned separately so they don't get formatted by markup()
+        Replaces highlighted blocks with their original text
         """
         matches = self.codeblock_pattern.finditer(text)
-        blocks = []
         for match in matches:
-            code = self.ansi_escape_pattern.sub("", match.group("code"))
-            lang = match.group("lang")
+            code = match.group("code")
+            lang = match.group("lang").lstrip("language-")
 
             try:
                 lexer = pygments.lexers.get_lexer_by_name(lang)
@@ -1191,47 +1177,25 @@ class TextFormatter:
 
             highlighted = pygments.highlight(code, lexer, pygments.formatters.Terminal256Formatter(style=highlight_theme)).strip("\n")
 
-            block = match.group()
-            close_tag = ""
-            if not block.endswith("```"):
-                close_tag = " unclosed "
+            text = text.replace(match.group(), "\033[0m" +
+                                                termcolor.colored(f"--- {lexer.name.lower()} {guess_tag}---\n", client_color) +
+                                                highlighted +
+                                                termcolor.colored("\n--- ---", client_color) +
+                                                "\033[%dm" % (termcolor.COLORS[message_color]))
 
-            block_key = "".join(random.choices(string.ascii_letters + string.digits, k=16))
-            blocks.append({"key": block_key,
-                           "block": "\033[0m" +
-                                    termcolor.colored(f"--- {lexer.name.lower()} {guess_tag}---\n", client_color) +
-                                    highlighted +
-                                    termcolor.colored(f"\n---{close_tag}---", client_color) +
-                                    "\033[%dm" % (termcolor.COLORS[message_color])})
+        matches = self.codeblock_pattern_nolang.finditer(text)
+        for match in matches:
+            code = self.ansi_escape_pattern.sub("", match.group("code"))
+            lexer = pygments.lexers.guess_lexer(code)
+            highlighted = pygments.highlight(code, lexer, pygments.formatters.Terminal256Formatter(style=highlight_theme)).strip("\n")
 
-            text = text.replace(block, block_key)
-
-        return text, blocks
-
-    def merge_highlights(self, text: str, blocks: list) -> str:
-        """
-        Replaces codeblock placeholders with their respective codeblocks
-        """
-        for block in blocks:
-            text = text.replace(block["key"], block["block"])
+            text = text.replace(match.group(), "\033[0m" +
+                                                termcolor.colored(f"--- {lexer.name.lower()} (guessed) ---\n", client_color) +
+                                                highlighted +
+                                                termcolor.colored("\n------", client_color) +
+                                                "\033[%dm" % (termcolor.COLORS[message_color]))
 
         return text
-
-    def format(self, text: str, highlight: bool, highlight_theme: str, client_color: str, message_color: str, markup: bool, links: bool) -> str:
-        """
-        Formats with the specified options
-        """
-        blocks = []
-        if highlight:
-            text, blocks = self.get_highlights(text, highlight_theme, client_color, message_color)
-
-        if links:
-            text = self.links(text)
-
-        if markup:
-            text = self.markup(text)
-
-        return self.merge_highlights(text, blocks)
 
 
 def generate_config(config: dict) -> None:
@@ -1270,14 +1234,15 @@ def load_config(filepath: str) -> dict:
             unknown_args = []
             for option in config:
                 if option not in ("trip_password", "websocket_address", "no_parse",
-                                  "clear", "is_mod", "no_unicode", "no_highlight",
+                                  "clear", "is_mod", "no_unicode", "no_markdown",
                                   "highlight_theme", "no_notify", "prompt_string",
                                   "timestamp_format", "message_color", "whisper_color",
                                   "emote_color", "nickname_color", "self_nickname_color",
                                   "warning_color", "server_color", "client_color",
                                   "timestamp_color", "mod_nickname_color", "suggest_aggr",
                                   "admin_nickname_color", "ignored", "aliases", "proxy",
-                                  "no_markup", "no_links"):
+                                  "no_highlight", # deprecated
+                                  ):
                     unknown_args.append(option)
 
             if len(unknown_args) > 0:
@@ -1375,10 +1340,8 @@ default_config = {
     "clear": False,
     "is_mod": False,
     "no_unicode": False,
-    "no_highlight": False,
     "highlight_theme": "monokai",
-    "no_markup": False,
-    "no_links": False,
+    "no_markdown": False,
     "no_notify": False,
     "prompt_string": "default",
     "timestamp_format": "%H:%M",
@@ -1434,10 +1397,9 @@ def main():
     optional_group.add_argument("--clear", help="clear console before joining", action="store_true", default=argparse.SUPPRESS)
     optional_group.add_argument("--is-mod", help="enable moderator commands", action="store_true", default=argparse.SUPPRESS)
     optional_group.add_argument("--no-unicode", help="disable unicode UI elements", action="store_true", default=argparse.SUPPRESS)
-    optional_group.add_argument("--no-highlight", help="disable syntax highlighting", action="store_true", default=argparse.SUPPRESS)
+    optional_group.add_argument("--no-highlight", help=argparse.SUPPRESS, action="store_true", default=False) # deprecated, doesn't do anything
     optional_group.add_argument("--highlight-theme", help="set highlight theme", metavar="THEME", default=argparse.SUPPRESS)
-    optional_group.add_argument("--no-markup", help="disable markup formatting", action="store_true", default=argparse.SUPPRESS)
-    optional_group.add_argument("--no-links", help="disable link formatting", action="store_true", default=argparse.SUPPRESS)
+    optional_group.add_argument("--no-markdown", help="disable markdown formatting", action="store_true", default=argparse.SUPPRESS)
     optional_group.add_argument("--no-notify", help="disable desktop notifications", action="store_true", default=argparse.SUPPRESS)
     optional_group.add_argument("--prompt-string", help="set custom prompt string", metavar="STRING", default=argparse.SUPPRESS)
     optional_group.add_argument("--timestamp-format", help="set timestamp format", metavar="FORMAT", default=argparse.SUPPRESS)
@@ -1445,6 +1407,8 @@ def main():
     optional_group.add_argument("--proxy", help="specify proxy to use", metavar="TYPE:HOST:PORT", default=argparse.SUPPRESS)
 
     args = parser.parse_args()
+
+    del args.no_highlight # deprecated
 
     if args.colors:
         print("Valid colors:\n" + "\n".join(f" - {color}" for color in termcolor.COLORS))
