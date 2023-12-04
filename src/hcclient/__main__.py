@@ -2,7 +2,7 @@
 #
 # Author:    AnnikaV9
 # License:   Unlicense
-# Version:   1.15.1-git
+# Version:   1.16.0-git
 #
 # Everything is thrown into one file for now, as I'm not sure how
 # to structure this project yet while keeping support for multiple
@@ -20,7 +20,6 @@ import threading
 import ssl
 import sys
 import re
-import string
 import os
 import subprocess
 import copy
@@ -391,7 +390,7 @@ class Client:
 
                         if "customId" in received:
                             message_hash = abs(hash(str(received["userid"]) + received["customId"])) % 100000000
-                            unique_id = "".join(random.choice(string.digits[1:]) for _ in range(5))
+                            unique_id = "".join(random.choice("123456789") for _ in range(5))
 
                             with self.updatable_messages_lock:
                                 self.updatable_messages[message_hash] = {
@@ -1357,7 +1356,7 @@ def main():
     """
     Entry point
     """
-    parser = argparse.ArgumentParser(description="terminal client for connecting to hack.chat",
+    parser = argparse.ArgumentParser(description="terminal client for hack.chat",
                                      add_help=False,
                                      formatter_class=lambda prog: argparse.HelpFormatter(prog, max_help_position=45))
 
@@ -1366,7 +1365,7 @@ def main():
     optional_group = parser.add_argument_group("optional arguments")
 
     command_group.add_argument("-h", "--help", help="display this help message", action="help")
-    command_group.add_argument("-v", "--version", help="display version information", action="version", version="hcclient 1.15.1-git")
+    command_group.add_argument("-v", "--version", help="display version information", action="version", version="hcclient 1.16.0-git")
     command_group.add_argument("--gen-config", help="generate config file", action="store_true")
     command_group.add_argument("--defaults", help="display default config values", action="store_true")
     command_group.add_argument("--colors", help="display valid color values", action="store_true")

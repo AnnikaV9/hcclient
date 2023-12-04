@@ -14,7 +14,7 @@ A cross-platform terminal client for <a href="https://hack.chat">hack.chat</a>
 - [Prerequisites](#prerequisites)
 - [Installation](#installation)
 - [Usage](#usage)
-- [Colors & Themes](#colors)
+- [Styling](#styling)
 - [Configuration](#configuration)
 - [Notifications](#notifications)
 - [Updatable Messages](#updatable-messages)
@@ -25,7 +25,7 @@ A cross-platform terminal client for <a href="https://hack.chat">hack.chat</a>
 ## Introduction <a name="introduction"></a>
 *"hack.chat is a minimal, distraction-free, accountless, logless, disappearing chat service which is easily deployable as your own service."* - [hack.chat](https://github.com/hack-chat/main)
 
-hcclient is a configurable and feature-rich cross-platform terminal client for connecting to [hack.chat](https://hack.chat).
+hcclient is a configurable and feature-rich cross-platform terminal client for connecting to [hack.chat](https://hack.chat), with markdown and syntax highlighting.
 
 **Note:** This client is written to be compatible with the official live instance running at https://hack.chat. Compatibility with your own self-hosted instance or other alternate instances is not guaranteed.
 
@@ -35,7 +35,8 @@ hcclient is a configurable and feature-rich cross-platform terminal client for c
 Some of the features hcclient has to offer:
 - **Cross-platform:** Tested to work on Windows, Linux, macOS and Android. See [Prerequisites](#prerequisites) for more information.
 - **Suggestions:** Starting your message with `@` or `/` will bring up a menu with a list of online users or commands. Cycle through them with arrow keys or continue typing to filter the suggestions even more. Suggestion aggressiveness can be set with `--suggest-aggr`.
-- **Syntax highlighting:** Code blocks in messages are highlighted with user specified languages or language guessing. See [Colors & Themes](#colors) for more information.
+- **Markdown:** Messages are parsed as markdown, with support for bold, italics, strikethrough, code blocks, links and images.
+- **Syntax highlighting:** Code blocks in messages are highlighted with user specified languages or language guessing. See [Styling](#styling) for more information.
 - **Configuration:** Generate and load YAML/JSON configuration files with no editing required. Change configuration options from within the client with commands, modifying behaviour and colors without having to restart. See [Configuration](#configuration) for more information.
 - **Desktop notifications:** Receive notifications whenever someone mentions you or sends you a whisper. Android notifications are supported when running on [Termux](https://termux.dev/). See [Notifications](#notifications) for more information.
 - **Aliases:** Set aliases for messages and phrases you send often, because why wouldn't you?
@@ -69,10 +70,10 @@ On Arch Linux, install the [source AUR package](https://aur.archlinux.org/packag
 On other x86_64 Linux distributions:
 ```bash
 # Download the latest binary
-wget -O hcclient https://github.com/AnnikaV9/hcclient/releases/download/v1.15.1/hcclient-1.15.1-linux-x86-64
+wget -O hcclient https://github.com/AnnikaV9/hcclient/releases/download/v1.16.0/hcclient-1.16.0-linux-x86-64
 
 # Or the statically linked binary if the above one doesn't work
-wget -O hcclient https://github.com/AnnikaV9/hcclient/releases/download/v1.15.1/hcclient-1.15.1-linux-x86-64-static
+wget -O hcclient https://github.com/AnnikaV9/hcclient/releases/download/v1.16.0/hcclient-1.16.0-linux-x86-64-static
 
 # Make the binary executable
 chmod +x hcclient
@@ -86,10 +87,10 @@ hcclient --help
 As a container:
 ```bash
 # Download the latest image
-wget https://github.com/AnnikaV9/hcclient/releases/download/v1.15.1/hcclient-1.15.1-image.tar.xz
+wget https://github.com/AnnikaV9/hcclient/releases/download/v1.16.0/hcclient-1.16.0-image.tar.xz
 
 # Install the image
-docker/podman load -i hcclient-1.15.1-image.tar.xz
+docker/podman load -i hcclient-1.16.0-image.tar.xz
 
 # Run hcclient
 docker/podman run --rm -it hcclient --help
@@ -103,12 +104,12 @@ $ hcclient --help
 usage: hcclient [-h] [-v] [--gen-config] [--defaults] [--colors]
                 [--themes] [-c CHANNEL] [-n NICKNAME] [-p PASSWORD]
                 [-w ADDRESS] [-l FILE] [--no-config] [--no-parse]
-                [--clear] [--is-mod] [--no-unicode] [--no-highlight]
-                [--highlight-theme THEME] [--no-notify]
+                [--clear] [--is-mod] [--no-unicode]
+                [--highlight-theme THEME] [--no-markdown] [--no-notify]
                 [--prompt-string STRING] [--timestamp-format FORMAT]
                 [--suggest-aggr 0-3] [--proxy TYPE:HOST:PORT]
 
-terminal client for connecting to hack.chat
+terminal client for hack.chat
 
 commands:
   -h, --help                        display this help message
@@ -131,8 +132,8 @@ optional arguments:
   --clear                           clear console before joining
   --is-mod                          enable moderator commands
   --no-unicode                      disable unicode UI elements
-  --no-highlight                    disable syntax highlighting
   --highlight-theme THEME           set highlight theme
+  --no-markdown                     disable markdown formatting
   --no-notify                       disable desktop notifications
   --prompt-string STRING            set custom prompt string
   --timestamp-format FORMAT         set timestamp format
@@ -142,17 +143,15 @@ optional arguments:
 
 <br />
 
-## Colors & Themes <a name="colors"></a>
+## Styling <a name="styling"></a>
 The default color scheme can be overidden with a configuration file. See [Configuration](#configuration) for more information.<br />
 A list of valid colors can be viewed with `--colors`.
 
-Syntax highlighting is enabled by default. It can be disabled with `--no-highlight` or `/configset no_highlight true`<br />
-Themes can be listed with `--themes` and set with `--highlight-theme <theme_name>` or `/configset highlight_theme <theme_name>`<br />
+Syntax highlighting and markdown are enabled by default. They can be disabled with `--no-markdown` or `/configset no_markdown true`<br />
+The markdown implementation supports bold, italics, strikethrough, code blocks, links and images.
 
-Language is chosen from text that trails the triple backticks starting a code block.<br />
-If a language is not specified or is invalid, it will be guessed.
-
-**Note:** Any line inside a code block that starts with triple backticks will break the highlighting. This might be fixed in the future.
+Highlight themes can be listed with `--themes` and set with `--highlight-theme <theme_name>` or `/configset highlight_theme <theme_name>`<br />
+The default theme is *monokai*.
 
 <br />
 
@@ -217,7 +216,8 @@ Install the [Termux:API](https://f-droid.org/en/packages/com.termux.api/) app an
 ## Updatable Messages <a name="updatable-messages"></a>
 
 hack.chat has support for updatable messages, which allows editing previously sent messages on the official web client. This is usually used by bots to display streamed/delayed output.<br />
-Since hcclient is a terminal client, editing messages that have been previously printed isn't possible.<br />
+Since hcclient is a terminal client, editing messages that have been previously printed isn't possible.
+
 However, `updateMessage` events are still handled, just differently.
 
 When an updatable message is received, it will be printed as per normal but with an unique identifier. For example:
