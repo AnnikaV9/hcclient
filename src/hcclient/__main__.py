@@ -1128,6 +1128,11 @@ Moderator commands:
 class TextFormatter:
     """
     Handles syntax highlighting, markup and links
+
+    NOTE: Markup is done with regex, not with a proper parser.
+    It's not spec compliant and will format incorrectly in
+    some edge cases. It's good enough for most common use
+    cases while chatting.
     """
     def __init__(self) -> None:
         """
@@ -1158,7 +1163,8 @@ class TextFormatter:
 
     def links(self, text: str) -> str:
         """
-        Formats links in a string
+        Formats links in a string with underline
+        Title and brackets are removed from []() / ![]()
         """
         return self.link_pattern.sub(lambda match: "\033[4m" + match.group(1) + "\033[0m" if match.group(1) else "\033[4m" + match.group(0) + "\033[0m", text)
 
