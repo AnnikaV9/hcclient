@@ -36,6 +36,7 @@ import notifypy
 import yaml
 import websocket
 import html
+import linkify_it
 import markdown_it
 import pygments.util
 import pygments.lexers
@@ -210,13 +211,13 @@ class Client:
             if len(self.stdout_history) > 100:
                 self.stdout_history.pop(0)
 
-    def format(self, text: str) -> str:
+    def format(self, text: str, text_type: str="message") -> str:
         """
         Formats a string with the TextFormatter class,
         providing syntax highlighting and markdown
         """
         if not self.args["no_markdown"]:
-            text = self.formatter.markdown(text, self.args["highlight_theme"], self.args["client_color"], self.args["message_color"])
+            text = self.formatter.markdown(text, self.args["highlight_theme"], self.args["client_color"], self.args[f"{text_type}_color"])
 
         return text
 
@@ -462,7 +463,7 @@ class Client:
 
                             self.print_msg("{}|{}| {}".format(termcolor.colored(packet_receive_time, self.args["timestamp_color"]),
                                                               termcolor.colored(tripcode, self.args["whisper_color"]),
-                                                              termcolor.colored(self.format(received["text"]), self.args["whisper_color"])))
+                                                              termcolor.colored(self.format(received["text"], "whisper"), self.args["whisper_color"])))
 
                         else:
                             self.print_msg("{}|{}| {}".format(termcolor.colored(packet_receive_time, self.args["timestamp_color"]),
@@ -515,7 +516,7 @@ class Client:
 
                         self.print_msg("{}|{}| {}".format(termcolor.colored(packet_receive_time, self.args["timestamp_color"]),
                                                           termcolor.colored(tripcode, self.args["emote_color"]),
-                                                          termcolor.colored(self.format(received["text"]), self.args["emote_color"])))
+                                                          termcolor.colored(self.format(received["text"], "emote"), self.args["emote_color"])))
 
                     case "warn":
                         self.print_msg("{}|{}| {}".format(termcolor.colored(packet_receive_time, self.args["timestamp_color"]),
@@ -1134,7 +1135,9 @@ class TextFormatter:
         Initializes the markdown parser and compiles regex patterns
         """
         self.parser = markdown_it.MarkdownIt("zero")
-        self.parser.enable(["emphasis", "escape", "strikethrough", "link", "image", "fence"])
+        self.parser.enable(["emphasis", "escape", "strikethrough", "link", "image", "fence", "autolink"])
+
+        self.linkify = linkify_it.LinkifyIt()
 
         self.codeblock_pattern = re.compile(r"<pre><code(?: class=\"(?P<lang>[^\s\n]+)\")?>(?P<code>.*?)</code></pre>", re.DOTALL)
         self.link_pattern = re.compile(r"<a href=\"(?P<url>.*?)\">(.*?)</a>")
@@ -1156,6 +1159,11 @@ class TextFormatter:
         parsed = self.image_pattern.sub("\033[4m\\g<url>\033[0m" + message_color_open, parsed)
 
         parsed = self.highlight_blocks(parsed, highlight_theme, client_color, message_color_open)
+
+        if self.linkify.test(parsed):
+            links = self.linkify.match(parsed)
+            for link in links:
+                parsed = parsed.replace(link.raw, f"\033[4m{link.raw}\033[0m" + message_color_open)
 
         return html.unescape(parsed.strip("\n"))
 
