@@ -1135,7 +1135,7 @@ class TextFormatter:
         Initializes the markdown parser and compiles regex patterns
         """
         self.parser = markdown_it.MarkdownIt("zero")
-        self.parser.enable(["emphasis", "escape", "strikethrough", "link", "image", "fence", "autolink"])
+        self.parser.enable(["emphasis", "escape", "strikethrough", "link", "image", "fence", "autolink", "backticks"])
 
         self.linkify = (
             linkify_it.LinkifyIt()
@@ -1164,6 +1164,7 @@ class TextFormatter:
         parsed = self.image_pattern.sub("\033[4m\\g<url>\033[0m" + message_color_open, parsed)
 
         parsed = self.highlight_blocks(parsed, highlight_theme, client_color, message_color_open)
+        parsed = parsed.replace("<code>", "\033[1m`").replace("</code>", "`\033[0m" + message_color_open)
 
         if self.linkify.test(parsed):
             links = self.linkify.match(parsed)
