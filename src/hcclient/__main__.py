@@ -1147,8 +1147,8 @@ class TextFormatter:
         self.codeblock_pattern = re.compile(r"<pre><code(?: class=\"(?P<lang>[^\s\n]+)\")?>(?P<code>.*?)</code></pre>", re.DOTALL)
         self.code_pattern = re.compile(r"<(?!pre>)(?:code>(?P<code>.*?)</code>)", re.DOTALL)
 
-        self.link_pattern = re.compile(r"<a href=\"(?P<url>.*?)\">(.*?)</a>")
-        self.image_pattern = re.compile(r"<img src=\"(?P<url>.*?)\" alt=\"(.*?)\">")
+        self.link_pattern = re.compile(r"<a href=\"(?P<url>.*?)\">(.*?)</a>", re.DOTALL)
+        self.image_pattern = re.compile(r"<img src=\"(?P<url>.*?)\" alt=\"(.*?)\">", re.DOTALL)
 
     def markdown(self, text: str, highlight_theme: str, client_color: str, message_color: str) -> str:
         """
