@@ -2,7 +2,7 @@
 #
 # Author:    AnnikaV9
 # License:   Unlicense
-# Version:   1.16.0-git
+# Version:   1.16.1-git
 #
 # Everything is thrown into one file for now, as I'm not sure how
 # to structure this project yet while keeping support for multiple
@@ -1135,9 +1135,14 @@ class TextFormatter:
         Initializes the markdown parser and compiles regex patterns
         """
         self.parser = markdown_it.MarkdownIt("zero")
-        self.parser.enable(["emphasis", "escape", "strikethrough", "link", "image", "fence", "autolink"])
+        self.parser.enable(["emphasis", "escape", "strikethrough", "link", "image", "fence", "autolink", "blockquote"])
 
-        self.linkify = linkify_it.LinkifyIt()
+        self.linkify = (
+            linkify_it.LinkifyIt()
+            .add("git:", "http:")
+            .add("ws:", "http:")
+            .add("wss:", "https:")
+        )
 
         self.codeblock_pattern = re.compile(r"<pre><code(?: class=\"(?P<lang>[^\s\n]+)\")?>(?P<code>.*?)</code></pre>", re.DOTALL)
         self.link_pattern = re.compile(r"<a href=\"(?P<url>.*?)\">(.*?)</a>")
@@ -1373,7 +1378,7 @@ def main():
     optional_group = parser.add_argument_group("optional arguments")
 
     command_group.add_argument("-h", "--help", help="display this help message", action="help")
-    command_group.add_argument("-v", "--version", help="display version information", action="version", version="hcclient 1.16.0-git")
+    command_group.add_argument("-v", "--version", help="display version information", action="version", version="hcclient 1.16.1-git")
     command_group.add_argument("--gen-config", help="generate config file", action="store_true")
     command_group.add_argument("--defaults", help="display default config values", action="store_true")
     command_group.add_argument("--colors", help="display valid color values", action="store_true")

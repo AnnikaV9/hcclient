@@ -35,8 +35,8 @@ hcclient is a configurable and feature-rich cross-platform terminal client for c
 Some of the features hcclient has to offer:
 - **Cross-platform:** Tested to work on Windows, Linux, macOS and Android. See [Prerequisites](#prerequisites) for more information.
 - **Suggestions:** Starting your message with `@` or `/` will bring up a menu with a list of online users or commands. Cycle through them with arrow keys or continue typing to filter the suggestions even more. Suggestion aggressiveness can be set with `--suggest-aggr`.
-- **Markdown:** Messages are parsed as markdown, with support for bold, italics, strikethrough, code blocks, links and images.
-- **Syntax highlighting:** Code blocks in messages are highlighted with user specified languages or language guessing. See [Styling](#styling) for more information.
+- **Markdown:** Messages are parsed as markdown, with support for bold, italics, strikethrough, code blocks, links and spec compliant escaping. See [Styling](#styling) for more information.
+- **Syntax highlighting:** Code blocks in messages are highlighted with user specified languages or language guessing.
 - **Configuration:** Generate and load YAML/JSON configuration files with no editing required. Change configuration options from within the client with commands, modifying behaviour and colors without having to restart. See [Configuration](#configuration) for more information.
 - **Desktop notifications:** Receive notifications whenever someone mentions you or sends you a whisper. Android notifications are supported when running on [Termux](https://termux.dev/). See [Notifications](#notifications) for more information.
 - **Aliases:** Set aliases for messages and phrases you send often, because why wouldn't you?
@@ -70,10 +70,10 @@ On Arch Linux, install the [source AUR package](https://aur.archlinux.org/packag
 On other x86_64 Linux distributions:
 ```bash
 # Download the latest binary
-wget -O hcclient https://github.com/AnnikaV9/hcclient/releases/download/v1.16.0/hcclient-1.16.0-linux-x86-64
+wget -O hcclient https://github.com/AnnikaV9/hcclient/releases/download/v1.16.1/hcclient-1.16.1-linux-x86-64
 
 # Or the statically linked binary if the above one doesn't work
-wget -O hcclient https://github.com/AnnikaV9/hcclient/releases/download/v1.16.0/hcclient-1.16.0-linux-x86-64-static
+wget -O hcclient https://github.com/AnnikaV9/hcclient/releases/download/v1.16.1/hcclient-1.16.1-linux-x86-64-static
 
 # Make the binary executable
 chmod +x hcclient
@@ -87,10 +87,10 @@ hcclient --help
 As a container:
 ```bash
 # Download the latest image
-wget https://github.com/AnnikaV9/hcclient/releases/download/v1.16.0/hcclient-1.16.0-image.tar.xz
+wget https://github.com/AnnikaV9/hcclient/releases/download/v1.16.1/hcclient-1.16.1-image.tar.xz
 
 # Install the image
-docker/podman load -i hcclient-1.16.0-image.tar.xz
+docker/podman load -i hcclient-1.16.1-image.tar.xz
 
 # Run hcclient
 docker/podman run --rm -it hcclient --help
@@ -147,10 +147,28 @@ optional arguments:
 The default color scheme can be overidden with a configuration file. See [Configuration](#configuration) for more information.<br />
 A list of valid colors can be viewed with `--colors`.
 
-Syntax highlighting and markdown are enabled by default. They can be disabled with `--no-markdown` or `/configset no_markdown true`<br />
-The markdown implementation supports bold, italics, strikethrough, code blocks, links and images.
+Syntax highlighting and markdown are enabled by default. They can be disabled with `--no-markdown` or with the `no_markdown` option.<br />
+The markdown implementation supports:
+- **Bold:** `**bold**`
+- **Italics:** `*italics*`
+- **Bold-italics:** `***bold-italics***`
+- **Strikethrough:** `~~strikethrough~~`
+- **Code blocks:** (With syntax highlighting and language guessing)
+  ```
+  \```<lang>
+  <code>
+  \```
+  ```
+- **Links:**
+  - `[link](https://example.com)`
+  - `![image](https://example.com/image.png`
+  - `<https://example.com>`
+  - `<mailto:user@example.com`
+  - `https://example.com`
+  - `example.com`
+- **Escaping:** `\*escaped*` (Spec compliant)
 
-Highlight themes can be listed with `--themes` and set with `--highlight-theme <theme_name>` or `/configset highlight_theme <theme_name>`<br />
+Highlight themes can be listed with `--themes` and set with `--highlight-theme` or with the `highlight_theme` option<br />
 The default theme is *monokai*.
 
 <br />
@@ -195,7 +213,7 @@ Configuration options can be listed with `/configdump`
 
 ## Notifications <a name="notifications"></a>
 
-Desktop notifications are enabled by default. They can be disabled with `--no-notify` or `/configset no_notify true`<br />
+Desktop notifications are enabled by default. They can be disabled with `--no-notify` or with the `no_notify` option<br />
 
 hcclient doesn't have a built-in audio file for sound alerts, so you'll have to provide your own.<br />
 Place a wave file named *tone.wav* in the default config directory and it will be played when a notification is sent.
