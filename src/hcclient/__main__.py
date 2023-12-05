@@ -1135,7 +1135,7 @@ class TextFormatter:
         Initializes the markdown parser and compiles regex patterns
         """
         self.parser = markdown_it.MarkdownIt("zero")
-        self.parser.enable(["emphasis", "escape", "strikethrough", "link", "image", "fence", "autolink", "blockquote"])
+        self.parser.enable(["emphasis", "escape", "strikethrough", "link", "image", "fence", "autolink"])
 
         self.linkify = (
             linkify_it.LinkifyIt()
