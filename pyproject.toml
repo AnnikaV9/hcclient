@@ -31,6 +31,8 @@ wcwidth = "0.2.12"
 Pygments = "2.17.2"
 markdown-it-py = "3.0.0"
 mdurl = "0.1.2"
+uc-micro-py = "1.0.2"
+linkify-it-py = "2.0.2"
 
 [tool.poetry.scripts]
 hcclient = "hcclient.__main__:main"
