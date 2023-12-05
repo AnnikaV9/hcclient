@@ -1145,6 +1145,8 @@ class TextFormatter:
         )
 
         self.codeblock_pattern = re.compile(r"<pre><code(?: class=\"(?P<lang>[^\s\n]+)\")?>(?P<code>.*?)</code></pre>", re.DOTALL)
+        self.code_pattern = re.compile(r"<(?!pre>)(?:code>(?P<code>.*?)</code>)", re.DOTALL)
+
         self.link_pattern = re.compile(r"<a href=\"(?P<url>.*?)\">(.*?)</a>")
         self.image_pattern = re.compile(r"<img src=\"(?P<url>.*?)\" alt=\"(.*?)\">")
 
@@ -1162,9 +1164,9 @@ class TextFormatter:
 
         parsed = self.link_pattern.sub("\033[4m\\g<url>\033[0m" + message_color_open, parsed)
         parsed = self.image_pattern.sub("\033[4m\\g<url>\033[0m" + message_color_open, parsed)
+        parsed = self.code_pattern.sub("`\033[1m\\g<code>`\033[0m" + message_color_open, parsed)
 
         parsed = self.highlight_blocks(parsed, highlight_theme, client_color, message_color_open)
-        parsed = parsed.replace("<code>", "\033[1m`").replace("</code>", "`\033[0m" + message_color_open)
 
         if self.linkify.test(parsed):
             links = self.linkify.match(parsed)
