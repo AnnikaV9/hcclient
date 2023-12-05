@@ -154,11 +154,11 @@ The markdown implementation supports:
 - **Bold-italics:** `***bold-italics***`
 - **Strikethrough:** `~~strikethrough~~`
 - **Code blocks:** (With syntax highlighting and language guessing)
-  ```
-  \```<lang>
+  ````
+  ```<lang>
   <code>
-  \```
   ```
+  ````
 - **Backticks:** `` `backticks` ``
 - **Links:**
   - `[link](https://example.com)`
