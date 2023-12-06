@@ -110,7 +110,7 @@ class Client:
 
             self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
                                               termcolor.colored("CLIENT", self.args["client_color"]),
-                                              termcolor.colored("Warning: You have enabled LaTeX simplifying, which requires calculations to be performed and will incur additional overhead", self.args["client_color"])))
+                                              termcolor.colored("Warning: You have enabled LaTeX simplifying. Idle memory usage will increase significantly.", self.args["client_color"])))
 
     def formatted_datetime(self) -> str:
         """
@@ -852,7 +852,7 @@ class Client:
 
                                 self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
                                                                   termcolor.colored("CLIENT", self.args["client_color"]),
-                                                                  termcolor.colored("Warning: You have enabled LaTeX simplifying, which requires calculations to be performed and will incur additional overhead", self.args["client_color"])))
+                                                                  termcolor.colored("Warning: You have enabled LaTeX simplifying. Idle memory usage will increase significantly", self.args["client_color"])))
 
                         else:
                             self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
