@@ -110,7 +110,10 @@ class Client:
 
             self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
                                               termcolor.colored("CLIENT", self.args["client_color"]),
-                                              termcolor.colored("Warning: You have enabled LaTeX simplifying. Idle memory usage will increase significantly.", self.args["client_color"])))
+                                              termcolor.colored("Warning: You have enabled LaTeX simplifying", self.args["client_color"])))
+            self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
+                                              termcolor.colored("CLIENT", self.args["client_color"]),
+                                              termcolor.colored("Idle memory usage will increase significantly", self.args["client_color"])))
 
     def formatted_datetime(self) -> str:
         """
@@ -614,6 +617,8 @@ class Client:
             raise KeyboardInterrupt
 
         self.exit_attempted = True
+        event.current_buffer.reset()
+
         self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
                                             termcolor.colored("CLIENT", self.args["client_color"]),
                                             termcolor.colored("Press ctrl+c again to exit", self.args["client_color"])))
@@ -847,12 +852,16 @@ class Client:
                                                               termcolor.colored(f"Set configuration option '{option}' to '{value}'", self.args["client_color"])))
 
                             if option == "latex" and value:
-                                global latex2sympy2
-                                import latex2sympy2
+                                if "latex2sympy2" not in sys.modules:
+                                    global latex2sympy2
+                                    import latex2sympy2
 
-                                self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
-                                                                  termcolor.colored("CLIENT", self.args["client_color"]),
-                                                                  termcolor.colored("Warning: You have enabled LaTeX simplifying. Idle memory usage will increase significantly", self.args["client_color"])))
+                                    self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
+                                                                      termcolor.colored("CLIENT", self.args["client_color"]),
+                                                                      termcolor.colored("Warning: You have enabled LaTeX simplifying", self.args["client_color"])))
+                                    self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
+                                                                      termcolor.colored("CLIENT", self.args["client_color"]),
+                                                                      termcolor.colored("Idle memory usage will increase significantly", self.args["client_color"])))
 
                         else:
                             self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
@@ -1007,16 +1016,16 @@ Keybindings:
   ctrl+n    add newline
   ctrl+u    clear line
   ctrl+l    clear buffer
+  ctrl+c    clear buffer, exit on second press
 
 Client commands:
   /help [server-based command]
-    Displays this help message if no
-    command is specified, otherwise
-    displays information about the
-    specified server-based command.
+    Displays this help message if no command is
+    specified, otherwise displays information
+    about the specified server-based command.
   /raw <json>
-    Sends json directly to the server
-    without parsing.
+    Sends json directly to the server without
+    parsing.
   /list
     Lists users in the channel.
   /profile <nick>
@@ -1024,40 +1033,35 @@ Client commands:
   /clear
     Clears the terminal.
   /wlock
-    Toggles whisper lock, which will
-    prevent sending any messages
-    other than whispers.
+    Toggles whisper lock, which will prevent
+    sending any messages other than whispers.
   /nick <newnick>
     Changes your nickname.
   /ignore <nick>
-    Adds a user's trip and hash to
-    the ignore list.
+    Adds a user's trip and hash to the ignore
+    list.
   /unignoreall
     Clears the ignore list.
   /reconnect
-    Disconnects forcefully and
-    reconnects to the server.
+    Disconnects forcefully and reconnects to
+    the server.
   /set <alias> <value>
-    Sets an alias. $alias will be
-    replaced with the value in your
-    messages.
+    Sets an alias. $alias will be replaced with
+    the value in your messages.
   /unset <alias>
     Unsets an alias.
   /configset <option> <value>
-    Sets a configuration option to a
-    value. Changed values will be in
-    effect immediately.
+    Sets a configuration option to a value.
+    Changed values will be in effect immediately.
   /configdump
     Prints the current configuration.
   /save
-    Saves the current configuration
-    to the loaded configuration file.
-    Will save aliases and ignored
-    trips/hashes.
+    Saves the current configuration to the loaded
+    configuration file. Will save aliases and
+    ignored trips/hashes.
   /reprint
-    Prints the last 100 lines of
-    output, even if they have been
-    cleared with /clear.
+    Prints the last 100 lines of output, even if
+    they have been cleared with /clear.
   /quit
     Exits the client."""
                         mod_help_text = """\n
@@ -1457,7 +1461,7 @@ def main():
     optional_group.add_argument("--no-highlight", help=argparse.SUPPRESS, action="store_true", default=False) # deprecated, doesn't do anything
     optional_group.add_argument("--highlight-theme", help="set highlight theme", metavar="THEME", default=argparse.SUPPRESS)
     optional_group.add_argument("--no-markdown", help="disable markdown formatting", action="store_true", default=argparse.SUPPRESS)
-    optional_group.add_argument("--latex", help="enable LaTeX simplifier", action="store_true", default=argparse.SUPPRESS)
+    optional_group.add_argument("--latex", help="enable LaTeX simplifying", action="store_true", default=argparse.SUPPRESS)
     optional_group.add_argument("--no-notify", help="disable desktop notifications", action="store_true", default=argparse.SUPPRESS)
     optional_group.add_argument("--prompt-string", help="set custom prompt string", metavar="STRING", default=argparse.SUPPRESS)
     optional_group.add_argument("--timestamp-format", help="set timestamp format", metavar="FORMAT", default=argparse.SUPPRESS)
