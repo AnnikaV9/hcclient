@@ -1186,8 +1186,9 @@ class TextFormatter:
 
         parsed = self.link_pattern.sub("\033[4m\\g<url>\033[0m" + message_color_open, parsed)
         parsed = self.image_pattern.sub("\033[4m\\g<url>\033[0m" + message_color_open, parsed)
-        parsed = self.code_pattern.sub("`\033[1m\\g<code>`\033[0m" + message_color_open, parsed)
 
+        parsed = parsed.replace("<pre><code>", "<pre><code class=\"guess\">")
+        parsed = self.code_pattern.sub("`\033[1m\\g<code>`\033[0m" + message_color_open, parsed)
         parsed = self.highlight_blocks(parsed, highlight_theme, client_color, message_color_open)
 
         if latex:
@@ -1213,7 +1214,7 @@ class TextFormatter:
         matches = self.codeblock_pattern.finditer(text)
         for match in matches:
             code = html.unescape(match.group("code"))
-            lang = (match.group("lang") or "guess").replace("language-", "")
+            lang = match.group("lang").replace("language-", "")
 
             try:
                 lexer = pygments.lexers.get_lexer_by_name(lang)
