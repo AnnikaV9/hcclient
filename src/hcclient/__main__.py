@@ -83,7 +83,7 @@ class Client:
         self.auto_complete_list = []
         self.manage_complete_list()
 
-        self.formatter = TextFormatter(self.args["latex"])
+        self.formatter = TextFormatter()
         self.stdout_history = []
         self.updatable_messages = {}
         self.updatable_messages_lock = threading.Lock()
@@ -105,6 +105,9 @@ class Client:
             os.system("cls" if os.name == "nt" else "clear")
 
         if args["latex"]:
+            global latex2sympy2
+            import latex2sympy2
+
             self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
                                               termcolor.colored("CLIENT", self.args["client_color"]),
                                               termcolor.colored("Warning: You have enabled LaTeX simplifying, which requires calculations to be performed and will incur additional overhead", self.args["client_color"])))
@@ -1145,17 +1148,13 @@ class TextFormatter:
     """
     Handles markdown parsing, code highlighting and LaTeX simplifying
     """
-    def __init__(self, latex: bool) -> None:
+    def __init__(self) -> None:
         """
         Initializes the markdown parser and compiles regex patterns
         """
         self.parser = markdown_it.MarkdownIt("zero")
         self.parser.enable(["emphasis", "escape", "strikethrough", "link", "image", "fence", "autolink", "backticks"])
         self.parser.use(mdit_py_plugins.texmath.texmath_plugin)
-
-        if latex:
-            global latex2sympy2
-            import latex2sympy2
 
         self.linkify = (
             linkify_it.LinkifyIt()
