@@ -15,6 +15,7 @@ A cross-platform terminal client for <a href="https://hack.chat">hack.chat</a>
 - [Installation](#installation)
 - [Usage](#usage)
 - [Styling](#styling)
+- [LaTeX Simplification](#latex-simplification)
 - [Configuration](#configuration)
 - [Notifications](#notifications)
 - [Updatable Messages](#updatable-messages)
@@ -37,6 +38,7 @@ Some of the features hcclient has to offer:
 - **Suggestions:** Starting your message with `@` or `/` will bring up a menu with a list of online users or commands. Cycle through them with arrow keys or continue typing to filter the suggestions even more. Suggestion aggressiveness can be set with `--suggest-aggr`.
 - **Markdown:** Messages are parsed as markdown, with support for bold, italics, strikethrough, code blocks, backticks, links and spec compliant escaping. See [Styling](#styling) for more information.
 - **Syntax highlighting:** Code blocks in messages are highlighted with user specified languages or language guessing.
+- **LaTeX simplification:** LaTeX expressions are parsed and converted to sympy expressions, which are more readable. See [LaTeX Simplification](#latex-simplification) for more information.
 - **Configuration:** Generate and load YAML/JSON configuration files with no editing required. Change configuration options from within the client with commands, modifying behaviour and colors without having to restart. See [Configuration](#configuration) for more information.
 - **Desktop notifications:** Receive notifications whenever someone mentions you or sends you a whisper. Android notifications are supported when running on [Termux](https://termux.dev/). See [Notifications](#notifications) for more information.
 - **Aliases:** Set aliases for messages and phrases you send often, because why wouldn't you?
@@ -70,10 +72,10 @@ On Arch Linux, install the [source AUR package](https://aur.archlinux.org/packag
 On other x86_64 Linux distributions:
 ```bash
 # Download the latest binary
-wget -O hcclient https://github.com/AnnikaV9/hcclient/releases/download/v1.16.4/hcclient-1.16.4-linux-x86-64
+wget -O hcclient https://github.com/AnnikaV9/hcclient/releases/download/v1.17.0/hcclient-1.17.0-linux-x86-64
 
 # Or the statically linked binary if the above one doesn't work
-wget -O hcclient https://github.com/AnnikaV9/hcclient/releases/download/v1.16.4/hcclient-1.16.4-linux-x86-64-static
+wget -O hcclient https://github.com/AnnikaV9/hcclient/releases/download/v1.17.0/hcclient-1.17.0-linux-x86-64-static
 
 # Make the binary executable
 chmod +x hcclient
@@ -87,10 +89,10 @@ hcclient --help
 As a container:
 ```bash
 # Download the latest image
-wget https://github.com/AnnikaV9/hcclient/releases/download/v1.16.4/hcclient-1.16.4-image.tar.xz
+wget https://github.com/AnnikaV9/hcclient/releases/download/v1.17.0/hcclient-1.17.0-image.tar.xz
 
 # Install the image
-docker/podman load -i hcclient-1.16.4-image.tar.xz
+docker/podman load -i hcclient-1.17.0-image.tar.xz
 
 # Run hcclient
 docker/podman run --rm -it hcclient --help
@@ -171,6 +173,28 @@ The markdown implementation supports:
 
 Highlight themes can be listed with `--themes` and set with `--highlight-theme` or with the `highlight_theme` option<br />
 The default theme is *monokai*.
+
+<br />
+
+## LaTeX Simplification <a name="latex-simplification"></a>
+
+LaTeX simplification is disabled by default. It can be enabled with `--latex` or with the `latex` option.<br />
+When enabled, LaTeX expressions will be parsed and converted to sympy expressions, which are more readable.<br />
+
+Expressions must be enclosed in `$` or `$$` for inline and block expressions respectively.<br />
+
+For example, the following LaTeX expression:
+```
+$\frac{1}{2}$
+```
+
+Will be simplified and displayed as:
+```
+|latex: 1/2|
+```
+
+Conversion is done using [latex2sympy2](https://github.com/OrangeX4/latex2sympy).<br />
+Not all LaTeX expressions are supported of course, but it's good enough for most use cases.
 
 <br />
 

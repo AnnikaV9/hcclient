@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "hcclient"
-version = "v1.16.4"
+version = "v1.17.0"
 description = "A terminal client for connecting to hack.chat"
 
 license = "Unlicense"
