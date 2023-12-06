@@ -136,7 +136,7 @@ optional arguments:
   --no-unicode                      disable unicode UI elements
   --highlight-theme THEME           set highlight theme
   --no-markdown                     disable markdown formatting
-  --latex                           enable LaTeX simplifier
+  --latex                           enable LaTeX simplifying
   --no-notify                       disable desktop notifications
   --prompt-string STRING            set custom prompt string
   --timestamp-format FORMAT         set timestamp format
