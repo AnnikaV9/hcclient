@@ -11,7 +11,7 @@
 #
 # Two classes are defined in this file:
 #   - Client:          The main client class
-#   - TextFormatter:   Handles markdown parsing and code highlighting
+#   - TextFormatter:   Handles markdown parsing, code highlighting and LaTeX simplifying
 #
 
 
@@ -38,6 +38,7 @@ import websocket
 import html
 import linkify_it
 import markdown_it
+import mdit_py_plugins.texmath
 import pygments.util
 import pygments.lexers
 import pygments.styles
@@ -56,8 +57,6 @@ class Client:
 
         colorama.init()
         self.bindings = prompt_toolkit.key_binding.KeyBindings()
-        if args["clear"]:
-            os.system("cls" if os.name == "nt" else "clear")
 
         self.nick = self.args["nickname"]
         self.channel = None
@@ -84,7 +83,7 @@ class Client:
         self.auto_complete_list = []
         self.manage_complete_list()
 
-        self.formatter = TextFormatter()
+        self.formatter = TextFormatter(self.args["latex"])
         self.stdout_history = []
         self.updatable_messages = {}
         self.updatable_messages_lock = threading.Lock()
@@ -101,6 +100,14 @@ class Client:
         self.thread_ping = threading.Thread(target=self.ping_thread, daemon=True)
         self.thread_recv = threading.Thread(target=self.recv_thread, daemon=True)
         self.thread_cleanup = threading.Thread(target=self.cleanup_thread, daemon=True)
+
+        if args["clear"]:
+            os.system("cls" if os.name == "nt" else "clear")
+
+        if args["latex"]:
+            self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
+                                              termcolor.colored("CLIENT", self.args["client_color"]),
+                                              termcolor.colored("Warning: You have enabled LaTeX simplifying, which requires calculations to be performed and will incur additional overhead", self.args["client_color"])))
 
     def formatted_datetime(self) -> str:
         """
@@ -164,7 +171,7 @@ class Client:
                       "message_color", "emote_color", "whisper_color", "warning_color"):
             passed = value in termcolor.COLORS
 
-        elif option in ("no_unicode", "no_notify", "no_parse", "clear", "is_mod", "no_markdown"):
+        elif option in ("no_unicode", "no_notify", "no_parse", "clear", "is_mod", "no_markdown", "latex"):
             passed = isinstance(value, bool)
 
         elif option in ("websocket_address", "trip_password", "prompt_string", "timestamp_format"):
@@ -217,7 +224,7 @@ class Client:
         providing syntax highlighting and markdown
         """
         if not self.args["no_markdown"]:
-            text = self.formatter.markdown(text, self.args["highlight_theme"], self.args["client_color"], self.args[f"{text_type}_color"])
+            text = self.formatter.markdown(text, self.args["highlight_theme"], self.args["client_color"], self.args[f"{text_type}_color"], self.args["latex"])
 
         return text
 
@@ -836,6 +843,14 @@ class Client:
                                                               termcolor.colored("CLIENT", self.args["client_color"]),
                                                               termcolor.colored(f"Set configuration option '{option}' to '{value}'", self.args["client_color"])))
 
+                            if option == "latex" and value:
+                                global latex2sympy2
+                                import latex2sympy2
+
+                                self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
+                                                                  termcolor.colored("CLIENT", self.args["client_color"]),
+                                                                  termcolor.colored("Warning: You have enabled LaTeX simplifying, which requires calculations to be performed and will incur additional overhead", self.args["client_color"])))
+
                         else:
                             self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
                                                               termcolor.colored("CLIENT", self.args["client_color"]),
@@ -1128,14 +1143,19 @@ Moderator commands:
 
 class TextFormatter:
     """
-    Handles markdown parsing and code highlighting
+    Handles markdown parsing, code highlighting and LaTeX simplifying
     """
-    def __init__(self) -> None:
+    def __init__(self, latex: bool) -> None:
         """
         Initializes the markdown parser and compiles regex patterns
         """
         self.parser = markdown_it.MarkdownIt("zero")
         self.parser.enable(["emphasis", "escape", "strikethrough", "link", "image", "fence", "autolink", "backticks"])
+        self.parser.use(mdit_py_plugins.texmath.texmath_plugin)
+
+        if latex:
+            global latex2sympy2
+            import latex2sympy2
 
         self.linkify = (
             linkify_it.LinkifyIt()
@@ -1150,9 +1170,12 @@ class TextFormatter:
         self.link_pattern = re.compile(r"<a href=\"(?P<url>.*?)\">(.*?)</a>", re.DOTALL)
         self.image_pattern = re.compile(r"<img src=\"(?P<url>.*?)\" alt=\"(.*?)\">", re.DOTALL)
 
-    def markdown(self, text: str, highlight_theme: str, client_color: str, message_color: str) -> str:
+        self.eq_pattern = re.compile(r"<eq>(?P<equation>.*?)</eq>", re.DOTALL)
+        self.eqn_pattern = re.compile(r"<section>\n<eqn>(?P<equation>.*?)</eqn>\n</section>", re.DOTALL)
+
+    def markdown(self, text: str, highlight_theme: str, client_color: str, message_color: str, latex: bool) -> str:
         """
-        Formats text with basic markdown
+        Formats text with markdown and calls the highlighter and LaTeX simplifier
         """
         parsed = self.parser.render(text)
         message_color_open = "\033[%dm" % (termcolor.COLORS[message_color])
@@ -1167,6 +1190,15 @@ class TextFormatter:
         parsed = self.code_pattern.sub("`\033[1m\\g<code>`\033[0m" + message_color_open, parsed)
 
         parsed = self.highlight_blocks(parsed, highlight_theme, client_color, message_color_open)
+
+        if latex:
+            self.message_color_open = message_color_open
+            parsed = self.eq_pattern.sub(self.simplify_latex, parsed)
+            parsed = self.eqn_pattern.sub(self.simplify_latex, parsed)
+
+        else:
+            parsed = self.eq_pattern.sub("$\\g<equation>$", parsed)
+            parsed = self.eqn_pattern.sub("$$\\g<equation>$$", parsed)
 
         if self.linkify.test(parsed):
             links = self.linkify.match(parsed)
@@ -1200,6 +1232,26 @@ class TextFormatter:
                                                message_color_open)
 
         return text
+
+    def simplify_latex(self, match):
+        """
+        Simplifies LaTeX equations with latex2sympy2
+        """
+        equation = match.group("equation")
+        if match.group(0).startswith("<eq>"):
+            block = "|"
+
+        else:
+            block = "||"
+
+        try:
+            sympy_expr = latex2sympy2.latex2sympy(equation)
+            replacement = f"\033[3m\033[1m{block}latex: {str(sympy_expr)}{block}\033[0m" + self.message_color_open
+
+        except:
+            replacement = f"\033[3m\033[1m{block}latex-error: {equation}{block}\033[0m" + self.message_color_open
+
+        return replacement
 
 
 def generate_config(config: dict) -> None:
@@ -1244,7 +1296,7 @@ def load_config(filepath: str) -> dict:
                                   "emote_color", "nickname_color", "self_nickname_color",
                                   "warning_color", "server_color", "client_color",
                                   "timestamp_color", "mod_nickname_color", "suggest_aggr",
-                                  "admin_nickname_color", "ignored", "aliases", "proxy",
+                                  "admin_nickname_color", "ignored", "aliases", "proxy", "latex",
                                   "no_highlight", # deprecated
                                   ):
                     unknown_args.append(option)
@@ -1346,6 +1398,7 @@ default_config = {
     "no_unicode": False,
     "highlight_theme": "monokai",
     "no_markdown": False,
+    "latex": False,
     "no_notify": False,
     "prompt_string": "default",
     "timestamp_format": "%H:%M",
@@ -1404,6 +1457,7 @@ def main():
     optional_group.add_argument("--no-highlight", help=argparse.SUPPRESS, action="store_true", default=False) # deprecated, doesn't do anything
     optional_group.add_argument("--highlight-theme", help="set highlight theme", metavar="THEME", default=argparse.SUPPRESS)
     optional_group.add_argument("--no-markdown", help="disable markdown formatting", action="store_true", default=argparse.SUPPRESS)
+    optional_group.add_argument("--latex", help="enable LaTeX simplifier", action="store_true", default=argparse.SUPPRESS)
     optional_group.add_argument("--no-notify", help="disable desktop notifications", action="store_true", default=argparse.SUPPRESS)
     optional_group.add_argument("--prompt-string", help="set custom prompt string", metavar="STRING", default=argparse.SUPPRESS)
     optional_group.add_argument("--timestamp-format", help="set timestamp format", metavar="FORMAT", default=argparse.SUPPRESS)
