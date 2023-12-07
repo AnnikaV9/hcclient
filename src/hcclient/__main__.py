@@ -201,12 +201,21 @@ class Client:
                         if not isinstance(value["trips"], list) or not isinstance(value["hashes"], list):
                             passed = False
 
+        elif option in ("suggest_aggr", "backticks_bg"):
+            if not isinstance(value, int):
+                passed = False
+
+            else:
+                match option:
+                    case "suggest_aggr":
+                        passed = value in range(4)
+
+                    case "backticks_bg":
+                        passed = value in range(256)
+
         elif option == "proxy":
             if value and not isinstance(value, str):
                 passed = False
-
-        elif option == "suggest_aggr":
-            passed = value in range(4)
 
         elif option == "highlight_theme":
             passed = value in pygments.styles.get_all_styles()
@@ -230,7 +239,7 @@ class Client:
         providing syntax highlighting and markdown
         """
         if not self.args["no_markdown"]:
-            text = self.formatter.markdown(text, self.args["highlight_theme"], self.args["client_color"], self.args[f"{text_type}_color"], self.args["latex"])
+            text = self.formatter.markdown(text, self.args["highlight_theme"], self.args["client_color"], self.args[f"{text_type}_color"], self.args["latex"], self.args["backticks_bg"])
 
         return text
 
@@ -838,8 +847,8 @@ class Client:
                             case "none" | "null":
                                 value = None
 
-                        if option == "suggest_aggr":
-                            with contextlib.suppress(Exception):
+                        if option in ("suggest_aggr", "backticks_bg"):
+                            with contextlib.suppress(ValueError):
                                 value = int(value)
 
                         if Client.validate_config(option, value):
@@ -1176,7 +1185,7 @@ class TextFormatter:
         self.eq_pattern = re.compile(r"<eq>(?P<equation>.*?)</eq>", re.DOTALL)
         self.eqn_pattern = re.compile(r"<section>\n<eqn>(?P<equation>.*?)</eqn>\n</section>", re.DOTALL)
 
-    def markdown(self, text: str, highlight_theme: str, client_color: str, message_color: str, latex: bool) -> str:
+    def markdown(self, text: str, highlight_theme: str, client_color: str, message_color: str, latex: bool, backticks_bg: int) -> str:
         """
         Formats text with markdown and calls the highlighter and LaTeX simplifier
         """
@@ -1192,7 +1201,7 @@ class TextFormatter:
         parsed = self.image_pattern.sub("\033[4m\\g<url>\033[0m" + message_color_open, parsed)
 
         parsed = parsed.replace("<pre><code>", "<pre><code class=\"guess\">")
-        parsed = self.code_pattern.sub("`\033[1m\\g<code>`\033[0m" + message_color_open, parsed)
+        parsed = self.code_pattern.sub("\033[48;5;{}m \\g<code> \033[0m".format(backticks_bg) + message_color_open, parsed)
         parsed = self.highlight_blocks(parsed, highlight_theme, client_color, message_color_open)
 
         if latex:
@@ -1301,6 +1310,7 @@ def load_config(filepath: str) -> dict:
                                   "warning_color", "server_color", "client_color",
                                   "timestamp_color", "mod_nickname_color", "suggest_aggr",
                                   "admin_nickname_color", "ignored", "aliases", "proxy", "latex",
+                                  "backticks_bg",
                                   "no_highlight", # deprecated
                                   ):
                     unknown_args.append(option)
@@ -1402,6 +1412,7 @@ default_config = {
     "no_unicode": False,
     "highlight_theme": "monokai",
     "no_markdown": False,
+    "backticks_bg": 238,
     "latex": False,
     "no_notify": False,
     "prompt_string": "default",
@@ -1461,11 +1472,12 @@ def main():
     optional_group.add_argument("--no-highlight", help=argparse.SUPPRESS, action="store_true", default=False) # deprecated, doesn't do anything
     optional_group.add_argument("--highlight-theme", help="set highlight theme", metavar="THEME", default=argparse.SUPPRESS)
     optional_group.add_argument("--no-markdown", help="disable markdown formatting", action="store_true", default=argparse.SUPPRESS)
+    optional_group.add_argument("--backticks-bg", help="set backticks background color", type=int, metavar="0-255", default=argparse.SUPPRESS)
     optional_group.add_argument("--latex", help="enable LaTeX simplifying", action="store_true", default=argparse.SUPPRESS)
     optional_group.add_argument("--no-notify", help="disable desktop notifications", action="store_true", default=argparse.SUPPRESS)
     optional_group.add_argument("--prompt-string", help="set custom prompt string", metavar="STRING", default=argparse.SUPPRESS)
     optional_group.add_argument("--timestamp-format", help="set timestamp format", metavar="FORMAT", default=argparse.SUPPRESS)
-    optional_group.add_argument("--suggest-aggr", help="set suggestion aggressiveness", type=int, choices=range(4), metavar="0-3", default=argparse.SUPPRESS)
+    optional_group.add_argument("--suggest-aggr", help="set suggestion aggressiveness", type=int, metavar="0-3", default=argparse.SUPPRESS)
     optional_group.add_argument("--proxy", help="specify proxy to use", metavar="TYPE:HOST:PORT", default=argparse.SUPPRESS)
 
     args = parser.parse_args()
