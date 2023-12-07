@@ -49,7 +49,7 @@ Some of the features hcclient has to offer:
 <br />
 
 ## Prerequisites <a name="prerequisites"></a>
-The main requirement for any platform is a terminal emulator that supports ANSI escape sequences.
+The main requirement for any platform is an xterm-256color terminal emulator that supports ANSI escape sequences.<br />
 
 For x86_64 Linux, statically and dynamically linked binaries are provided with the interpreter and dependencies bundled in.
 
@@ -72,10 +72,10 @@ On Arch Linux, install the [source AUR package](https://aur.archlinux.org/packag
 On other x86_64 Linux distributions:
 ```bash
 # Download the latest binary
-wget -O hcclient https://github.com/AnnikaV9/hcclient/releases/download/v1.17.1/hcclient-1.17.1-linux-x86-64
+wget -O hcclient https://github.com/AnnikaV9/hcclient/releases/download/v1.17.2/hcclient-1.17.2-linux-x86-64
 
 # Or the statically linked binary if the above one doesn't work
-wget -O hcclient https://github.com/AnnikaV9/hcclient/releases/download/v1.17.1/hcclient-1.17.1-linux-x86-64-static
+wget -O hcclient https://github.com/AnnikaV9/hcclient/releases/download/v1.17.2/hcclient-1.17.2-linux-x86-64-static
 
 # Make the binary executable
 chmod +x hcclient
@@ -89,10 +89,10 @@ hcclient --help
 As a container:
 ```bash
 # Download the latest image
-wget https://github.com/AnnikaV9/hcclient/releases/download/v1.17.1/hcclient-1.17.1-image.tar.xz
+wget https://github.com/AnnikaV9/hcclient/releases/download/v1.17.2/hcclient-1.17.2-image.tar.xz
 
 # Install the image
-docker/podman load -i hcclient-1.17.1-image.tar.xz
+docker/podman load -i hcclient-1.17.2-image.tar.xz
 
 # Run hcclient
 docker/podman run --rm -it hcclient --help
@@ -136,6 +136,7 @@ optional arguments:
   --no-unicode                      disable unicode UI elements
   --highlight-theme THEME           set highlight theme
   --no-markdown                     disable markdown formatting
+  --backticks-bg 0-255              set backticks background color
   --latex                           enable LaTeX simplifying
   --no-notify                       disable desktop notifications
   --prompt-string STRING            set custom prompt string
