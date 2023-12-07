@@ -1258,8 +1258,8 @@ class TextFormatter:
             block = "||"
 
         try:
-            sympy_expr = latex2sympy2.latex2sympy(equation)
-            replacement = f"\033[3m\033[1m{block}latex: {str(sympy_expr)}{block}\033[0m" + self.message_color_open
+            sympy_expr = str(latex2sympy2.latex2sympy(equation)).replace("**", "^")
+            replacement = f"\033[3m\033[1m{block}latex: {sympy_expr}{block}\033[0m" + self.message_color_open
 
         except:
             replacement = f"\033[3m\033[1m{block}latex-error: {equation}{block}\033[0m" + self.message_color_open
