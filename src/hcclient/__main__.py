@@ -1176,7 +1176,7 @@ class TextFormatter:
             .add("wss:", "https:")
         )
 
-        self.codeblock_pattern = re.compile(r"<pre><code(?: class=\"(?P<lang>[^\s\n]+)\")?>(?P<code>.*?)</code></pre>", re.DOTALL)
+        self.codeblock_pattern = re.compile(r"\s*<pre><code(?: class=\"(?P<lang>[^\s\n]+)\")?>(?P<code>.*?)</code></pre>", re.DOTALL)
         self.code_pattern = re.compile(r"<(?!pre>)(?:code>(?P<code>.*?)</code>)", re.DOTALL)
 
         self.link_pattern = re.compile(r"<a href=\"(?P<url>.*?)\">(.*?)</a>", re.DOTALL)
@@ -1192,7 +1192,7 @@ class TextFormatter:
         parsed = self.parser.render(text)
         message_color_open = "\033[%dm" % (termcolor.COLORS[message_color])
 
-        parsed = parsed.replace("<p>", "").replace("</p>", "\n")
+        parsed = parsed.replace("<p>", "").replace("</p>\n", "\n").replace("</p>", "\n")
         parsed = parsed.replace("<em>", "\033[3m").replace("</em>", "\033[0m" + message_color_open)
         parsed = parsed.replace("<strong>", "\033[1m").replace("</strong>", "\033[0m" + message_color_open)
         parsed = parsed.replace("<s>", "\033[9m").replace("</s>", "\033[0m" + message_color_open)
@@ -1239,7 +1239,7 @@ class TextFormatter:
 
             highlighted = pygments.highlight(code, lexer, pygments.formatters.Terminal256Formatter(style=highlight_theme)).strip("\n")
 
-            text = text.replace(match.group(), termcolor.colored(f"--- {lexer.name.lower()} {guess_tag}---\n", client_color) +
+            text = text.replace(match.group(), termcolor.colored(f"\n--- {lexer.name.lower()} {guess_tag}---\n", client_color) +
                                                highlighted +
                                                termcolor.colored("\n------", client_color) +
                                                message_color_open)
