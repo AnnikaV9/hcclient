@@ -14,7 +14,7 @@ def print_msg(self, message, hist=True):
         if len(self.stdout_history) > 100:
             self.stdout_history.pop(0)
 
-    with open("hcclient.log", "a") as f:
+    with open(f"{self.args['channel']}.log", "a") as f:
         f.write(self.ansi_remover.sub("", message) + "\n")
 
 
