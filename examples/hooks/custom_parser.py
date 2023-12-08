@@ -18,6 +18,6 @@ def hook(client):
 
     # Probably have to override a
     # bunch of regex/replace operations
-    # and possibly client.markdown()
+    # and possibly formatter.markdown()
 
     return client
