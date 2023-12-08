@@ -295,8 +295,8 @@ You can tweak hcclient's behaviour by placing python scripts in the default hook
 - **Windows:** &nbsp;%APPDATA%/hcclient/hooks
 - **Other platforms:** &nbsp;$HOME/.config/hcclient/hooks
 
-hcclient will run `hook()` in all python scripts in the hooks directory on startup, so make sure they're valid python scripts.<br />
-The `hook()` function should take a single argument, which is the client instance.
+hcclient will run `hook()` in all scripts in the hooks directory on startup.<br />
+`hook()` should take a single argument, which is the client instance.
 
 You can modify, add or remove the instance's attributes and methods to change its behaviour.<br />
 The `TextFormatter` instance is available as `client.formatter`.<br />
