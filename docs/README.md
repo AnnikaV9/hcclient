@@ -19,6 +19,7 @@ A cross-platform terminal client for <a href="https://hack.chat">hack.chat</a>
 - [Configuration](#configuration)
 - [Notifications](#notifications)
 - [Updatable Messages](#updatable-messages)
+- [Hooks](#hooks)
 - [Contributing](#contributing)
 
 <br />
@@ -72,10 +73,10 @@ On Arch Linux, install the [source AUR package](https://aur.archlinux.org/packag
 On other x86_64 Linux distributions:
 ```bash
 # Download the latest binary
-wget -O hcclient https://github.com/AnnikaV9/hcclient/releases/download/v1.17.3/hcclient-1.17.3-linux-x86-64
+wget -O hcclient https://github.com/AnnikaV9/hcclient/releases/download/v1.18.0/hcclient-1.18.0-linux-x86-64
 
 # Or the statically linked binary if the above one doesn't work
-wget -O hcclient https://github.com/AnnikaV9/hcclient/releases/download/v1.17.3/hcclient-1.17.3-linux-x86-64-static
+wget -O hcclient https://github.com/AnnikaV9/hcclient/releases/download/v1.18.0/hcclient-1.18.0-linux-x86-64-static
 
 # Make the binary executable
 chmod +x hcclient
@@ -89,10 +90,10 @@ hcclient --help
 As a container:
 ```bash
 # Download the latest image
-wget https://github.com/AnnikaV9/hcclient/releases/download/v1.17.3/hcclient-1.17.3-image.tar.xz
+wget https://github.com/AnnikaV9/hcclient/releases/download/v1.18.0/hcclient-1.18.0-image.tar.xz
 
 # Install the image
-docker/podman load -i hcclient-1.17.3-image.tar.xz
+docker/podman load -i hcclient-1.18.0-image.tar.xz
 
 # Run hcclient
 docker/podman run --rm -it hcclient --help
@@ -130,6 +131,7 @@ optional arguments:
   -w ADDRESS, --websocket ADDRESS   specify alternate websocket
   -l FILE, --load-config FILE       specify config file to load
   --no-config                       ignore global config file
+  --no-hooks                        ignore global hooks
   --no-parse                        log received packets as JSON
   --clear                           clear console before joining
   --is-mod                          enable moderator commands
@@ -286,6 +288,21 @@ If no `complete` status is received in 3 minutes, the message will expire. All c
 
 **Note:** If `no_unicode` is enabled, the `⧗`, `✓` and `✗` icons will be replaced with `Updatable.ID:`, `Completed.ID:` and `Expired.ID:` respectively.
 
+<br />
+
+## Hooks <a name="hooks"></a>
+You can tweak hcclient's behaviour by placing python scripts in the default hooks directory:<br />
+- **Windows:** &nbsp;%APPDATA%/hcclient/hooks
+- **Other platforms:** &nbsp;$HOME/.config/hcclient/hooks
+
+hcclient will run `hook()` in all python scripts in the hooks directory on startup, so make sure they're valid python scripts.<br />
+The `hook()` function should take a single argument, which is the client instance.
+
+You can modify, add or remove the instance's attributes and methods to change its behaviour.<br />
+The `TextFormatter` instance is available as `client.formatter`.<br />
+Example hooks can be found [here](../examples/hooks).
+
+**Note:** Hook support is experimental. hcclient is not stable and the API is subject to change, so don't expect your hooks to work after an update.
 
 <br />
 
