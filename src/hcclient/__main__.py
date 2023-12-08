@@ -25,6 +25,7 @@ import subprocess
 import copy
 import argparse
 import contextlib
+import importlib
 import datetime
 import time
 import random
@@ -100,20 +101,6 @@ class Client:
         self.thread_ping = threading.Thread(target=self.ping_thread, daemon=True)
         self.thread_recv = threading.Thread(target=self.recv_thread, daemon=True)
         self.thread_cleanup = threading.Thread(target=self.cleanup_thread, daemon=True)
-
-        if args["clear"]:
-            os.system("cls" if os.name == "nt" else "clear")
-
-        if args["latex"]:
-            global latex2sympy2
-            import latex2sympy2
-
-            self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
-                                              termcolor.colored("CLIENT", self.args["client_color"]),
-                                              termcolor.colored("Warning: You have enabled LaTeX simplifying", self.args["client_color"])))
-            self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
-                                              termcolor.colored("CLIENT", self.args["client_color"]),
-                                              termcolor.colored("Idle memory usage will increase significantly", self.args["client_color"])))
 
     def formatted_datetime(self) -> str:
         """
@@ -1151,6 +1138,20 @@ Moderator commands:
         """
         Start threads and run the input manager
         """
+        if self.args["clear"]:
+            os.system("cls" if os.name == "nt" else "clear")
+
+        if self.args["latex"]:
+            global latex2sympy2
+            import latex2sympy2
+
+            self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
+                                              termcolor.colored("CLIENT", self.args["client_color"]),
+                                              termcolor.colored("Warning: You have enabled LaTeX simplifying", self.args["client_color"])))
+            self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
+                                              termcolor.colored("CLIENT", self.args["client_color"]),
+                                              termcolor.colored("Idle memory usage will increase significantly", self.args["client_color"])))
+
         for thread in (self.thread_ping, self.thread_recv, self.thread_cleanup):
             thread.start()
 
@@ -1403,6 +1404,26 @@ def initialize_config(args: argparse.Namespace, parser: argparse.ArgumentParser)
     return config
 
 
+def load_hooks(client: Client) -> Client:
+    hook_dir = os.path.join(os.getenv("APPDATA"), "hcclient", "hooks") if os.name == "nt" else os.path.join(os.getenv("HOME"), ".config", "hcclient", "hooks")
+    if not os.path.isdir(hook_dir):
+        return client
+
+    for hook in os.listdir(hook_dir):
+        if hook.endswith(".py"):
+            try:
+                hook_path = os.path.join(hook_dir, hook)
+                spec = importlib.util.spec_from_file_location(hook, hook_path)
+                module = importlib.util.module_from_spec(spec)
+                spec.loader.exec_module(module)
+                client = module.hook(client)
+
+            except Exception as e:
+                sys.exit(f"{sys.argv[0]}: error: Unable to load hook '{hook}': {e}")
+
+    return client
+
+
 default_config = {
     "trip_password": "",
     "websocket_address": "wss://hack.chat/chat-ws",
@@ -1465,6 +1486,7 @@ def main():
     optional_group.add_argument("--websocket-address", help=argparse.SUPPRESS, dest="websocket_address", default=argparse.SUPPRESS) # deprecated
     optional_group.add_argument("-l", "--load-config", help="specify config file to load", dest="config_file", metavar="FILE", default=None)
     optional_group.add_argument("--no-config", help="ignore global config file", action="store_true", default=False)
+    optional_group.add_argument("--no-hooks", help="ignore global hooks", action="store_true", default=False)
     optional_group.add_argument("--no-parse", help="log received packets as JSON", action="store_true", default=argparse.SUPPRESS)
     optional_group.add_argument("--clear", help="clear console before joining", action="store_true", default=argparse.SUPPRESS)
     optional_group.add_argument("--is-mod", help="enable moderator commands", action="store_true", default=argparse.SUPPRESS)
@@ -1496,7 +1518,14 @@ def main():
         print("Valid themes:\n" + "\n".join(f" - {theme}" for theme in pygments.styles.get_all_styles()))
         sys.exit(0)
 
+    hook = not args.no_hooks
+    del args.no_hooks # we dont want to pass this to the client
+
     client = Client(initialize_config(args, parser))
+
+    if hook:
+        client = load_hooks(client)
+
     client.run()
 
 
