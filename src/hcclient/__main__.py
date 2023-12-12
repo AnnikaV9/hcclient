@@ -571,7 +571,7 @@ class Client:
                 with contextlib.suppress(Exception):
                     self.ws.send(json.dumps({"cmd": "ping"}))
 
-                threading.Event().wait(60)
+            threading.Event().wait(60)
 
     def buffer_replace_aliases(self, event: prompt_toolkit.key_binding.KeyPressEvent) -> None:
         """
