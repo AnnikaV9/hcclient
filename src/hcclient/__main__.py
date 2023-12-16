@@ -1252,11 +1252,7 @@ class TextFormatter:
         Simplifies LaTeX equations with latex2sympy2
         """
         equation = match.group("equation")
-        if match.group(0).startswith("<eq>"):
-            block = "|"
-
-        else:
-            block = "||"
+        block = "|" if match.group(0).startswith("<eq>") else "||"
 
         try:
             sympy_expr = str(latex2sympy2.latex2sympy(equation)).replace("**", "^")
