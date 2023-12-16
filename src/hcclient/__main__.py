@@ -220,7 +220,7 @@ class Client:
             if len(self.stdout_history) > 100:
                 self.stdout_history.pop(0)
 
-    def format(self, text: str, text_type: str="message") -> str:
+    def format(self, text: str, text_type: str = "message") -> str:
         """
         Formats a string with the TextFormatter class,
         providing syntax highlighting and markdown
@@ -307,7 +307,7 @@ class Client:
             # future cleanup tasks here
             threading.Event().wait(30)
 
-    def push_notification(self, message: str, title: str="hcclient") -> None:
+    def push_notification(self, message: str, title: str = "hcclient") -> None:
         """
         Sends a desktop/android notification if configured to do so
         """
@@ -1112,7 +1112,7 @@ Moderator commands:
 
                 case _:
                     if self.whisper_lock:
-                        if not message.split(" ")[0] in ("/whisper", "/w", "/reply", "/r") or message.startswith(" "):
+                        if message.split(" ")[0] not in ("/whisper", "/w", "/reply", "/r") or message.startswith(" "):
                             self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
                                                               termcolor.colored("CLIENT", self.args["client_color"]),
                                                               termcolor.colored("Whisper lock active, toggle it off to send messages", self.args["client_color"])))
@@ -1120,7 +1120,7 @@ Moderator commands:
 
                     self.send({"cmd": "chat", "text": message})
 
-    def close(self, error: bool=False, thread: bool=True) -> None:
+    def close(self, error: bool | Exception = False, thread: bool = True) -> None:
         """
         Exits the client or thread
         """
@@ -1247,7 +1247,7 @@ class TextFormatter:
 
         return text
 
-    def simplify_latex(self, match):
+    def simplify_latex(self, match: re.Match) -> str:
         """
         Simplifies LaTeX equations with latex2sympy2
         """
