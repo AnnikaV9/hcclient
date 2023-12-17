@@ -1,9 +1,5 @@
 .venv
 src/hcclient/__pycache__
 dist
-build
-hcclient*.spec
 config.json
 config.yml
-docker/src/hcclient
-docker/src/requirements.txt

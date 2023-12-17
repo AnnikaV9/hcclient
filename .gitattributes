@@ -7,6 +7,4 @@
 *.gitattributes  text
 *.gitignore      text
 *.md             text diff=markdown
-*.dockerignore   text
-Dockerfile       text
 LICENSE          text

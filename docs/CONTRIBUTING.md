@@ -7,7 +7,6 @@ Please note we have a [code of conduct](../docs/CODE_OF_CONDUCT.md), please foll
 
 ## Contributing Guidelines
 
-- Keep all code in [\_\_main.py__](../src/hcclient/__main__.py)
 - Document functions and classes using [docstrings](https://www.python.org/dev/peps/pep-0257/)
 - Keep the code cross-platform
 - Do not increase the version number, this will be done before releases
@@ -18,24 +17,24 @@ Please note we have a [code of conduct](../docs/CODE_OF_CONDUCT.md), please foll
 For major changes, please open an issue first to discuss what you would like to change.
 
 
-## Building From Source
+## Using the repository version
 
-The build script [build.sh](../scripts/build.sh) is provided for building hcclient from source. It can build executables, wheels, and container images.
+To use the latest development version, clone the repository and build the project.<br />
+The build script [build.sh](../scripts/build.sh) is provided for convenience for building wheels.
 
-Building the container image requires Docker or Podman. Building the executables requires binutils and ldd.
-
-To build all distribution formats, run:
-
+To build a wheel, run from the root of the project:
+```bash
+./scripts/build.sh
 ```
-./scripts/build.sh all
+This will create a wheel in the `dist` directory.
+
+Then create a virtual environment and install the wheel:
+```bash
+python -m venv venv
+./venv/bin/pip install dist/*.whl
 ```
 
-To build a specific distribution format, run:
-
+You can then run the client from the virtual environment:
+```bash
+./venv/bin/hcclient
 ```
-./scripts/build.sh <format>
-```
-
-Where `<format>` is one of `executable`, `wheel`, `container` and `arch`.
-
-Builds will be placed in the `dist` directory.
