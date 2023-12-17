@@ -69,7 +69,7 @@ hcclient --help
 ```
 For LaTeX support, install `hcclient[latex]` instead.
 
-On Arch Linux (and most arch based distributions), install the [AUR package](https://aur.archlinux.org/packages/hcclient) with makepkg or an AUR helper.<br/>
+On Arch Linux (and most Arch-based distributions), install the [AUR package](https://aur.archlinux.org/packages/hcclient) with makepkg or an AUR helper.<br/>
 This will install an isolated environment with all dependencies in `/opt/hcclient`.<br />
 
 Alternatively, install the LaTeX enabled [AUR package](https://aur.archlinux.org/packages/hcclient-latex).
