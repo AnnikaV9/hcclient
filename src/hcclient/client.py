@@ -67,7 +67,6 @@ class Client:
         self.manage_complete_list()
 
         self.formatter = TextFormatter()
-        self.latex2sympy = None
         self.stdout_history = []
         self.updatable_messages = {}
         self.updatable_messages_lock = threading.Lock()
@@ -773,8 +772,8 @@ class Client:
                                                               termcolor.colored("CLIENT", self.args["client_color"]),
                                                               termcolor.colored(f"Set configuration option '{option}' to '{value}'", self.args["client_color"])))
 
-                            if option == "latex" and value:
-                                if "latex2sympy2" not in sys.modules:
+                            if option == "latex" and value and "latex2sympy2" not in sys.modules:
+                                try:
                                     import latex2sympy2
                                     self.formatter.latex2sympy = latex2sympy2
 
@@ -784,6 +783,16 @@ class Client:
                                     self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
                                                                       termcolor.colored("CLIENT", self.args["client_color"]),
                                                                       termcolor.colored("Idle memory usage will increase significantly", self.args["client_color"])))
+
+                                except ImportError:
+                                    self.args["latex"] = False
+
+                                    self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
+                                                                      termcolor.colored("CLIENT", self.args["client_color"]),
+                                                                      termcolor.colored("Error enabling LaTeX simplifying, optional dependencies not installed", self.args["client_color"])))
+                                    self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
+                                                                      termcolor.colored("CLIENT", self.args["client_color"]),
+                                                                      termcolor.colored("Packages that provide missing dependencies: PyPI: hcclient[latex], AUR: hcclient-latex", self.args["client_color"])))
 
                         else:
                             self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
@@ -1068,15 +1077,26 @@ Moderator commands:
             os.system("cls" if os.name == "nt" else "clear")
 
         if self.args["latex"]:
-            import latex2sympy2
-            self.formatter.latex2sympy = latex2sympy2
+            try:
+                import latex2sympy2
+                self.formatter.latex2sympy = latex2sympy2
 
-            self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
-                                              termcolor.colored("CLIENT", self.args["client_color"]),
-                                              termcolor.colored("Warning: You have enabled LaTeX simplifying", self.args["client_color"])))
-            self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
-                                              termcolor.colored("CLIENT", self.args["client_color"]),
-                                              termcolor.colored("Idle memory usage will increase significantly", self.args["client_color"])))
+                self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
+                                                  termcolor.colored("CLIENT", self.args["client_color"]),
+                                                  termcolor.colored("Warning: You have enabled LaTeX simplifying", self.args["client_color"])))
+                self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
+                                                  termcolor.colored("CLIENT", self.args["client_color"]),
+                                                  termcolor.colored("Idle memory usage will increase significantly", self.args["client_color"])))
+
+            except ImportError:
+                self.args["latex"] = False
+
+                self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
+                                                  termcolor.colored("CLIENT", self.args["client_color"]),
+                                                  termcolor.colored("Error enabling LaTeX simplifying, optional dependencies not installed", self.args["client_color"])))
+                self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
+                                                  termcolor.colored("CLIENT", self.args["client_color"]),
+                                                  termcolor.colored("Packages that provide missing dependencies: PyPI: hcclient[latex], AUR: hcclient-latex", self.args["client_color"])))
 
         for thread in (self.thread_ping, self.thread_recv, self.thread_cleanup):
             thread.start()
