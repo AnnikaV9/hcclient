@@ -25,7 +25,7 @@ Make sure you have poetry installed before continuing.
 Development environment setup:
 ```bash
 # Clone the repository
-git clone https://github.com/AnnikaV93/hcclient.git
+git clone https://github.com/AnnikaV9/hcclient.git
 
 # Change the working directory
 cd hcclient
