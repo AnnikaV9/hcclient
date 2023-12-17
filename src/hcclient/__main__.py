@@ -1,6 +1,6 @@
 # Author:    AnnikaV9
 # License:   Unlicense
-# Version:   1.18.2
+# Version:   1.18.2-git
 
 import os
 import sys
