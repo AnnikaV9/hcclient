@@ -28,6 +28,7 @@ default_config = {
     "timestamp_format": "%H:%M",
     "suggest_aggr": 1,
     "proxy": False,
+    "ssl_no_verify": False,
     "config_file": None,
     "message_color": "white",
     "whisper_color": "green",
@@ -86,7 +87,7 @@ def load_config(filepath: str) -> dict:
                                   "warning_color", "server_color", "client_color",
                                   "timestamp_color", "mod_nickname_color", "suggest_aggr",
                                   "admin_nickname_color", "ignored", "aliases", "proxy", "latex",
-                                  "backticks_bg",
+                                  "backticks_bg", "ssl_no_verify",
                                   "no_highlight", # deprecated
                                   ):
                     unknown_args.append(option)
@@ -189,7 +190,7 @@ def validate_config(option: str, value: str) -> bool:
                     "message_color", "emote_color", "whisper_color", "warning_color"):
         passed = value in termcolor.COLORS
 
-    elif option in ("no_unicode", "no_notify", "no_parse", "clear", "is_mod", "no_markdown", "latex"):
+    elif option in ("no_unicode", "no_notify", "no_parse", "clear", "is_mod", "no_markdown", "latex", "ssl_no_verify"):
         passed = isinstance(value, bool)
 
     elif option in ("websocket_address", "trip_password", "prompt_string", "timestamp_format"):

@@ -73,7 +73,7 @@ class Client:
 
         self.def_config_dir = os.path.join(os.getenv("APPDATA"), "hcclient") if os.name == "nt" else os.path.join(os.getenv("HOME"), ".config", "hcclient")
 
-        self.ws = websocket.WebSocket(sslopt={"cert_reqs": ssl.CERT_NONE})
+        self.ws = websocket.WebSocket(sslopt={"cert_reqs": ssl.CERT_NONE} if self.args["ssl_no_verify"] else None)
         self.reconnecting = False
         self.timed_reconnect = threading.Timer(0, None)
 

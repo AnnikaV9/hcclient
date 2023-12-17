@@ -58,6 +58,7 @@ def main():
     optional_group.add_argument("--timestamp-format", help="set timestamp format", metavar="FORMAT", default=argparse.SUPPRESS)
     optional_group.add_argument("--suggest-aggr", help="set suggestion aggressiveness", type=int, metavar="0-3", default=argparse.SUPPRESS)
     optional_group.add_argument("--proxy", help="specify proxy to use", metavar="TYPE:HOST:PORT", default=argparse.SUPPRESS)
+    optional_group.add_argument("--ssl-no-verify", help="disable SSL cert verification", action="store_true", default=argparse.SUPPRESS)
 
     args = parser.parse_args()
 
