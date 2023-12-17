@@ -1,5 +1,4 @@
 .venv
-venv
 src/hcclient/__pycache__
 dist
 config.json

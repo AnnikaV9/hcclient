@@ -2,7 +2,7 @@
 
 All contributions are welcome as long as they are in scope of the project, which is to provide a configurable, fully featured, and cross-platform terminal client for [hack.chat](https://hack.chat/). Pull requests that add features targetting other alternate hack.chat instances will not be entertained. Please fork the project for that.
 
-Please note we have a [code of conduct](../docs/CODE_OF_CONDUCT.md), please follow it in all your interactions with the project.
+Note that we have a [code of conduct](../docs/CODE_OF_CONDUCT.md), please follow it in all your interactions with the project.
 
 
 ## Contributing Guidelines
@@ -17,24 +17,31 @@ Please note we have a [code of conduct](../docs/CODE_OF_CONDUCT.md), please foll
 For major changes, please open an issue first to discuss what you would like to change.
 
 
-## Repository Version
+## Development Setup
 
-To use the latest development version, clone the repository and build the project.<br />
-The build script [build.sh](../scripts/build.sh) is provided for convenience for building wheels.
+hcclient is a [poetry](https://python-poetry.org/) project.<br />
+Make sure you have poetry installed before continuing.
 
-To build a wheel, run from the root of the project:
+Development environment setup:
 ```bash
-./scripts/build.sh
-```
-This will create a wheel in the `dist` directory.
+# Clone the repository
+git clone https://github.com/AnnikaV93/hcclient.git
 
-Then create a virtual environment and install the wheel:
-```bash
-python -m venv venv
-./venv/bin/pip install dist/*.whl[latex]
+# Change the working directory
+cd hcclient
+
+# Create a virtual environment for poetry to use
+python -m venv .venv
+
+# Set up the project
+poetry install -E latex
+
+# Run hcclient
+poetry run hcclient --help
 ```
 
-You can then run the client from the virtual environment:
+To build a wheel and source distribution:
 ```bash
-./venv/bin/hcclient
+poetry build
 ```
+Builds will be placed in the `dist` directory.
