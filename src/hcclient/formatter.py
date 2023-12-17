@@ -34,7 +34,7 @@ class TextFormatter:
             .add("wss:", "https:")
         )
 
-        self.latex2sympy = None
+        self.latex2sympy = None # client.py lazy loads this
 
         self.codeblock_pattern = re.compile(r"\s*<pre><code(?: class=\"(?P<lang>[^\s\n]+)\")?>(?P<code>.*?)</code></pre>", re.DOTALL)
         self.code_pattern = re.compile(r"<(?!pre>)(?:code>(?P<code>.*?)</code>)", re.DOTALL)
