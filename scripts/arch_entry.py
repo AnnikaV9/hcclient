@@ -1,4 +1,4 @@
-#!/opt/hcclient/venv/bin/python3
+#!/opt/hcclient/bin/python3
 # -*- coding: utf-8 -*-
 
 import re
