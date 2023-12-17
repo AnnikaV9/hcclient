@@ -24,7 +24,7 @@ jobs:
         pip install poetry
     - name: Build package
       run: |
-        sed -i 's/-git//g' src/hcclient/__main__.py
+        sed -i "s/-git//g" src/hcclient/__main__.py src/hcclient/client.py src/hcclient/config.py src/hcclient/formatter.py src/hcclient/hook.py
         python -m poetry build
     - name: Publish package
       uses: pypa/gh-action-pypi-publish@27b31702a0e7fc50959f5ad993c78deac1bdfc29
