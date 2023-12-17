@@ -31,7 +31,7 @@ This will create a wheel in the `dist` directory.
 Then create a virtual environment and install the wheel:
 ```bash
 python -m venv venv
-./venv/bin/pip install dist/*.whl
+./venv/bin/pip install dist/*.whl[latex]
 ```
 
 You can then run the client from the virtual environment:
