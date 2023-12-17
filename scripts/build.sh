@@ -1,6 +1,6 @@
 #!/bin/bash
 
-VERSION="1.18.1-git"
+VERSION="1.18.2-git"
 
 echo_bold() {
   if [[ "$NO_ANSI" ]]

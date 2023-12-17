@@ -50,54 +50,27 @@ Some of the features hcclient has to offer:
 <br />
 
 ## Prerequisites <a name="prerequisites"></a>
-The main requirement for any platform is an xterm-256color terminal emulator that supports ANSI escape sequences.<br />
+- Python >= 3.10
+- Pip
+- An xterm-256color terminal emulator that supports ANSI escape sequences
 
-For x86_64 Linux, statically and dynamically linked binaries are provided with the interpreter and dependencies bundled in.
-
-On other platforms, python >= 3.10 and pip are required. <br />
-
-A [Docker](https://docs.docker.com/engine/) / [Podman](https://github.com/containers/podman) compatible image is provided.
+Notification support requires different dependencies on different platforms, see [Notifications](#notifications) for more information.
 
 <br />
 
 ## Installation <a name="installation"></a>
-On all platforms:
+Cross-platform installation:
 ```bash
-# Install the pip package
+# Install the PyPI package
 pip install hcclient
 
 # Run hcclient
 hcclient --help
 ```
-On Arch Linux, install the [source AUR package](https://aur.archlinux.org/packages/hcclient) or [binary AUR package](https://aur.archlinux.org/packages/hcclient-bin) with makepkg or an AUR helper.<br />
-On other x86_64 Linux distributions:
-```bash
-# Download the latest binary
-wget -O hcclient https://github.com/AnnikaV9/hcclient/releases/download/v1.18.1/hcclient-1.18.1-linux-x86-64
+On Arch Linux (and most arch based distributions), install the [AUR package](https://aur.archlinux.org/packages/hcclient) with makepkg or an AUR helper.
 
-# Or the statically linked binary if the above one doesn't work
-wget -O hcclient https://github.com/AnnikaV9/hcclient/releases/download/v1.18.1/hcclient-1.18.1-linux-x86-64-static
+**Note:** Starting with version 1.18.2, hcclient is no longer available as a standalone executable or container image. Only wheels are supported.
 
-# Make the binary executable
-chmod +x hcclient
-
-# Move it to somewhere in PATH
-mv hcclient $HOME/.local/bin/
-
-# Run hcclient
-hcclient --help
-```
-As a container:
-```bash
-# Download the latest image
-wget https://github.com/AnnikaV9/hcclient/releases/download/v1.18.1/hcclient-1.18.1-image.tar.xz
-
-# Install the image
-docker/podman load -i hcclient-1.18.1-image.tar.xz
-
-# Run hcclient
-docker/podman run --rm -it hcclient --help
-```
 <br />
 
 ## Usage <a name="usage"></a>
@@ -224,10 +197,7 @@ hcclient searches for *config.yml* or *config.json* in the following directories
 - **Windows:** &nbsp;%APPDATA%/hcclient
 - **Other platforms:** &nbsp;$HOME/.config/hcclient
 
-Things to note:
-- The configuration file does not affect `channel` and `nickname`, which have to be specified as flags every time.
-- ~~Command-line arguments **do not** override the configuration file's options. If a configuration file is loaded, all flags except for `--channel` and `--nickname` are discarded. Run with `--no-config` if you want to override the default configuration file.~~
-  Command-line arguments now **do** override the configuration file's options.
+**Note:** The configuration file does not affect `channel` and `nickname`, which have to be specified as flags every time.
 
 <br />
 
@@ -255,8 +225,6 @@ On Linux, libnotify and aplay are required for notifications to work.
 
 On Android, notifications are supported when running on [Termux](https://termux.dev/).<br />
 Install the [Termux:API](https://f-droid.org/en/packages/com.termux.api/) app and termux-api package and notifications will just work.
-
-**Note:** Notifications are not supported in container mode.
 
 <br />
 

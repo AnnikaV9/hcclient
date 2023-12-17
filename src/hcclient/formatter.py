@@ -1,6 +1,6 @@
 # Author:    AnnikaV9
 # License:   Unlicense
-# Version:   1.18.1-git
+# Version:   1.18.2-git
 
 import re
 import html

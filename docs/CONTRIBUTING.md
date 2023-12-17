@@ -17,7 +17,7 @@ Please note we have a [code of conduct](../docs/CODE_OF_CONDUCT.md), please foll
 For major changes, please open an issue first to discuss what you would like to change.
 
 
-## Using the repository version
+## Repository Version
 
 To use the latest development version, clone the repository and build the project.<br />
 The build script [build.sh](../scripts/build.sh) is provided for convenience for building wheels.
