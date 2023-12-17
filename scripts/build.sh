@@ -12,44 +12,43 @@ echo_bold() {
 }
 
 prepare() {
-   echo_bold "==> Running pre-build checks"
-   if [[ "$RELEASE_VERSION" ]]
-   then
-     VERSION=${VERSION%-git}
-     sed -i "s/-git//g" src/hcclient/__main__.py \
-                        src/hcclient/client.py \
-                        src/hcclient/config.py \
-                        src/hcclient/formatter.py \
-                        src/hcclient/hook.py
-   fi
-   echo_bold "  -> Setting version to $VERSION"
+  echo_bold "==> Running pre-build checks"
+  if [[ "$RELEASE_VERSION" ]]
+  then
+    VERSION=${VERSION%-git}
+    sed -i "s/-git//g" src/hcclient/__main__.py \
+                       src/hcclient/client.py \
+                       src/hcclient/config.py \
+                       src/hcclient/formatter.py \
+                       src/hcclient/hook.py
+  fi
+    echo_bold "  -> Setting version to $VERSION"
 
-   if [[ "$CLEAN" ]]
-   then
-     echo_bold "  -> Cleaning up previous builds"
-     rm -rf .venv dist docker/wheel/*.whl src/hcclient/__pycache__
-   fi
+  if [[ "$CLEAN" ]]
+  then
+    echo_bold "  -> Cleaning up previous builds"
+    rm -rf .venv dist src/hcclient/__pycache__
+  fi
 }
 
 build() {
-   echo_bold "==> Starting wheel build"
-   if ! command -v python3 &> /dev/null
-   then
-     echo_bold "  -> Error: Command 'python3' not found"
-     exit 1
-   fi
+  echo_bold "==> Starting wheel build"
+  if ! command -v python &> /dev/null
+  then
+    echo_bold "  -> Error: Command 'python' not found"
+    exit 1
+  fi
 
-   echo_bold "  -> Creating virtual environment and installing dependencies (FOR WHEEL)"
-   python3 -m venv .venv &&
-   ./.venv/bin/pip --disable-pip-version-check --no-color --quiet install poetry &&
-
-   echo_bold "  -> Building wheel"
-   ./.venv/bin/poetry --no-ansi -vv build
+  echo_bold "  -> Installing poetry in a virtual environment"
+  python -m venv .venv &&
+  ./.venv/bin/pip --disable-pip-version-check --no-color --quiet install poetry &&
+  echo_bold "  -> Building wheel"; echo -n "  "
+  ./.venv/bin/poetry --no-ansi --no-cache --no-interaction --format=wheel build
 }
 
 main() {
-   prepare &&
-   build
+  prepare &&
+  build
 }
 
 main
