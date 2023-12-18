@@ -30,9 +30,6 @@ git clone https://github.com/AnnikaV9/hcclient.git
 # Change the working directory
 cd hcclient
 
-# Create a virtual environment for poetry to use
-python -m venv .venv
-
 # Set up the project
 poetry install -E latex
 
