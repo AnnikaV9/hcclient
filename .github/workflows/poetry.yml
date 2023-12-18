@@ -1,8 +1,8 @@
-name: Poetry
+name: Poetry Project Build
 
 on:
   push:
-    branches:    
+    branches:
         - master
 
 jobs:
@@ -23,5 +23,7 @@ jobs:
         python -m pip install poetry
     - name: Test poetry environment
       run: |
+        poetry check
         poetry install -E latex
+        poetry run hcclient --help
         poetry build

@@ -6,7 +6,7 @@ license = "Unlicense"
 authors = ["AnnikaV9 <carrot.moncher@gmail.com>"]
 repository = "https://github.com/AnnikaV9/hcclient"
 homepage = "https://github.com/AnnikaV9/hcclient"
-readme = ["docs/README.md", "LICENSE"]
+readme = ["docs/README.md"]
 
 [tool.poetry.dependencies]
 python = ">=3.10, <4.0"
