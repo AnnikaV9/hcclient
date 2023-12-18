@@ -1,5 +1,5 @@
 <div align="left">
-<h1> hcclient <br /> <a target="_blank" href="https://pypi.org/project/hcclient" title="PyPI"><img src="https://img.shields.io/pypi/v/hcclient?label=PyPI&color=blue"></a> <a target="_blank" href="https://pypi.org/project/hcclient"><img src="https://img.shields.io/pypi/pyversions/hcclient"></a> <a target="_blank" href="https://github.com/AnnikaV9/hcclient/actions/workflows/poetry.yml"><img src="https://github.com/AnnikaV9/hcclient/actions/workflows/poetry.yml/badge.svg"></a> </h1>
+<h1> hcclient <br /> <a target="_blank" href="https://github.com/AnnikaV9/hcclient/blob/master/pyproject.toml"><img src="https://img.shields.io/endpoint?url=https://python-poetry.org/badge/v0.json"></a> <a target="_blank" href="https://pypi.org/project/hcclient" title="PyPI"><img src="https://img.shields.io/pypi/v/hcclient?label=PyPI&color=blue"></a> <a target="_blank" href="https://pypi.org/project/hcclient"><img src="https://img.shields.io/pypi/pyversions/hcclient"></a> </h1>
 A cross-platform terminal client for <a href="https://hack.chat">hack.chat</a>
 
 <br />
