@@ -37,3 +37,7 @@ latex = ["antlr4-python3-runtime", "latex2sympy2", "sympy", "mpmath"]
 
 [tool.poetry.scripts]
 hcclient = "hcclient.__main__:main"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
