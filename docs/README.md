@@ -123,6 +123,7 @@ optional arguments:
   --timestamp-format FORMAT         set timestamp format
   --suggest-aggr 0-3                set suggestion aggressiveness
   --proxy TYPE:HOST:PORT            specify proxy to use
+  --ssl-no-verify                   disable SSL cert verification
 ```
 
 <br />
