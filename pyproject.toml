@@ -2,14 +2,10 @@
 name = "hcclient"
 version = "v1.18.5"
 description = "A terminal client for connecting to hack.chat"
-
 license = "Unlicense"
-
 authors = ["AnnikaV9 <carrot.moncher@gmail.com>"]
-
 repository = "https://github.com/AnnikaV9/hcclient"
 homepage = "https://github.com/AnnikaV9/hcclient"
-
 readme = ["docs/README.md", "LICENSE"]
 
 [tool.poetry.dependencies]
