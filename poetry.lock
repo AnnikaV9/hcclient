@@ -428,9 +428,9 @@ files = [
 ]
 
 [extras]
-latex = ["antlr4-python3-runtime", "latex2sympy2", "mpmath", "sympy"]
+latex = ["latex2sympy2"]
 
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10, <4.0"
-content-hash = "5b0c0856a2bc9f726b46efff82088c060c35fafee62a54fad748d28f1b05f75d"
+content-hash = "f674ee7bc563d389f10bb7044785111248adb7bffe3b8eaacacf75bbe959a4a2"
