@@ -1,0 +1,10 @@
+[virtualenvs]
+in-project = true
+
+[virtualenvs.options]
+no-setuptools = true
+no-pip = true
+
+[installer]
+modern-installation = true
+parallel = true
