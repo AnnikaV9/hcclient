@@ -28,7 +28,7 @@ latex2sympy2 = { version = "1.9.1", optional = true }
 latex = ["latex2sympy2"]
 
 [tool.poetry.scripts]
-hcclient = "hcclient.__main__:main"
+hcclient = "hcclient.cli.cli:main"
 
 [build-system]
 requires = ["poetry-core"]

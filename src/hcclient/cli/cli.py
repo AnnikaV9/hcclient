@@ -1,6 +1,5 @@
 # Author:    AnnikaV9
 # License:   Unlicense
-# Version:   1.18.5-git
 
 import os
 import sys
@@ -9,14 +8,15 @@ import argparse
 import termcolor
 import pygments.styles
 
-from hcclient.client import Client
-from hcclient.hook import load_hooks
-from hcclient.config import default_config, load_config, initialize_config
+from hcclient.client.client import Client
+from hcclient.utils.hook import load_hooks
+from hcclient.utils.config import default_config, load_config, initialize_config
 
 
 def main():
     """
     Entry point
+    Parses cli arguments, loads config file, and runs the client
     """
     parser = argparse.ArgumentParser(description="terminal client for hack.chat",
                                      add_help=False,
@@ -85,7 +85,3 @@ def main():
         client = load_hooks(client)
 
     client.run()
-
-
-if __name__ == "__main__":
-    main()

@@ -1,5 +1,9 @@
 .venv
 src/hcclient/__pycache__
+src/hcclient/cli/__pycache__
+src/hcclient/client/__pycache__
+src/hcclient/render/__pycache__
+src/hcclient/utils/__pycache__
 dist
 config.json
 config.yml

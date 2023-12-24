@@ -1,12 +1,11 @@
 # Author:    AnnikaV9
 # License:   Unlicense
-# Version:   1.18.5-git
 
 import os
 import sys
 import importlib.util
 
-from hcclient.client import Client
+from hcclient.client.client import Client
 
 
 def load_hooks(client: Client) -> Client:

@@ -1,6 +1,5 @@
 # Author:    AnnikaV9
 # License:   Unlicense
-# Version:   1.18.5-git
 
 import os
 import re
@@ -24,8 +23,8 @@ import termcolor
 import websocket
 import prompt_toolkit
 
-from hcclient.config import validate_config
-from hcclient.formatter import TextFormatter
+from hcclient.utils.config import validate_config
+from hcclient.render.formatter import TextFormatter
 
 
 class Client:
