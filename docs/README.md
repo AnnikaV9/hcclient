@@ -116,6 +116,7 @@ optional arguments:
   --no-unicode                      disable unicode UI elements
   --highlight-theme THEME           set highlight theme
   --no-markdown                     disable markdown formatting
+  --no-linkify                      disable linkifying of urls
   --backticks-bg 0-255              set backticks background color
   --latex                           enable LaTeX simplifying
   --no-notify                       disable desktop notifications
