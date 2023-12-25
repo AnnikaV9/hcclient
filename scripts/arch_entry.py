@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import sys
-from hcclient.__main__ import main
+from hcclient.cli.cli import main
 
 if __name__ == "__main__":
     sys.exit(main())
