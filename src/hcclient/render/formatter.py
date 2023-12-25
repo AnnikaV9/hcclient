@@ -117,8 +117,6 @@ class TextFormatter:
             replacement = f"\033[3m\033[1m{block}latex: {sympy_expr}{block}\033[0m" + self.message_color_open
 
         except:
-            import traceback
-            traceback.print_exc()
             replacement = f"\033[3m\033[1m{block}latex-error: {equation}{block}\033[0m" + self.message_color_open
 
         return replacement
