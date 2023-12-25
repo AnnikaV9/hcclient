@@ -150,7 +150,8 @@ class Client:
         providing syntax highlighting and markdown
         """
         if not self.args["no_markdown"]:
-            text = self.formatter.markdown(text, self.args["highlight_theme"], self.args["client_color"], self.args[f"{text_type}_color"], self.args["latex"], self.args["backticks_bg"])
+            text = self.formatter.markdown(text, self.args["highlight_theme"], self.args["client_color"], self.args[f"{text_type}_color"],
+                                           self.args["latex"], not self.args["no_linkify"], self.args["backticks_bg"])
 
         return text
 

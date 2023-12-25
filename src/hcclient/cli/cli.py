@@ -51,6 +51,7 @@ def main():
     optional_group.add_argument("--no-highlight", help=argparse.SUPPRESS, action="store_true", default=False) # deprecated, doesn't do anything
     optional_group.add_argument("--highlight-theme", help="set highlight theme", metavar="THEME", default=argparse.SUPPRESS)
     optional_group.add_argument("--no-markdown", help="disable markdown formatting", action="store_true", default=argparse.SUPPRESS)
+    optional_group.add_argument("--no-linkify", help="disable linkifying of urls", action="store_true", default=argparse.SUPPRESS)
     optional_group.add_argument("--backticks-bg", help="set backticks background color", type=int, metavar="0-255", default=argparse.SUPPRESS)
     optional_group.add_argument("--latex", help="enable LaTeX simplifying", action="store_true", default=argparse.SUPPRESS)
     optional_group.add_argument("--no-notify", help="disable desktop notifications", action="store_true", default=argparse.SUPPRESS)

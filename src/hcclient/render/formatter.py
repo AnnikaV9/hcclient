@@ -44,7 +44,7 @@ class TextFormatter:
         self.eq_pattern = re.compile(r"<eq>(?P<equation>.*?)</eq>", re.DOTALL)
         self.eqn_pattern = re.compile(r"<section>\n<eqn>(?P<equation>.*?)</eqn>\n</section>", re.DOTALL)
 
-    def markdown(self, text: str, highlight_theme: str, client_color: str, message_color: str, latex: bool, backticks_bg: int) -> str:
+    def markdown(self, text: str, highlight_theme: str, client_color: str, message_color: str, latex: bool, linkify: bool, backticks_bg: int) -> str:
         """
         Formats text with markdown and calls the highlighter and LaTeX simplifier
         """
@@ -72,7 +72,7 @@ class TextFormatter:
             parsed = self.eq_pattern.sub("$\\g<equation>$", parsed)
             parsed = self.eqn_pattern.sub("$$\\g<equation>$$", parsed)
 
-        if self.linkify.test(parsed):
+        if linkify and self.linkify.test(parsed):
             links = self.linkify.match(parsed)
             for link in links:
                 parsed = parsed.replace(link.raw, f"\033[4m{link.raw}\033[0m" + message_color_open)
