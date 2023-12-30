@@ -1,5 +1,5 @@
 # Sample functional hook to log stdout messages to a file
-# Cannot be used with prepend_sample.py
+# Cannot be used with prepend_sample.py as they both modify the same function
 
 
 import re

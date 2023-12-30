@@ -1,5 +1,5 @@
 # Sample functional hook to prepend a string to stdout messages
-# Cannot be used with logger_sample.py
+# Cannot be used with logger_sample.py as they both modify the same function
 
 
 STRING_TO_PREPEND = "Hello World! "
