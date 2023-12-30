@@ -10,10 +10,10 @@ readme = ["docs/README.md"]
 
 [tool.poetry.dependencies]
 python = ">=3.10, <4.0"
-websocket-client = "1.6.4"
+websocket-client = "1.7.0"
 wsaccel = "0.6.6"
-python-socks = "2.4.3"
-prompt-toolkit = "3.0.41"
+python-socks = "2.4.4"
+prompt-toolkit = "3.0.43"
 pyyaml = "6.0.1"
 colorama = "0.4.6"
 termcolor = "2.4.0"

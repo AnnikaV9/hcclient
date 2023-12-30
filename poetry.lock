@@ -176,13 +176,13 @@ loguru = ">=0.5.3,<=0.6.0"
 
 [[package]]
 name = "prompt-toolkit"
-version = "3.0.41"
+version = "3.0.43"
 description = "Library for building powerful interactive command lines in Python"
 optional = false
 python-versions = ">=3.7.0"
 files = [
-    {file = "prompt_toolkit-3.0.41-py3-none-any.whl", hash = "sha256:f36fe301fafb7470e86aaf90f036eef600a3210be4decf461a5b1ca8403d3cb2"},
-    {file = "prompt_toolkit-3.0.41.tar.gz", hash = "sha256:941367d97fc815548822aa26c2a269fdc4eb21e9ec05fc5d447cf09bad5d75f0"},
+    {file = "prompt_toolkit-3.0.43-py3-none-any.whl", hash = "sha256:a11a29cb3bf0a28a387fe5122cdb649816a957cd9261dcedf8c9f1fef33eacf6"},
+    {file = "prompt_toolkit-3.0.43.tar.gz", hash = "sha256:3527b7af26106cbc65a040bcc84839a3566ec1b051bb0bfe953631e704b0ff7d"},
 ]
 
 [package.dependencies]
@@ -205,13 +205,13 @@ windows-terminal = ["colorama (>=0.4.6)"]
 
 [[package]]
 name = "python-socks"
-version = "2.4.3"
+version = "2.4.4"
 description = "Core proxy (SOCKS4, SOCKS5, HTTP tunneling) functionality for Python"
 optional = false
 python-versions = "*"
 files = [
-    {file = "python-socks-2.4.3.tar.gz", hash = "sha256:135430ae36d582dc834c983696c5f66177aa5b587407f540985d616ef2e0c701"},
-    {file = "python_socks-2.4.3-py3-none-any.whl", hash = "sha256:a57559b3f6073855761cb58b47a71bc5df8b72963d4a7a6e988b39dedd0e7ef2"},
+    {file = "python-socks-2.4.4.tar.gz", hash = "sha256:e5a8e4f78203612c813946feacd87b98943965a04389fe221fa1e9ab263ad22e"},
+    {file = "python_socks-2.4.4-py3-none-any.whl", hash = "sha256:fda465d3ef229119ee614eb85f2b7c0ad28be6dd40e0ef8dd317c49e8725e514"},
 ]
 
 [package.extras]
@@ -334,13 +334,13 @@ files = [
 
 [[package]]
 name = "websocket-client"
-version = "1.6.4"
+version = "1.7.0"
 description = "WebSocket client for Python with low level API options"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "websocket-client-1.6.4.tar.gz", hash = "sha256:b3324019b3c28572086c4a319f91d1dcd44e6e11cd340232978c684a7650d0df"},
-    {file = "websocket_client-1.6.4-py3-none-any.whl", hash = "sha256:084072e0a7f5f347ef2ac3d8698a5e0b4ffbfcab607628cadabc650fc9a83a24"},
+    {file = "websocket-client-1.7.0.tar.gz", hash = "sha256:10e511ea3a8c744631d3bd77e61eb17ed09304c413ad42cf6ddfa4c7787e8fe6"},
+    {file = "websocket_client-1.7.0-py3-none-any.whl", hash = "sha256:f4c3d22fec12a2461427a29957ff07d35098ee2d976d3ba244e688b8b4057588"},
 ]
 
 [package.extras]
@@ -433,4 +433,4 @@ latex = ["latex2sympy2"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10, <4.0"
-content-hash = "f674ee7bc563d389f10bb7044785111248adb7bffe3b8eaacacf75bbe959a4a2"
+content-hash = "2fe6877b19dbff49c344b065f91fa2693772fce059f9da796564f01796d88552"
