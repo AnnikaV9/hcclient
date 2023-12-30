@@ -5,10 +5,8 @@ import os
 import sys
 import importlib.util
 
-from hcclient.client.client import Client
 
-
-def load_hooks(client: Client) -> Client:
+def load_hooks(client: object) -> object:
     """
     Loads hooks from the default hooks directory and returns the modified client
     """
@@ -24,6 +22,7 @@ def load_hooks(client: Client) -> Client:
                 module = importlib.util.module_from_spec(spec)
                 spec.loader.exec_module(module)
                 client = module.hook(client)
+                client.hooks.append(hook.removesuffix(".py"))
 
             except Exception as e:
                 sys.exit(f"{sys.argv[0]}: error: Unable to load hook '{hook}': {e}")

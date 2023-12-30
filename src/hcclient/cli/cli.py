@@ -18,6 +18,8 @@ def main():
     Entry point
     Parses cli arguments, loads config file, and runs the client
     """
+    version = "1.18.6-git"
+
     parser = argparse.ArgumentParser(description="terminal client for hack.chat",
                                      add_help=False,
                                      formatter_class=lambda prog: argparse.HelpFormatter(prog, max_help_position=45))
@@ -27,7 +29,7 @@ def main():
     optional_group = parser.add_argument_group("optional arguments")
 
     command_group.add_argument("-h", "--help", help="display this help message", action="help")
-    command_group.add_argument("-v", "--version", help="display version information", action="version", version="hcclient 1.18.6-git")
+    command_group.add_argument("-v", "--version", help="display version information", action="version", version=f"hcclient {version}")
     command_group.add_argument("--gen-config", help="generate config file", action="store_true")
     command_group.add_argument("--defaults", help="display default config values", action="store_true")
     command_group.add_argument("--colors", help="display valid color values", action="store_true")
@@ -85,4 +87,4 @@ def main():
     if hook:
         client = load_hooks(client)
 
-    client.run()
+    client.run(version)

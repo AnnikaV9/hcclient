@@ -37,6 +37,7 @@ class Client:
         Initializes the client and environment, sets up variables and threads
         """
         self.args = args
+        self.hooks = []
 
         colorama.init()
         self.bindings = prompt_toolkit.key_binding.KeyBindings()
@@ -280,7 +281,7 @@ class Client:
 
                         self.print_msg("{}|{}| {}".format(termcolor.colored(packet_receive_time, self.args["timestamp_color"]),
                                                           termcolor.colored("SERVER", self.args["server_color"]),
-                                                          termcolor.colored(f"Channel: {self.channel} - Users: {', '.join(self.online_users)}", self.args["server_color"])))
+                                                          termcolor.colored(f"Connected to channel: {self.channel} - Users: {', '.join(self.online_users)}", self.args["server_color"])))
 
                     case "chat":
                         if received["nick"] in self.online_ignored_users:
@@ -635,13 +636,21 @@ class Client:
         else:
             sys.exit(0)
 
-    def run(self) -> None:
+    def run(self, version: str) -> None:
         """
         Start threads and run the input manager
         """
         if self.args["clear"]:
             os.system("cls" if os.name == "nt" else "clear")
 
+        self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
+                                          termcolor.colored("CLIENT", self.args["client_color"]),
+                                          termcolor.colored(f"hcclient {version}", self.args["client_color"])))
+
+        if len(self.hooks) > 0:
+            self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
+                                              termcolor.colored("CLIENT", self.args["client_color"]),
+                                              termcolor.colored(f"Loaded hooks: {', '.join(self.hooks)}", self.args["client_color"])))
         if self.args["latex"]:
             try:
                 import latex2sympy2
