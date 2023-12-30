@@ -18,7 +18,7 @@ def main():
     Entry point
     Parses cli arguments, loads config file, and runs the client
     """
-    version = "1.18.6-git"
+    version = "1.19.0-git"
 
     parser = argparse.ArgumentParser(description="terminal client for hack.chat",
                                      add_help=False,

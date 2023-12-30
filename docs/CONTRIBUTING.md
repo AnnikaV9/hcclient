@@ -11,8 +11,7 @@ Note that we have a [code of conduct](../docs/CODE_OF_CONDUCT.md), please follow
 - Keep the code cross-platform
 - Do not increase the version number, this will be done before releases
 - Do not modify [README.md](../docs/README.md), this will be done before releases
-- If new dependencies are added, please specify them in [pyproject.toml](../pyproject.toml)
-- If a new command is added, please add it to the help menu and completer
+- If new dependencies are added, please specify them in [pyproject.toml](../pyproject.toml) and update the [lock file](../poetry.lock) using `poetry update`
 
 For major changes, please open an issue first to discuss what you would like to change.
 

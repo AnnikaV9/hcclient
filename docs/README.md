@@ -274,10 +274,9 @@ hcclient will run `hook()` in all scripts in the hooks directory on startup.<br 
 `hook()` should take a single argument, which is the client instance.
 
 You can modify, add or remove the instance's attributes and methods to change its behaviour.<br />
-The `TextFormatter` instance is available as `client.formatter`.<br />
 Example hooks can be found [here](../examples/hooks).
 
-**Note:** Hook support is experimental. hcclient is not stable and the API is subject to change, so don't expect your hooks to work after an update.
+**Note:** Hook support is experimental. hcclient is not stable and the API is subject to change, hooks may not work after an update.
 
 <br />
 
