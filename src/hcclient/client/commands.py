@@ -363,92 +363,74 @@ Moderator commands:
         raise SystemExit
 
     def ban(client: object, args_string: str) -> None:
-        if client.args["is_mod"]:
-            [client.send({"cmd": "ban", "nick": user.lstrip("@")}) for user in args_string.split(" ")]
+        [client.send({"cmd": "ban", "nick": user.lstrip("@")}) for user in args_string.split(" ")]
 
     def unban(client: object, args_string: str) -> None:
-        if client.args["is_mod"]:
-            [client.send({"cmd": "unban", "hash": uhash}) for uhash in args_string.split(" ")]
+        [client.send({"cmd": "unban", "hash": uhash}) for uhash in args_string.split(" ")]
 
     def unbanall(client: object, args_string: str) -> None:
-        if client.args["is_mod"]:
-            client.send({"cmd": "unbanall"})
+        client.send({"cmd": "unbanall"})
 
     def dumb(client: object, args_string: str) -> None:
-        if client.args["is_mod"]:
-            [client.send({"cmd": "dumb", "nick": user.lstrip("@")}) for user in args_string.split(" ")]
+        [client.send({"cmd": "dumb", "nick": user.lstrip("@")}) for user in args_string.split(" ")]
 
     def speak(client: object, args_string: str) -> None:
-        if client.args["is_mod"]:
-            [client.send({"cmd": "speak", "nick": user.lstrip("@")}) for user in args_string.split(" ")]
+        [client.send({"cmd": "speak", "nick": user.lstrip("@")}) for user in args_string.split(" ")]
 
     def moveuser(client: object, args_string: str) -> None:
-        if client.args["is_mod"]:
-            args = args_string.split(" ")
-            if len(args) > 1:
-                client.send({"cmd": "moveuser", "nick": args[0].lstrip("@"), "channel": args[1]})
+        args = args_string.split(" ")
+        if len(args) > 1:
+            client.send({"cmd": "moveuser", "nick": args[0].lstrip("@"), "channel": args[1]})
 
-            else:
-                client.print_msg("{}|{}| {}".format(termcolor.colored(client.formatted_datetime(), client.args["timestamp_color"]),
-                                                    termcolor.colored("CLIENT", client.args["client_color"]),
-                                                    termcolor.colored("User/Channel cannot be empty", client.args["client_color"])))
+        else:
+            client.print_msg("{}|{}| {}".format(termcolor.colored(client.formatted_datetime(), client.args["timestamp_color"]),
+                                                termcolor.colored("CLIENT", client.args["client_color"]),
+                                                termcolor.colored("User/Channel cannot be empty", client.args["client_color"])))
 
     def kick(client: object, args_string: str) -> None:
-        if client.args["is_mod"]:
-            [client.send({"cmd": "kick", "nick": user.lstrip("@")}) for user in args_string.split(" ")]
+        [client.send({"cmd": "kick", "nick": user.lstrip("@")}) for user in args_string.split(" ")]
 
     def kickasone(client: object, args_string: str) -> None:
-        if client.args["is_mod"]:
-            client.send({"cmd": "kick", "nick": [user.lstrip("@") for user in args_string.split(" ")]}) # supply a list so everyone gets banished to the same room
+        client.send({"cmd": "kick", "nick": [user.lstrip("@") for user in args_string.split(" ")]}) # supply a list so everyone gets banished to the same room
 
     def overflow(client: object, args_string: str) -> None:
-        if client.args["is_mod"]:
-            [client.send({"cmd": "overflow", "nick": user.lstrip("@")}) for user in args_string.split(" ")]
+        [client.send({"cmd": "overflow", "nick": user.lstrip("@")}) for user in args_string.split(" ")]
 
     def authtrip(client: object, args_string: str) -> None:
-        if client.args["is_mod"]:
-            [client.send({"cmd": "authtrip", "trip": trip}) for trip in args_string.split(" ")]
+        [client.send({"cmd": "authtrip", "trip": trip}) for trip in args_string.split(" ")]
 
     def deauthtrip(client: object, args_string: str) -> None:
-        if client.args["is_mod"]:
-            [client.send({"cmd": "deauthtrip", "trip": trip}) for trip in args_string.split(" ")]
+        [client.send({"cmd": "deauthtrip", "trip": trip}) for trip in args_string.split(" ")]
 
     def enablecaptcha(client: object, args_string: str) -> None:
-        if client.args["is_mod"]:
-            client.send({"cmd": "enablecaptcha"})
+        client.send({"cmd": "enablecaptcha"})
 
     def disablecaptcha(client: object, args_string: str) -> None:
-        if client.args["is_mod"]:
-            client.send({"cmd": "disablecaptcha"})
+        client.send({"cmd": "disablecaptcha"})
 
     def lockroom(client: object, args_string: str) -> None:
-        if client.args["is_mod"]:
-            client.send({"cmd": "lockroom"})
+        client.send({"cmd": "lockroom"})
 
     def unlockroom(client: object, args_string: str) -> None:
-        if client.args["is_mod"]:
-            client.send({"cmd": "unlockroom"})
+        client.send({"cmd": "unlockroom"})
 
     def forcecolor(client: object, args_string: str) -> None:
-        if client.args["is_mod"]:
-            args = args_string.split(" ")
-            if len(args) > 1:
-                client.send({"cmd": "forcecolor", "nick": args[0].lstrip("@"), "color": args[1]})
+        args = args_string.split(" ")
+        if len(args) > 1:
+            client.send({"cmd": "forcecolor", "nick": args[0].lstrip("@"), "color": args[1]})
 
-            else:
-                client.print_msg("{}|{}| {}".format(termcolor.colored(client.formatted_datetime(), client.args["timestamp_color"]),
-                                                    termcolor.colored("CLIENT", client.args["client_color"]),
-                                                    termcolor.colored("User/Color cannot be empty", client.args["client_color"])))
+        else:
+            client.print_msg("{}|{}| {}".format(termcolor.colored(client.formatted_datetime(), client.args["timestamp_color"]),
+                                                termcolor.colored("CLIENT", client.args["client_color"]),
+                                                termcolor.colored("User/Color cannot be empty", client.args["client_color"])))
 
     def anticmd(client: object, args_string: str) -> None:
-        if client.args["is_mod"]:
-            client.send({"cmd": "anticmd"})
+        client.send({"cmd": "anticmd"})
 
     def uwuify(client: object, args_string: str) -> None:
-        if client.args["is_mod"]:
-            [client.send({"cmd": "uwuify", "nick": user.lstrip("@")}) for user in args_string.split(" ")]
+        [client.send({"cmd": "uwuify", "nick": user.lstrip("@")}) for user in args_string.split(" ")]
 
-    command_map = {
+    client_command_map = {
         "/help": show_help,
         "/raw": raw,
         "/list": list_users,
@@ -466,7 +448,10 @@ Moderator commands:
         "/save": save,
         "/reprint": reprint,
         "/exec": dev_exec,
-        "/quit": quit_client,
+        "/quit": quit_client
+    }
+
+    mod_command_map = {
         "/ban": ban,
         "/unban": unban,
         "/unbanall": unbanall,
@@ -486,3 +471,5 @@ Moderator commands:
         "/anticmd": anticmd,
         "/uwuify": uwuify
     }
+
+    server_commands = ("/whisper", "/reply", "/me", "/stats")

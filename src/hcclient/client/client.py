@@ -47,22 +47,6 @@ class Client:
         self.online_users_details = {}
         self.online_ignored_users = []
 
-        self.client_command_list = [
-            "/help", "/raw", "/list", "/nick", "/clear", "/profile",
-            "/wlock", "/ignore", "/unignoreall", "/reconnect", "/set",
-            "/unset", "/configset", "/configdump", "/save", "/reprint",
-            "/quit"
-        ]
-        self.server_command_list = [
-            "/whisper", "/reply", "/me", "/stats",
-        ]
-        self.mod_command_list = [
-            "/ban", "/unban", "/unbanall", "/dumb", "/speak", "/moveuser",
-            "/kick", "/kickasone", "/overflow", "/authtrip", "/deauthtrip",
-            "/enablecaptcha", "/disablecaptcha", "/lockroom", "/unlockroom",
-            "/forcecolor", "/anticmd", "/uwuify"
-        ]
-
         self.auto_complete_list = []
         self.manage_complete_list()
 
@@ -174,10 +158,10 @@ class Client:
         """
         self.auto_complete_list.clear()
 
-        self.auto_complete_list.extend(self.client_command_list)
-        self.auto_complete_list.extend(self.server_command_list)
+        self.auto_complete_list.extend(ClientCommands.client_command_map.keys())
+        self.auto_complete_list.extend(ClientCommands.server_commands)
         if self.args["is_mod"]:
-            self.auto_complete_list.extend(self.mod_command_list)
+            self.auto_complete_list.extend(ClientCommands.mod_command_map.keys())
 
         for prefix in ("", "/whisper ", "/profile ", "/ignore "):
             for user in self.online_users:
@@ -623,8 +607,11 @@ class Client:
             message = " ".join(word_list)
 
             parsed_message = message.partition(" ")
-            if parsed_message[0] in ClientCommands.command_map:
-                ClientCommands.command_map[parsed_message[0]](self, parsed_message[2])
+            if parsed_message[0] in ClientCommands.client_command_map:
+                ClientCommands.client_command_map[parsed_message[0]](self, parsed_message[2])
+
+            elif parsed_message[0] in ClientCommands.mod_command_map and self.args["is_mod"]:
+                ClientCommands.mod_command_map[parsed_message[0]](self, parsed_message[2])
 
             elif self.whisper_lock and (message.split(" ")[0] not in ("/whisper", "/w", "/reply", "/r") or message.startswith(" ")):
                 self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
