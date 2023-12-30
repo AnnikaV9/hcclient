@@ -1,5 +1,4 @@
 # Sample functional hook to add/modify commands
-# This hook currently only works with the git version of the client
 
 import termcolor
 
