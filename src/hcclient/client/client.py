@@ -516,7 +516,7 @@ class Client:
 
     def keyboard_interrupt(self, event: prompt_toolkit.key_binding.KeyPressEvent) -> None:
         """
-        Closes the client if initated twice
+        Closes the client if initiated twice
         Will be bound to ctrl+c
         """
         if self.exit_attempted:
