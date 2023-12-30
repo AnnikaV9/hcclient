@@ -45,6 +45,7 @@ default_config = {
     "aliases": {},
 }
 
+
 def generate_config(config: dict) -> None:
     """
     Generates a config file from the specified arguments
@@ -64,6 +65,7 @@ def generate_config(config: dict) -> None:
 
     except Exception as e:
         sys.exit(f"{sys.argv[0]}: error: {e}")
+
 
 def load_config(filepath: str) -> dict:
     """
@@ -88,7 +90,7 @@ def load_config(filepath: str) -> dict:
                                   "timestamp_color", "mod_nickname_color", "suggest_aggr",
                                   "admin_nickname_color", "ignored", "aliases", "proxy", "latex",
                                   "backticks_bg", "ssl_no_verify", "no_linkify",
-                                  "no_highlight", # deprecated
+                                  "no_highlight",  # deprecated
                                   ):
                     unknown_args.append(option)
 
@@ -99,6 +101,7 @@ def load_config(filepath: str) -> dict:
 
     except Exception as e:
         sys.exit(f"{sys.argv[0]}: error: {e}")
+
 
 def initialize_config(args: argparse.Namespace, parser: argparse.ArgumentParser) -> dict:
     """
@@ -178,6 +181,7 @@ def initialize_config(args: argparse.Namespace, parser: argparse.ArgumentParser)
 
     return config
 
+
 def validate_config(option: str, value: str) -> bool:
     """
     Validates a configuration option and its value
@@ -186,8 +190,8 @@ def validate_config(option: str, value: str) -> bool:
     passed = True
 
     if option in ("timestamp_color", "client_color", "server_color", "nickname_color",
-                    "self_nickname_color", "mod_nickname_color", "admin_nickname_color",
-                    "message_color", "emote_color", "whisper_color", "warning_color"):
+                  "self_nickname_color", "mod_nickname_color", "admin_nickname_color",
+                  "message_color", "emote_color", "whisper_color", "warning_color"):
         passed = value in termcolor.COLORS
 
     elif option in ("no_unicode", "no_notify", "no_parse", "clear", "is_mod", "no_markdown", "latex", "ssl_no_verify", "no_linkify"):

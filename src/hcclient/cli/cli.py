@@ -1,7 +1,6 @@
 # Author:    AnnikaV9
 # License:   Unlicense
 
-import os
 import sys
 import argparse
 
@@ -10,7 +9,7 @@ import pygments.styles
 
 from hcclient.client.client import Client
 from hcclient.utils.hook import load_hooks
-from hcclient.utils.config import default_config, load_config, initialize_config
+from hcclient.utils.config import default_config, initialize_config
 
 
 def main():
@@ -40,9 +39,9 @@ def main():
     required_group.add_argument("-n", "--nickname", help="set nickname to use", metavar="NICKNAME")
 
     optional_group.add_argument("-p", "--password", help="specify tripcode password", dest="trip_password", metavar="PASSWORD", default=argparse.SUPPRESS)
-    optional_group.add_argument("-t", "--trip-password", help=argparse.SUPPRESS, dest="trip_password", default=argparse.SUPPRESS) # deprecated
+    optional_group.add_argument("-t", "--trip-password", help=argparse.SUPPRESS, dest="trip_password", default=argparse.SUPPRESS)  # deprecated
     optional_group.add_argument("-w", "--websocket", help="specify alternate websocket", dest="websocket_address", metavar="ADDRESS", default=argparse.SUPPRESS)
-    optional_group.add_argument("--websocket-address", help=argparse.SUPPRESS, dest="websocket_address", default=argparse.SUPPRESS) # deprecated
+    optional_group.add_argument("--websocket-address", help=argparse.SUPPRESS, dest="websocket_address", default=argparse.SUPPRESS)  # deprecated
     optional_group.add_argument("-l", "--load-config", help="specify config file to load", dest="config_file", metavar="FILE", default=None)
     optional_group.add_argument("--no-config", help="ignore global config file", action="store_true", default=False)
     optional_group.add_argument("--no-hooks", help="ignore global hooks", action="store_true", default=False)
@@ -50,7 +49,7 @@ def main():
     optional_group.add_argument("--clear", help="clear console before joining", action="store_true", default=argparse.SUPPRESS)
     optional_group.add_argument("--is-mod", help="enable moderator commands", action="store_true", default=argparse.SUPPRESS)
     optional_group.add_argument("--no-unicode", help="disable unicode UI elements", action="store_true", default=argparse.SUPPRESS)
-    optional_group.add_argument("--no-highlight", help=argparse.SUPPRESS, action="store_true", default=False) # deprecated, doesn't do anything
+    optional_group.add_argument("--no-highlight", help=argparse.SUPPRESS, action="store_true", default=False)  # deprecated, doesn't do anything
     optional_group.add_argument("--highlight-theme", help="set highlight theme", metavar="THEME", default=argparse.SUPPRESS)
     optional_group.add_argument("--no-markdown", help="disable markdown formatting", action="store_true", default=argparse.SUPPRESS)
     optional_group.add_argument("--no-linkify", help="disable linkifying of urls", action="store_true", default=argparse.SUPPRESS)
@@ -65,7 +64,7 @@ def main():
 
     args = parser.parse_args()
 
-    del args.no_highlight # deprecated
+    del args.no_highlight  # deprecated
 
     if args.colors:
         print("Valid colors:\n" + "\n".join(f" - {color}" for color in termcolor.COLORS))
@@ -80,7 +79,7 @@ def main():
         sys.exit(0)
 
     hook = not args.no_hooks
-    del args.no_hooks # we dont want to pass this to the client
+    del args.no_hooks  # we dont want to pass this to the client
 
     client = Client(initialize_config(args, parser))
 

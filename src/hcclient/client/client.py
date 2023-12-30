@@ -2,28 +2,23 @@
 # License:   Unlicense
 
 import os
-import re
 import sys
 import ssl
 import json
-import copy
 import time
 import random
 import shutil
-import argparse
 import datetime
 import threading
 import subprocess
 import contextlib
 
-import yaml
 import notifypy
 import colorama
 import termcolor
 import websocket
 import prompt_toolkit
 
-from hcclient.utils.config import validate_config
 from hcclient.render.formatter import TextFormatter
 from hcclient.client.commands import ClientCommands
 
@@ -119,7 +114,7 @@ class Client:
         self.thread_recv = threading.Thread(target=self.recv_thread, daemon=True)
         self.thread_recv.start()
 
-    def print_msg(self, message: str, hist: bool=True) -> None:
+    def print_msg(self, message: str, hist: bool = True) -> None:
         """
         Prints a message to the terminal and adds it to the stdout history
         """
@@ -300,7 +295,7 @@ class Client:
 
                             case "Admin":
                                 color_to_use = self.args["admin_nickname_color"] if self.nick != received["nick"] else self.args["self_nickname_color"]
-                                received["nick"] = f"{chr(11088)} {received['nick']}" if not self.args["no_unicode"] else received ["nick"]
+                                received["nick"] = f"{chr(11088)} {received['nick']}" if not self.args["no_unicode"] else received["nick"]
                                 tripcode = "Admin"
 
                             case _:
@@ -456,9 +451,6 @@ class Client:
 
             self.manage_complete_list()
 
-            if self.args["is_mod"]:
-                self.auto_complete_list.extend(self.mod_command_list)
-
             if self.reconnecting:
                 self.close()
 
@@ -527,8 +519,8 @@ class Client:
         event.current_buffer.reset()
 
         self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
-                                            termcolor.colored("CLIENT", self.args["client_color"]),
-                                            termcolor.colored("Press ctrl+c again to exit", self.args["client_color"])))
+                                          termcolor.colored("CLIENT", self.args["client_color"]),
+                                          termcolor.colored("Press ctrl+c again to exit", self.args["client_color"])))
 
     def buffer_handle_send(self, event: prompt_toolkit.key_binding.KeyPressEvent) -> None:
         """

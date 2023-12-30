@@ -33,7 +33,7 @@ class TextFormatter:
             .add("wss:", "https:")
         )
 
-        self.latex2sympy = None # client.py lazy loads this
+        self.latex2sympy = None  # client.py lazy loads this
 
         self.codeblock_pattern = re.compile(r"\s*<pre><code(?: class=\"(?P<lang>[^\s\n]+)\")?>(?P<code>.*?)</code></pre>", re.DOTALL)
         self.code_pattern = re.compile(r"<(?!pre>)(?:code>(?P<code>.*?)</code>)", re.DOTALL)
@@ -99,9 +99,9 @@ class TextFormatter:
             highlighted = pygments.highlight(code, lexer, pygments.formatters.Terminal256Formatter(style=highlight_theme)).strip("\n")
 
             text = text.replace(match.group(), termcolor.colored(f"\n--- {lexer.name.lower()} {guess_tag}---\n", client_color) +
-                                               highlighted +
-                                               termcolor.colored("\n------", client_color) +
-                                               message_color_open)
+                                highlighted +
+                                termcolor.colored("\n------", client_color) +
+                                message_color_open)
 
         return text
 
@@ -116,7 +116,7 @@ class TextFormatter:
             sympy_expr = str(self.latex2sympy.latex2sympy(equation)).replace("**", "^")
             replacement = f"\033[3m\033[1m{block}latex: {sympy_expr}{block}\033[0m" + self.message_color_open
 
-        except:
+        except Exception:
             replacement = f"\033[3m\033[1m{block}latex-error: {equation}{block}\033[0m" + self.message_color_open
 
         return replacement

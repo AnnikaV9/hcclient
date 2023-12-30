@@ -153,7 +153,6 @@ Moderator commands:
                                                 termcolor.colored("CLIENT", client.args["client_color"]),
                                                 termcolor.colored(profile, client.args["client_color"])))
 
-
         else:
             client.print_msg("{}|{}| {}".format(termcolor.colored(client.formatted_datetime(), client.args["timestamp_color"]),
                                                 termcolor.colored("CLIENT", client.args["client_color"]),
@@ -176,8 +175,7 @@ Moderator commands:
         os.system("cls" if os.name == "nt" else "clear")
         client.print_msg("{}|{}| {}".format(termcolor.colored(client.formatted_datetime(), client.args["timestamp_color"]),
                                             termcolor.colored("CLIENT", client.args["client_color"]),
-                                            termcolor.colored("Console cleared, run `/reprint` to undo", client.args["client_color"])),
-                                            hist=False)
+                                            termcolor.colored("Console cleared, run `/reprint` to undo", client.args["client_color"])), hist=False)
 
     def wlock(client: object, args_string: str) -> None:
         client.whisper_lock = not client.whisper_lock
@@ -343,8 +341,7 @@ Moderator commands:
     def reprint(client: object, args_string: str) -> None:
         client.print_msg("{}|{}| {}".format(termcolor.colored(client.formatted_datetime(), client.args["timestamp_color"]),
                                             termcolor.colored("CLIENT", client.args["client_color"]),
-                                            termcolor.colored(f"Re-printing {len(client.stdout_history)} messages...", client.args["client_color"])),
-                                            hist=False)
+                                            termcolor.colored(f"Re-printing {len(client.stdout_history)} messages...", client.args["client_color"])), hist=False)
         print("\n".join(client.stdout_history))
 
     def dev_exec(client: object, args_string: str) -> None:
@@ -391,7 +388,7 @@ Moderator commands:
         [client.send({"cmd": "kick", "nick": user.lstrip("@")}) for user in args_string.split(" ")]
 
     def kickasone(client: object, args_string: str) -> None:
-        client.send({"cmd": "kick", "nick": [user.lstrip("@") for user in args_string.split(" ")]}) # supply a list so everyone gets banished to the same room
+        client.send({"cmd": "kick", "nick": [user.lstrip("@") for user in args_string.split(" ")]})
 
     def overflow(client: object, args_string: str) -> None:
         [client.send({"cmd": "overflow", "nick": user.lstrip("@")}) for user in args_string.split(" ")]
