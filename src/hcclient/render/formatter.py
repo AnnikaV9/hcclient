@@ -16,7 +16,7 @@ import mdit_py_plugins.texmath
 
 class TextFormatter:
     """
-    Handles markdown parsing, code highlighting and LaTeX simplifying
+    Handles markdown parsing, code highlighting, LaTeX simplifying and linkifying
     """
     def __init__(self) -> None:
         """
