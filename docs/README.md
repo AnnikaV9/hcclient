@@ -1,5 +1,5 @@
 <div align="left">
-<h1> hcclient <br /> <a target="_blank" href="https://pypi.org/project/hcclient"><img src="https://img.shields.io/pypi/pyversions/hcclient?logo=python&label=Python"></a> <a target="_blank" href="https://pypi.org/project/hcclient" title="PyPI"><img src="https://img.shields.io/pypi/v/hcclient?label=PyPI&color=blue&logo=pypi"></a> <img src="https://github.com/AnnikaV9/hcclient/actions/workflows/flake8.yml/badge.svg"> <img src="https://github.com/AnnikaV9/hcclient/actions/workflows/poetry.yml/badge.svg"></h1>
+<h1> hcclient <br /> <a target="_blank" href="https://pypi.org/project/hcclient"><img src="https://img.shields.io/pypi/pyversions/hcclient?logo=python&label=Python"></a> <a target="_blank" href="https://pypi.org/project/hcclient" title="PyPI"><img src="https://img.shields.io/pypi/v/hcclient?label=PyPI&color=blue&logo=pypi"></a> <a target="_blank" href="https://github.com/AnnikaV9/hcclient/actions/workflows/flake8.yml"><img src="https://github.com/AnnikaV9/hcclient/actions/workflows/flake8.yml/badge.svg"></a> <a target="_blank" href="https://github.com/AnnikaV9/hcclient/actions/workflows/poetry.yml"><img src="https://github.com/AnnikaV9/hcclient/actions/workflows/poetry.yml/badge.svg"></a></h1>
 A cross-platform terminal client for <a href="https://hack.chat">hack.chat</a>
 
 <br />
