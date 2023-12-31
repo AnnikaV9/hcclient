@@ -1,13 +1,9 @@
-<div align="left">
-<h1> hcclient <br /> <a target="_blank" href="https://pypi.org/project/hcclient"><img src="https://img.shields.io/pypi/pyversions/hcclient?logo=python&label=Python"></a> <a target="_blank" href="https://pypi.org/project/hcclient" title="PyPI"><img src="https://img.shields.io/pypi/v/hcclient?label=PyPI&color=blue&logo=pypi"></a> <a target="_blank" href="https://github.com/AnnikaV9/hcclient/actions/workflows/flake8.yml"><img src="https://github.com/AnnikaV9/hcclient/actions/workflows/flake8.yml/badge.svg"></a> <a target="_blank" href="https://github.com/AnnikaV9/hcclient/actions/workflows/poetry.yml"><img src="https://github.com/AnnikaV9/hcclient/actions/workflows/poetry.yml/badge.svg"></a></h1>
-A cross-platform terminal client for <a href="https://hack.chat">hack.chat</a>
-
-<br />
-<br />
+# hcclient <br> ![badge](https://img.shields.io/pypi/pyversions/hcclient?logo=python&label=Python) ![badge](https://img.shields.io/pypi/v/hcclient?label=PyPI&color=blue&logo=pypi) ![badge](https://github.com/AnnikaV9/hcclient/actions/workflows/flake8.yml/badge.svg) ![badge](https://github.com/AnnikaV9/hcclient/actions/workflows/poetry.yml/badge.svg)
+A cross-platform terminal client for [hack.chat](https://hack.chat) <br><br>
 
 ![Demo](https://github.com/AnnikaV9/hcclient/assets/68383195/4e42545b-803a-495d-8a09-23240afd1354)
 
-<br />
+<br>
 
 - [Introduction](#introduction)
 - [Features](#features)
@@ -22,16 +18,17 @@ A cross-platform terminal client for <a href="https://hack.chat">hack.chat</a>
 - [Hooks](#hooks)
 - [Contributing](#contributing)
 
-<br />
+<br>
 
 ## Introduction <a name="introduction"></a>
 *"hack.chat is a minimal, distraction-free, accountless, logless, disappearing chat service which is easily deployable as your own service."* - [hack.chat](https://github.com/hack-chat/main)
 
 hcclient is a configurable and feature-rich cross-platform terminal client for connecting to [hack.chat](https://hack.chat)
 
-**Note:** This client is written to be compatible with the official live instance running at https://hack.chat. Compatibility with your own self-hosted instance or other alternate instances is not guaranteed.
+> [!IMPORTANT]
+> This client is written to be compatible with the official live instance. Compatibility with your own self-hosted instance or other alternate instances is not guaranteed.
 
-<br />
+<br>
 
 ## Features <a name="features"></a>
 Some of the features hcclient has to offer:
@@ -47,7 +44,7 @@ Some of the features hcclient has to offer:
 - **Ignore list:** Message blocking using tripcodes and connection hashes.
 - **Proxy support:** Connect through SOCKS4, SOCKS5 or HTTP proxies. Tested to work with Tor.
 
-<br />
+<br>
 
 ## Prerequisites <a name="prerequisites"></a>
 - Python >= 3.10
@@ -56,7 +53,7 @@ Some of the features hcclient has to offer:
 
 Notification support requires different dependencies on different platforms, see [Notifications](#notifications) for more information.
 
-<br />
+<br>
 
 ## Installation <a name="installation"></a>
 Cross-platform installation:
@@ -69,14 +66,12 @@ hcclient --help
 ```
 For LaTeX support, install `hcclient[latex]` instead.
 
-On Arch Linux (and most Arch-based distributions), install the [AUR package](https://aur.archlinux.org/packages/hcclient) with makepkg or an AUR helper.<br/>
-This will install an isolated environment with all dependencies in `/opt/hcclient`.<br />
+On Arch Linux (and most Arch-based distributions), install the [AUR package](https://aur.archlinux.org/packages/hcclient) with makepkg or an AUR helper. <br>
+This will install an isolated environment with all dependencies in `/opt/hcclient`. <br>
 
 Alternatively, install the LaTeX enabled [AUR package](https://aur.archlinux.org/packages/hcclient-latex).
 
-**Note:** Starting with version 1.18.2, hcclient is no longer available as a standalone executable or container image. Only wheels are supported.
-
-<br />
+<br>
 
 ## Usage <a name="usage"></a>
 ```
@@ -127,13 +122,13 @@ optional arguments:
   --ssl-no-verify                   disable SSL cert verification
 ```
 
-<br />
+<br>
 
 ## Styling <a name="styling"></a>
-The default color scheme can be overidden with a configuration file. See [Configuration](#configuration) for more information.<br />
+The default color scheme can be overidden with a configuration file. See [Configuration](#configuration) for more information. <br>
 A list of valid colors can be viewed with `--colors`.
 
-Syntax highlighting and markdown are enabled by default. They can be disabled with `--no-markdown` or with the `no_markdown` option.<br />
+Syntax highlighting and markdown are enabled by default. They can be disabled with `--no-markdown` or with the `no_markdown` option. <br>
 The markdown implementation supports:
 - **Bold:** `**bold**`
 - **Italics:** `*italics*`
@@ -155,17 +150,16 @@ The markdown implementation supports:
   - `example.com`
 - **Escaping:** `\*escaped*` (Spec compliant)
 
-Highlight themes can be listed with `--themes` and set with `--highlight-theme` or with the `highlight_theme` option<br />
+Highlight themes can be listed with `--themes` and set with `--highlight-theme` or with the `highlight_theme` option <br>
 The default theme is *monokai*.
 
-<br />
+<br>
 
 ## LaTeX Simplification <a name="latex-simplification"></a>
+LaTeX simplification is disabled by default. It can be enabled with `--latex` or with the `latex` option. <br>
+When enabled, LaTeX expressions will be parsed and converted to sympy expressions, which are more readable. <br>
 
-LaTeX simplification is disabled by default. It can be enabled with `--latex` or with the `latex` option.<br />
-When enabled, LaTeX expressions will be parsed and converted to sympy expressions, which are more readable.<br />
-
-Expressions must be enclosed in `$` or `$$` for inline and block expressions respectively.<br />
+Expressions must be enclosed in `$` or `$$` for inline and block expressions respectively.<br>
 
 For example, the following LaTeX expression:
 ```
@@ -177,10 +171,10 @@ Will be simplified and displayed as:
 |latex: 1/2|
 ```
 
-Conversion is done using [latex2sympy2](https://github.com/OrangeX4/latex2sympy).<br />
+Conversion is done using [latex2sympy2](https://github.com/OrangeX4/latex2sympy).<br>
 Not all LaTeX expressions are supported of course, but it's good enough for most use cases.
 
-<br />
+<br>
 
 ## Configuration <a name="configuration"></a>
 A configuration file can be generated with the provided arguments using `--gen-config` and loaded using `--load-config`. For example:
@@ -192,8 +186,8 @@ The above command will create *config.yml* with default options in the working d
 ```
 hcclient -c mychannel -n mynick --load-config <path_to_config.yml>
 ```
-Generated configuration files are in YAML format by default.<br />
-Alternatively, a JSON configuration file can be generated by running `--gen-config` again in the same directory. Both formats can be loaded the same way.<br />
+Generated configuration files are in YAML format by default. <br>
+Alternatively, a JSON configuration file can be generated by running `--gen-config` again in the same directory. Both formats can be loaded the same way. <br>
 
 Override defaults when generating the configuration file by specifying options:
 ```
@@ -204,24 +198,24 @@ hcclient searches for *config.yml* or *config.json* in the following directories
 - **Windows:** &nbsp;%APPDATA%/hcclient
 - **Other platforms:** &nbsp;$HOME/.config/hcclient
 
-**Note:** The configuration file does not affect `channel` and `nickname`, which have to be specified as flags every time.
+> [!NOTE]
+> The configuration file does not affect `channel` and `nickname`, which have to be specified as flags every time.
 
-<br />
+<br>
 
 You can also configure hcclient while it's running, without having to restart it. For example:
 ```
 > /configset no_notify true
 ```
-The changes will be applied live and lost once you exit the client, but you can save it to the configuration file with `/save`<br />
+The changes will be applied live and lost once you exit the client, but you can save it to the configuration file with `/save` <br>
 Configuration options can be listed with `/configdump`
 
-<br />
+<br>
 
 ## Notifications <a name="notifications"></a>
+Desktop notifications are enabled by default. They can be disabled with `--no-notify` or with the `no_notify` option <br>
 
-Desktop notifications are enabled by default. They can be disabled with `--no-notify` or with the `no_notify` option<br />
-
-hcclient doesn't have a built-in audio file for sound alerts, so you'll have to provide your own.<br />
+hcclient doesn't have a built-in audio file for sound alerts, so you'll have to provide your own. <br>
 Place a wave file named *tone.wav* in the default config directory and it will be played when a notification is sent.
 
 Default config directory location:
@@ -230,14 +224,13 @@ Default config directory location:
 
 On Linux, libnotify and aplay are required for notifications to work.
 
-On Android, notifications are supported when running on [Termux](https://termux.dev/).<br />
+On Android, notifications are supported when running on [Termux](https://termux.dev/). <br>
 Install the [Termux:API](https://f-droid.org/en/packages/com.termux.api/) app and termux-api package and notifications will just work.
 
-<br />
+<br>
 
 ## Updatable Messages <a name="updatable-messages"></a>
-
-hack.chat has support for updatable messages, which allows editing previously sent messages on the official web client. This is usually used by bots to display streamed/delayed output.<br />
+hack.chat has support for updatable messages, which allows editing previously sent messages on the official web client. This is usually used by bots to display streamed/delayed output. <br>
 Since hcclient is a terminal client, editing messages that have been previously printed isn't possible.
 
 However, `updateMessage` events are still handled, just differently.
@@ -248,7 +241,7 @@ When an updatable message is received, it will be printed as per normal but with
 ```
 Here, `84263` is the message identifier.
 
-As the sender continues to update and edit the message, hcclient will track the changes in memory.<br />
+As the sender continues to update and edit the message, hcclient will track the changes in memory. <br>
 Once the sender sends the `complete` status, the message will be printed again with the same identifier and all changes applied:
 ```
 23:06|jEuh/s| [⧗ 84263] [user] hi
@@ -261,27 +254,28 @@ It's displayed as a new message, but it's actually the previous message, edited.
 
 If no `complete` status is received in 3 minutes, the message will expire. All changes applied so far will be printed like normal, but with the `✗` icon instead.
 
-**Note:** If `no_unicode` is enabled, the `⧗`, `✓` and `✗` icons will be replaced with `Updatable.ID:`, `Completed.ID:` and `Expired.ID:` respectively.
+> [!NOTE]
+> If `no_unicode` is enabled, the `⧗`, `✓` and `✗` icons will be replaced with `Updatable.ID:`, `Completed.ID:` and `Expired.ID:` respectively.
 
-<br />
+<br>
 
 ## Hooks <a name="hooks"></a>
-You can tweak hcclient's behaviour by placing python scripts in the default hooks directory:<br />
+You can tweak hcclient's behaviour by placing python scripts in the default hooks directory: <br>
 - **Windows:** &nbsp;%APPDATA%/hcclient/hooks
 - **Other platforms:** &nbsp;$HOME/.config/hcclient/hooks
 
-hcclient will run `hook()` in all scripts in the hooks directory on startup.<br />
+hcclient will run `hook()` in all scripts in the hooks directory on startup. <br>
 `hook()` should take a single argument, which is the client instance.
 
-You can modify, add or remove the instance's attributes and methods to change its behaviour.<br />
+You can modify, add or remove the instance's attributes and methods to change its behaviour. <br>
 Example hooks can be found [here](../examples/hooks).
 
-**Note:** Hook support is experimental. hcclient is not stable and the API is subject to change, hooks may not work after an update.
+> [!WARNING]
+> Hook support is experimental. hcclient is not stable and the API is subject to change, hooks may not work after an update.
 
-<br />
+<br>
 
 ## Contributing <a name="contributing"></a>
-
 All contributions are welcome! :D
 
 Please read [CONTRIBUTING.md](../docs/CONTRIBUTING.md) before submitting a pull request.
