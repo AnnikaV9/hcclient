@@ -291,11 +291,11 @@ class Client:
                         match self.level_to_utype(received["level"]):
                             case "Mod":
                                 color_to_use = self.args["mod_nickname_color"] if self.nick != received["nick"] else self.args["self_nickname_color"]
-                                received["nick"] = f"{chr(11088)} {received['nick']}" if not self.args["no_unicode"] else received["nick"]
+                                received["nick"] = f"{chr(11088)} {received['nick']}" if self.args["sheriff_badges"] and not self.args["no_unicode"] else received["nick"]
 
                             case "Admin":
                                 color_to_use = self.args["admin_nickname_color"] if self.nick != received["nick"] else self.args["self_nickname_color"]
-                                received["nick"] = f"{chr(11088)} {received['nick']}" if not self.args["no_unicode"] else received["nick"]
+                                received["nick"] = f"{chr(11088)} {received['nick']}" if self.args["sheriff_badges"] and not self.args["no_unicode"] else received["nick"]
                                 tripcode = "Admin"
 
                             case _:

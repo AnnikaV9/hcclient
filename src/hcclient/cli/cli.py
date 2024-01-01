@@ -49,6 +49,7 @@ def main():
     optional_group.add_argument("--clear", help="clear console before joining", action="store_true", default=argparse.SUPPRESS)
     optional_group.add_argument("--is-mod", help="enable moderator commands", action="store_true", default=argparse.SUPPRESS)
     optional_group.add_argument("--no-unicode", help="disable unicode UI elements", action="store_true", default=argparse.SUPPRESS)
+    optional_group.add_argument("--sheriff-badges", help="show stars beside mods/admins", action="store_true", default=argparse.SUPPRESS)
     optional_group.add_argument("--no-highlight", help=argparse.SUPPRESS, action="store_true", default=False)  # deprecated, doesn't do anything
     optional_group.add_argument("--highlight-theme", help="set highlight theme", metavar="THEME", default=argparse.SUPPRESS)
     optional_group.add_argument("--no-markdown", help="disable markdown formatting", action="store_true", default=argparse.SUPPRESS)
