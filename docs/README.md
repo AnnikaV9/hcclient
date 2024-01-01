@@ -1,4 +1,4 @@
-# hcclient <br> ![badge](https://img.shields.io/pypi/pyversions/hcclient?logo=python&label=Python) ![badge](https://img.shields.io/pypi/v/hcclient?label=PyPI&color=blue&logo=pypi) ![badge](https://github.com/AnnikaV9/hcclient/actions/workflows/flake8.yml/badge.svg) ![badge](https://github.com/AnnikaV9/hcclient/actions/workflows/poetry.yml/badge.svg)
+# hcclient <br> ![badge](https://img.shields.io/pypi/pyversions/hcclient?logo=python&logoColor=white&label=Python&labelColor=343b42) ![badge](https://img.shields.io/pypi/v/hcclient?label=PyPI&labelColor=343b42&color=blue&logo=pypi&logoColor=white) ![badge](https://github.com/AnnikaV9/hcclient/actions/workflows/flake8.yml/badge.svg) ![badge](https://github.com/AnnikaV9/hcclient/actions/workflows/poetry.yml/badge.svg)
 A cross-platform terminal client for [hack.chat](https://hack.chat) <br><br>
 
 ![Demo](https://github.com/AnnikaV9/hcclient/assets/68383195/4e42545b-803a-495d-8a09-23240afd1354)
