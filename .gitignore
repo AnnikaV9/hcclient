@@ -1,4 +1,5 @@
 .venv
+venv
 src/hcclient/__pycache__
 src/hcclient/cli/__pycache__
 src/hcclient/client/__pycache__
