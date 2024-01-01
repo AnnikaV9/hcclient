@@ -202,6 +202,17 @@ jeepney = {version = "*", markers = "sys_platform == \"linux\""}
 loguru = ">=0.5.3,<=0.6.0"
 
 [[package]]
+name = "packaging"
+version = "23.2"
+description = "Core utilities for Python packages"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "packaging-23.2-py3-none-any.whl", hash = "sha256:8c491190033a9af7e1d931d0b5dacc2ef47509b34dd0de67ed209b5203fc88c7"},
+    {file = "packaging-23.2.tar.gz", hash = "sha256:048fb0e9405036518eaaf48a55953c750c11e1a1b68e0dd1a9d62ed0c092cfc5"},
+]
+
+[[package]]
 name = "prompt-toolkit"
 version = "3.0.43"
 description = "Library for building powerful interactive command lines in Python"
@@ -482,4 +493,4 @@ latex = ["latex2sympy2"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10, <4.0"
-content-hash = "336a44216ba761ae523a6b3deb1573183681bc40817829319ead657c55d713ec"
+content-hash = "f1cd95fd0ae8211a54fe124842433dcc115b0e3b9dcdb0de83213982646e6feb"

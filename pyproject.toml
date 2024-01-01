@@ -22,6 +22,7 @@ markdown-it-py = "3.0.0"
 mdit-py-plugins = "0.4.0"
 pygments = "2.17.2"
 linkify-it-py = "2.0.2"
+packaging = "23.2"
 latex2sympy2 = { version = "1.9.1", optional = true }
 
 [tool.poetry.extras]

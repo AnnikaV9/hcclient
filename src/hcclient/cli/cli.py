@@ -7,6 +7,7 @@ import argparse
 import termcolor
 import pygments.styles
 
+from hcclient import meta
 from hcclient.client.client import Client
 from hcclient.utils.hook import load_hooks
 from hcclient.utils.config import default_config, initialize_config
@@ -17,9 +18,7 @@ def main():
     Entry point
     Parses cli arguments, loads config file, and runs the client
     """
-    version = "1.19.2-git"
-
-    parser = argparse.ArgumentParser(description="terminal client for hack.chat",
+    parser = argparse.ArgumentParser(description=meta.desc,
                                      add_help=False,
                                      formatter_class=lambda prog: argparse.HelpFormatter(prog, max_help_position=45))
 
@@ -28,7 +27,7 @@ def main():
     optional_group = parser.add_argument_group("optional arguments")
 
     command_group.add_argument("-h", "--help", help="display this help message", action="help")
-    command_group.add_argument("-v", "--version", help="display version information", action="version", version=f"hcclient {version}")
+    command_group.add_argument("-v", "--version", help="display version information", action="version", version=f"hcclient {meta.vers}")
     command_group.add_argument("--gen-config", help="generate config file", action="store_true")
     command_group.add_argument("--defaults", help="display default config values", action="store_true")
     command_group.add_argument("--colors", help="display valid color values", action="store_true")
@@ -87,4 +86,4 @@ def main():
     if hook:
         client = load_hooks(client)
 
-    client.run(version)
+    client.run(meta.vers)
