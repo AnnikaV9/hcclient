@@ -1,10 +1,9 @@
-
-*.sh             text eol=lf diff=bash
 *.py             text diff=python
 *.toml           text
-*.txt            text
 *.yml            text
 *.gitattributes  text
 *.gitignore      text
+*.flake8         text
+*.editorconfig   text
 *.md             text diff=markdown
 LICENSE          text
