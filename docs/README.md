@@ -109,6 +109,7 @@ optional arguments:
   --clear                           clear console before joining
   --is-mod                          enable moderator commands
   --no-unicode                      disable unicode UI elements
+  --sheriff-badges                  show stars beside mods/admins
   --highlight-theme THEME           set highlight theme
   --no-markdown                     disable markdown formatting
   --no-linkify                      disable linkifying of urls
