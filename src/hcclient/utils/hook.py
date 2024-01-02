@@ -11,29 +11,31 @@ import packaging.specifiers
 from hcclient import meta
 
 
-def check_hook(module: object) -> bool:
+def check_hook(module: object) -> bool | str | Exception:
     """
     Checks if a hook has the required attributes
     """
     if not hasattr(module, "HookInfo"):
-        return False
+        return False, "Missing HookInfo class"
 
     if not hasattr(module.HookInfo, "name") or not hasattr(module.HookInfo, "version"):
-        return False
+        return False, "Missing HookInfo attributes"
 
     if not isinstance(module.HookInfo.name, str) or not isinstance(module.HookInfo.version, str):
-        return False
+        return False, "non-string HookInfo attributes"
 
     if not module.HookInfo.name.isalnum():
-        return False
+        return False, "HookInfo.name not alphanumeric"
 
     try:
         packaging.version.parse(module.HookInfo.version)
+        if hasattr(module.HookInfo, "compat"):
+            packaging.specifiers.SpecifierSet(module.HookInfo.compat)
 
-    except packaging.version.InvalidVersion:
-        return False
+    except (packaging.version.InvalidVersion, packaging.specifiers.InvalidSpecifier) as e:
+        return False, e
 
-    return True
+    return True, ""
 
 
 def check_compat(hook_info: object) -> bool:
@@ -66,8 +68,9 @@ def load_hooks(client: object) -> object:
                 spec = importlib.util.spec_from_file_location(hook, hook_path)
                 module = importlib.util.module_from_spec(spec)
                 spec.loader.exec_module(module)
-                if not check_hook(module):
-                    print(f"{sys.argv[0]}: warning: skipping hook '{hook}' due to missing or invalid HookInfo class")
+                check, err = check_hook(module)
+                if not check:
+                    print(f"{sys.argv[0]}: warning: skipping hook '{hook}': {err}")
                     continue
 
                 if not check_compat(module.HookInfo):
