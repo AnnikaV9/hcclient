@@ -269,11 +269,11 @@ Hooks are python scripts that are run on startup. <br>
 
 A hook should have a `HookInfo` class and a `hook()` function. <br>
 The `HookInfo` class should have the following attributes:
-- `name`: The name of the hook
-- `description`: (Optional) A description of the hook
-- `version`: The version of the hook, must be a valid version string
-- `compat`: (Optional) A version specifier for the client version the hook is compatible with. See the [Packaging User Guide](https://packaging.python.org/en/latest/specifications/version-specifiers/#id4) for more information
-- Any other attributes you want to add, hcclient will ignore them
+- `name`: The name of the hook.
+- `description`: (Optional) A description of the hook.
+- `version`: The version of the hook, must be a valid version string.
+- `compat`: (Optional) A version specifier for the client version the hook is compatible with. See the [Packaging User Guide](https://packaging.python.org/en/latest/specifications/version-specifiers/#id4) for more information.
+- Any other attributes you want to add, hcclient will ignore them.
 
 The `hook()` function should take a single argument, which is the client instance. <br>
 You can modify, add or remove the instance's attributes and methods to change its behaviour.
