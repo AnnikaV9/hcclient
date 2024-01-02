@@ -27,6 +27,12 @@ def check_hook(module: object) -> bool:
     if not module.HookInfo.name.isalnum():
         return False
 
+    try:
+        packaging.version.parse(module.HookInfo.version)
+
+    except packaging.version.InvalidVersion:
+        return False
+
     return True
 
 
@@ -65,7 +71,7 @@ def load_hooks(client: object) -> object:
                     continue
 
                 if not check_compat(module.HookInfo):
-                    print(f"{sys.argv[0]}: warning: skipping hook '{module.HookInfo.name}' due to incompatible version (requires: {module.HookInfo.compat}, installed: {meta.vers})")
+                    print(f"{sys.argv[0]}: warning: skipping hook '{module.HookInfo.name}' due to incompatible version (requires: {module.HookInfo.compat}, client: {meta.vers})")
                     continue
 
                 client = module.hook(client)
