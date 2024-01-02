@@ -2,6 +2,13 @@
 # Cannot be used with logger_sample.py as they both modify the same function
 
 
+class HookInfo:
+    name = "Prepend"
+    description = "Prepends a string to stdout messages"
+    version = "0.1.0"
+    compat = ">=1.19.3"
+
+
 STRING_TO_PREPEND = "Hello World! "
 
 def print_msg(self, message, hist=True):

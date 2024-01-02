@@ -261,14 +261,23 @@ If no `complete` status is received in 3 minutes, the message will expire. All c
 <br>
 
 ## Hooks <a name="hooks"></a>
-You can tweak hcclient's behaviour by placing python scripts in the default hooks directory: <br>
+You can tweak hcclient's behaviour by placing hooks in the default hooks directory: <br>
 - **Windows:** &nbsp;%APPDATA%/hcclient/hooks
 - **Other platforms:** &nbsp;$HOME/.config/hcclient/hooks
 
-hcclient will run `hook()` in all scripts in the hooks directory on startup. <br>
-`hook()` should take a single argument, which is the client instance.
+Hooks are python scripts that are run on startup. <br>
 
-You can modify, add or remove the instance's attributes and methods to change its behaviour. <br>
+A hook should have a `HookInfo` class and a `hook()` function. <br>
+The `HookInfo` class should have the following attributes:
+- `name`: The name of the hook
+- `description`: (Optional) A description of the hook
+- `version`: The version of the hook, must be a valid version string
+- `compat`: (Optional) A version specifier for the client version the hook is compatible with. See the [Packaging User Guide](https://packaging.python.org/en/latest/specifications/version-specifiers/#id4) for more information
+- Any other attributes you want to add, hcclient will ignore them
+
+The `hook()` function should take a single argument, which is the client instance. <br>
+You can modify, add or remove the instance's attributes and methods to change its behaviour.
+
 Example hooks can be found [here](../examples/hooks).
 
 > [!WARNING]

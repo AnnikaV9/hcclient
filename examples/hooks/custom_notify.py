@@ -1,6 +1,12 @@
 # Hook to use a custom notification system
 
 
+class HookInfo:
+    name = "CustomNotify"
+    description = "Use a custom notification system"
+    version = "0.1.0"
+
+
 def push_notification(self, message, title="hcclient"):
     if self.args["no_notify"]:
         return

@@ -1,6 +1,12 @@
 # Hook to use a custom markdown parser
 
 
+class HookInfo:
+    name = "CustomParser"
+    description = "Use a custom markdown parser"
+    version = "0.1.0"
+
+
 class MarkdownParser:
     # ...
     # ...

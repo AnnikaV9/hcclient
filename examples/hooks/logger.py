@@ -1,8 +1,15 @@
-# Sample functional hook to log stdout messages to a file
+# Functional hook to log stdout messages to a file
 # Cannot be used with prepend_sample.py as they both modify the same function
 
-
 import re
+
+
+class HookInfo:
+    name = "Logger"
+    description = "Logs stdout messages to a file"
+    version = "0.1.0"
+    compat = ">=1.19.3"
+
 
 ansi_remover = re.compile(r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])")
 

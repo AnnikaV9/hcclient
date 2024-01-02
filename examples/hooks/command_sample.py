@@ -5,6 +5,13 @@ import termcolor
 from hcclient.client.commands import ClientCommands
 
 
+class HookInfo:
+    name = "CommandMod"
+    description = "Adds/Modifies commands"
+    version = "0.1.0"
+    compat = ">=1.19.3"
+
+
 class CustomCommands(ClientCommands):
     # Adding a new command
     def hello(client, args_string):
