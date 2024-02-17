@@ -254,6 +254,10 @@ class Client:
 
                 match received["cmd"]:
                     case "onlineSet":
+                        self.online_users.clear()
+                        self.online_users_details.clear()
+                        self.online_ignored_users.clear()
+
                         for nick in received["nicks"]:
                             self.online_users.append(nick)
 
