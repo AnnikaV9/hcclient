@@ -464,7 +464,7 @@ class Client:
                                                   termcolor.colored(f"Disconnected from server: {e}", self.args["client_color"])))
                 self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
                                                   termcolor.colored("CLIENT", self.args["client_color"]),
-                                                  termcolor.colored("Reconnecting in 60 seconds, run `/reconnect` do it immediately", self.args["client_color"])))
+                                                  termcolor.colored("Reconnecting in 60 seconds, run `/reconnect` to do it immediately", self.args["client_color"])))
                 self.timed_reconnect = threading.Timer(60, self.reconnect_to_server)
                 self.timed_reconnect.start()
                 self.close()
