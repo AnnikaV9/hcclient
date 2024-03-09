@@ -1,3 +1,5 @@
+import importlib.metadata
+
 name = "hcclient"
 desc = "terminal client for hack.chat"
-vers = "1.19.3"
+vers = importlib.metadata.version(name)
