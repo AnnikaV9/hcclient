@@ -390,7 +390,8 @@ class Client:
                                                               termcolor.colored(received["text"], self.args["server_color"])))
 
                     case "onlineAdd":
-                        self.online_users.append(received["nick"])
+                        if received["nick"] not in self.online_users:
+                            self.online_users.append(received["nick"])
 
                         self.online_users_details[received["nick"]] = {
                             "Trip": received["trip"] if received["trip"] != "" else None,
@@ -411,8 +412,12 @@ class Client:
                                                           termcolor.colored(received["nick"] + " joined", self.args["server_color"])))
 
                     case "onlineRemove":
-                        self.online_users.remove(received["nick"])
-                        self.online_users_details.pop(received["nick"])
+                        try:
+                            self.online_users.remove(received["nick"])
+                            self.online_users_details.pop(received["nick"])
+
+                        except (ValueError, KeyError):
+                            pass
 
                         self.manage_complete_list()
 
