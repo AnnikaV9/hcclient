@@ -246,7 +246,12 @@ class Client:
 
             while self.ws.connected:
                 received = json.loads(self.ws.recv())
-                packet_receive_time = datetime.datetime.now().strftime(self.args["timestamp_format"])
+
+                if "time" in received and received["time"] is not None:
+                    packet_receive_time = datetime.datetime.fromtimestamp(received["time"] / 1000).strftime(self.args["timestamp_format"])
+
+                else:
+                    packet_receive_time = datetime.datetime.now().strftime(self.args["timestamp_format"])
 
                 if self.args["no_parse"]:
                     self.print_msg("\n{}|{}".format(packet_receive_time, json.dumps(received)))
