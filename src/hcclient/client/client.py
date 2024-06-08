@@ -248,13 +248,13 @@ class Client:
                 received = json.loads(self.ws.recv())
 
                 if "time" in received and received["time"] is not None:
-                    packet_receive_time = datetime.datetime.fromtimestamp(received["time"] / 1000).strftime(self.args["timestamp_format"])
+                    packet_time = datetime.datetime.fromtimestamp(received["time"] / 1000).strftime(self.args["timestamp_format"])
 
                 else:
-                    packet_receive_time = datetime.datetime.now().strftime(self.args["timestamp_format"])
+                    packet_time = datetime.datetime.now().strftime(self.args["timestamp_format"])
 
                 if self.args["no_parse"]:
-                    self.print_msg("\n{}|{}".format(packet_receive_time, json.dumps(received)))
+                    self.print_msg("\n{}|{}".format(packet_time, json.dumps(received)))
                     continue
 
                 match received["cmd"]:
@@ -283,7 +283,7 @@ class Client:
 
                         self.channel = received["users"][0]["channel"]
 
-                        self.print_msg("{}|{}| {}".format(termcolor.colored(packet_receive_time, self.args["timestamp_color"]),
+                        self.print_msg("{}|{}| {}".format(termcolor.colored(packet_time, self.args["timestamp_color"]),
                                                           termcolor.colored("SERVER", self.args["server_color"]),
                                                           termcolor.colored(f"Connected to channel: {self.channel} - Users: {', '.join(self.online_users)}", self.args["server_color"])))
 
@@ -329,14 +329,14 @@ class Client:
                                     "unique_id": unique_id
                                 }
 
-                            self.print_msg("{}|{}| [{}] [{}] {}".format(termcolor.colored(packet_receive_time, self.args["timestamp_color"]),
+                            self.print_msg("{}|{}| [{}] [{}] {}".format(termcolor.colored(packet_time, self.args["timestamp_color"]),
                                                                         termcolor.colored(tripcode, color_to_use),
                                                                         f"Updatable.ID: {unique_id}" if self.args["no_unicode"] else f"{chr(10711)} {unique_id}",
                                                                         termcolor.colored(received["nick"], color_to_use),
                                                                         termcolor.colored(self.format(received["text"]), self.args["message_color"])))
 
                         else:
-                            self.print_msg("{}|{}| [{}] {}".format(termcolor.colored(packet_receive_time, self.args["timestamp_color"]),
+                            self.print_msg("{}|{}| [{}] {}".format(termcolor.colored(packet_time, self.args["timestamp_color"]),
                                                                    termcolor.colored(tripcode, color_to_use),
                                                                    termcolor.colored(received["nick"], color_to_use),
                                                                    termcolor.colored(self.format(received["text"]), self.args["message_color"])))
@@ -362,7 +362,7 @@ class Client:
                                         message = self.updatable_messages[message_hash]
                                         unique_id = message["unique_id"]
 
-                                        self.print_msg("{}|{}| [{}] [{}] {}".format(termcolor.colored(packet_receive_time, self.args["timestamp_color"]),
+                                        self.print_msg("{}|{}| [{}] [{}] {}".format(termcolor.colored(packet_time, self.args["timestamp_color"]),
                                                                                     termcolor.colored(message["trip"], message["color"]),
                                                                                     f"Completed.ID: {unique_id}" if self.args["no_unicode"] else f"{chr(10003)} {unique_id}",
                                                                                     termcolor.colored(message["nick"], message["color"]),
@@ -385,12 +385,12 @@ class Client:
                             if sender in self.online_users:
                                 self.push_notification(received["text"])
 
-                            self.print_msg("{}|{}| {}".format(termcolor.colored(packet_receive_time, self.args["timestamp_color"]),
+                            self.print_msg("{}|{}| {}".format(termcolor.colored(packet_time, self.args["timestamp_color"]),
                                                               termcolor.colored(tripcode, self.args["whisper_color"]),
                                                               termcolor.colored(self.format(received["text"], "whisper"), self.args["whisper_color"])))
 
                         else:
-                            self.print_msg("{}|{}| {}".format(termcolor.colored(packet_receive_time, self.args["timestamp_color"]),
+                            self.print_msg("{}|{}| {}".format(termcolor.colored(packet_time, self.args["timestamp_color"]),
                                                               termcolor.colored("SERVER", self.args["server_color"]),
                                                               termcolor.colored(received["text"], self.args["server_color"])))
 
@@ -412,7 +412,7 @@ class Client:
                         if self.online_users_details[received["nick"]]["Hash"] in self.args["ignored"]["hashes"]:
                             self.online_ignored_users.append(received["nick"])
 
-                        self.print_msg("{}|{}| {}".format(termcolor.colored(packet_receive_time, self.args["timestamp_color"]),
+                        self.print_msg("{}|{}| {}".format(termcolor.colored(packet_time, self.args["timestamp_color"]),
                                                           termcolor.colored("SERVER", self.args["server_color"]),
                                                           termcolor.colored(received["nick"] + " joined", self.args["server_color"])))
 
@@ -429,7 +429,7 @@ class Client:
                         if received["nick"] in self.online_ignored_users:
                             self.online_ignored_users.remove(received["nick"])
 
-                        self.print_msg("{}|{}| {}".format(termcolor.colored(packet_receive_time, self.args["timestamp_color"]),
+                        self.print_msg("{}|{}| {}".format(termcolor.colored(packet_time, self.args["timestamp_color"]),
                                                           termcolor.colored("SERVER", self.args["server_color"]),
                                                           termcolor.colored(received["nick"] + " left", self.args["server_color"])))
 
@@ -443,12 +443,12 @@ class Client:
                         else:
                             tripcode = received.get("trip", "")
 
-                        self.print_msg("{}|{}| {}".format(termcolor.colored(packet_receive_time, self.args["timestamp_color"]),
+                        self.print_msg("{}|{}| {}".format(termcolor.colored(packet_time, self.args["timestamp_color"]),
                                                           termcolor.colored(tripcode, self.args["emote_color"]),
                                                           termcolor.colored(self.format(received["text"], "emote"), self.args["emote_color"])))
 
                     case "warn":
-                        self.print_msg("{}|{}| {}".format(termcolor.colored(packet_receive_time, self.args["timestamp_color"]),
+                        self.print_msg("{}|{}| {}".format(termcolor.colored(packet_time, self.args["timestamp_color"]),
                                                           termcolor.colored("!WARN!", self.args["warning_color"]),
                                                           termcolor.colored(received["text"], self.args["warning_color"])))
 
