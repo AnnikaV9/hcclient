@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "hcclient"
-version = "v1.19.4"
+version = "v1.19.5"
 description = "A terminal client for connecting to hack.chat"
 license = "Unlicense"
 authors = ["AnnikaV9 <carrot.moncher@gmail.com>"]
@@ -10,19 +10,19 @@ readme = ["docs/README.md"]
 
 [tool.poetry.dependencies]
 python = ">=3.10, <4.0"
-websocket-client = "1.7.0"
+websocket-client = "1.8.0"
 wsaccel = "0.6.6"
 python-socks = "2.4.4"
-prompt-toolkit = "3.0.43"
+prompt-toolkit = "3.0.46"
 pyyaml = "6.0.1"
 colorama = "0.4.6"
 termcolor = "2.4.0"
-notify-py = "0.3.42"
+notify-py = "0.3.43"
 markdown-it-py = "3.0.0"
-mdit-py-plugins = "0.4.0"
-pygments = "2.17.2"
+mdit-py-plugins = "0.4.1"
+pygments = "2.18.0"
 linkify-it-py = "2.0.3"
-packaging = "23.2"
+packaging = "24.0"
 latex2sympy2 = { version = "1.9.1", optional = true }
 
 [tool.poetry.extras]
