@@ -463,7 +463,7 @@ class Client:
 
                         self.print_msg("{}|{}| {}".format(termcolor.colored(packet_time, self.args["timestamp_color"]),
                                                           termcolor.colored("CLIENT", self.args["client_color"]),
-                                                          termcolor.colored(f"Captcha encountered, saved to captcha_{received['channel']}.txt", self.args["server_color"])))
+                                                          termcolor.colored(f"Captcha encountered, saved to captcha_{received['channel']}.txt", self.args["client_color"])))
                         self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
                                                           termcolor.colored("CLIENT", self.args["client_color"]),
                                                           termcolor.colored("Solve the captcha and send the solution as a message", self.args["client_color"])))
