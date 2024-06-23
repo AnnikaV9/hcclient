@@ -458,7 +458,7 @@ class Client:
                                                               termcolor.colored("Try running `/nick <newnick>` and `/reconnect`", self.args["client_color"])))
 
                     case "captcha":
-                        with open(f"captcha_{received['channel']}", "w") as captcha_dump:
+                        with open(f"captcha_{received['channel']}.txt", "w") as captcha_dump:
                             captcha_dump.write(received["text"])
 
                         self.print_msg("{}|{}| {}".format(termcolor.colored(packet_time, self.args["timestamp_color"]),
@@ -466,7 +466,10 @@ class Client:
                                                           termcolor.colored(f"Captcha encountered, saved to captcha_{received['channel']}.txt", self.args["client_color"])))
                         self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
                                                           termcolor.colored("CLIENT", self.args["client_color"]),
-                                                          termcolor.colored("Solve the captcha and send the solution as a message", self.args["client_color"])))
+                                                          termcolor.colored(f"""Run `/cat captcha_{received['channel']}.txt` to print the captcha here""", self.args["client_color"])))
+                        self.print_msg("{}|{}| {}".format(termcolor.colored(self.formatted_datetime(), self.args["timestamp_color"]),
+                                                          termcolor.colored("CLIENT", self.args["client_color"]),
+                                                          termcolor.colored("Send the solution as a message", self.args["client_color"])))
 
         except Exception as e:
             self.channel = None

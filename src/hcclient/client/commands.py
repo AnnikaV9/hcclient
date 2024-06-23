@@ -78,6 +78,9 @@ Client commands:
   /exec <code>
     Executes python code in the context of the
     client, similar to a browser's dev console.
+  /cat <file>
+    Prints the contents of a file to stdout.
+    (For captcha purposes)
   /quit
     Exits the client."""
             mod_help_text = """\n
@@ -356,6 +359,16 @@ Moderator commands:
                                                 termcolor.colored("CLIENT", client.args["client_color"]),
                                                 termcolor.colored(f"Exec exception ({full_name}): {e}", client.args["client_color"])))
 
+    def cat(client: object, args_string: str) -> None:
+        try:
+            with open(args_string, "r", encoding="utf8") as file:
+                print(file.read())
+
+        except Exception as e:
+            client.print_msg("{}|{}| {}".format(termcolor.colored(client.formatted_datetime(), client.args["timestamp_color"]),
+                                                termcolor.colored("CLIENT", client.args["client_color"]),
+                                                termcolor.colored(f"Error reading file: {e}", client.args["client_color"])))
+
     def quit_client(client: object, args_string: str) -> None:
         raise SystemExit
 
@@ -445,6 +458,7 @@ Moderator commands:
         "/save": save,
         "/reprint": reprint,
         "/exec": dev_exec,
+        "/cat": cat,
         "/quit": quit_client
     }
 
