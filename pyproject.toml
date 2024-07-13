@@ -12,8 +12,8 @@ readme = ["docs/README.md"]
 python = ">=3.10, <4.0"
 websocket-client = "1.8.0"
 wsaccel = "0.6.6"
-python-socks = "2.4.4"
-prompt-toolkit = "3.0.46"
+python-socks = "2.5.0"
+prompt-toolkit = "3.0.47"
 pyyaml = "6.0.1"
 colorama = "0.4.6"
 termcolor = "2.4.0"
@@ -22,7 +22,7 @@ markdown-it-py = "3.0.0"
 mdit-py-plugins = "0.4.1"
 pygments = "2.18.0"
 linkify-it-py = "2.0.3"
-packaging = "24.0"
+packaging = "24.1"
 latex2sympy2 = { version = "1.9.1", optional = true }
 
 [tool.poetry.extras]
